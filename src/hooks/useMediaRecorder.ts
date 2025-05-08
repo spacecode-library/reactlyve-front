@@ -1,10 +1,18 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 
-interface MediaRecorderOptions {
+// Interface for the options the hook takes
+interface UseMediaRecorderOptions {
   stream: MediaStream | null;
   mimeType?: string;
   timeSlice?: number;
   maxDuration?: number; // in milliseconds
+  audioBitsPerSecond?: number;
+  videoBitsPerSecond?: number;
+}
+
+// Interface for the MediaRecorder options
+interface MediaRecorderOptions {
+  mimeType?: string;
   audioBitsPerSecond?: number;
   videoBitsPerSecond?: number;
 }
@@ -31,7 +39,7 @@ const useMediaRecorder = ({
   maxDuration = 20000, // 20 seconds
   audioBitsPerSecond = 128000,
   videoBitsPerSecond = 2500000,
-}: MediaRecorderOptions): UseMediaRecorderReturn => {
+}: UseMediaRecorderOptions): UseMediaRecorderReturn => {
   const [status, setStatus] = useState<RecordingStatus>('inactive');
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const [duration, setDuration] = useState<number>(0);
@@ -80,6 +88,35 @@ const useMediaRecorder = ({
     }
   }, [maxDuration]);
 
+  // Define stopRecording function here, but it will be implemented later
+  // We need this for TypeScript to recognize it in updateDuration
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try {
+        mediaRecorderRef.current.stop();
+        
+        // Final duration update
+        if (startTimeRef.current) {
+          setDuration(Date.now() - startTimeRef.current);
+        }
+        
+        // Clear timers
+        if (durationTimerRef.current) {
+          clearInterval(durationTimerRef.current);
+          durationTimerRef.current = null;
+        }
+        
+        if (maxDurationTimerRef.current) {
+          clearTimeout(maxDurationTimerRef.current);
+          maxDurationTimerRef.current = null;
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Unknown error stopping recording'));
+        setStatus('error');
+      }
+    }
+  }, []);
+
   // Setup recorder when stream changes
   useEffect(() => {
     if (!stream) {
@@ -93,13 +130,14 @@ const useMediaRecorder = ({
         throw new Error('No supported mimeType found for MediaRecorder');
       }
       
-      const options: MediaRecorderOptions = {
+      // Fixed: Create proper MediaRecorder options without stream property
+      const recorderOptions: MediaRecorderOptions = {
         mimeType: supportedType,
         audioBitsPerSecond,
         videoBitsPerSecond,
       };
       
-      const recorder = new MediaRecorder(stream, options);
+      const recorder = new MediaRecorder(stream, recorderOptions);
       
       recorder.ondataavailable = (event: BlobEvent) => {
         if (event.data && event.data.size > 0) {
@@ -129,8 +167,11 @@ const useMediaRecorder = ({
         }
       };
       
-      recorder.onerror = (event) => {
-        setError(new Error('MediaRecorder error: ' + event.error));
+      // Fix: Properly type the error event
+      recorder.onerror = (event: Event) => {
+        // Use MediaRecorderErrorEvent if available or cast to any as fallback
+        const errorEvent = event as any;
+        setError(new Error(`MediaRecorder error: ${errorEvent.error || 'Unknown error'}`));
         setStatus('error');
       };
       
@@ -195,34 +236,7 @@ const useMediaRecorder = ({
       setError(err instanceof Error ? err : new Error('Unknown error starting recording'));
       setStatus('error');
     }
-  }, [stream, timeSlice, updateDuration, maxDuration]);
-
-  const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      try {
-        mediaRecorderRef.current.stop();
-        
-        // Final duration update
-        if (startTimeRef.current) {
-          setDuration(Date.now() - startTimeRef.current);
-        }
-        
-        // Clear timers
-        if (durationTimerRef.current) {
-          clearInterval(durationTimerRef.current);
-          durationTimerRef.current = null;
-        }
-        
-        if (maxDurationTimerRef.current) {
-          clearTimeout(maxDurationTimerRef.current);
-          maxDurationTimerRef.current = null;
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Unknown error stopping recording'));
-        setStatus('error');
-      }
-    }
-  }, []);
+  }, [stream, timeSlice, updateDuration, maxDuration, stopRecording]);
 
   const pauseRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {

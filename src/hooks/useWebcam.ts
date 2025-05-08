@@ -29,7 +29,9 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
   const [permissionState, setPermissionState] = useState<PermissionState | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  
+  // Fix: Explicitly type this as RefObject<HTMLVideoElement>
+  const videoRef = useRef<HTMLVideoElement>(null) as React.RefObject<HTMLVideoElement>;
 
   const checkPermission = useCallback(async () => {
     try {
@@ -58,7 +60,7 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
         stopWebcam();
       }
     };
-  }, [checkPermission]);
+  }, [checkPermission, stream]);
 
   const startWebcam = useCallback(async () => {
     setIsLoading(true);
