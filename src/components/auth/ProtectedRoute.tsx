@@ -4,10 +4,11 @@ import LoadingSpinner from '../common/LoadingSpinner';
 
 interface ProtectedRouteProps {
   requireAdmin?: boolean;
+  isLoading?: boolean;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requireAdmin = false }) => {
-  const { user, isLoading } = useAuth();
+  const { user ,isLoading} = useAuth();
   const location = useLocation();
 
   // Show loading spinner while checking authentication

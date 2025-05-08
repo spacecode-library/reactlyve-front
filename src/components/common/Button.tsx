@@ -1,6 +1,7 @@
-import React, { type ButtonHTMLAttributes } from 'react';
+import React, { ButtonHTMLAttributes, ElementType, forwardRef } from 'react';
 import { classNames } from '../../utils/classNames';
 
+// Extend ButtonProps to include the 'as' prop
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
@@ -8,9 +9,12 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   fullWidth?: boolean;
+  as?: ElementType; // Add 'as' prop to allow rendering as different elements
+  href?: string; // For when Button is rendered as an anchor
+  target?: string; // For when Button is rendered as an anchor
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       children,
@@ -22,6 +26,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       fullWidth = false,
       className,
       disabled,
+      as: Component = 'button', // Default to button element
+      href,
+      target,
       ...props
     },
     ref
@@ -48,17 +55,24 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     // Width classes
     const widthClasses = fullWidth ? 'w-full' : '';
     
+    // Combine all classes
+    const buttonClasses = classNames(
+      baseClasses,
+      sizeClasses[size],
+      variantClasses[variant],
+      widthClasses,
+      className || ''
+    );
+    
+    // Props specifically for anchor elements
+    const anchorProps = Component === 'a' ? { href, target } : {};
+    
     return (
-      <button
-        ref={ref}
-        className={classNames(
-          baseClasses,
-          sizeClasses[size],
-          variantClasses[variant],
-          widthClasses,
-          className || ''
-        )}
+      <Component
+        ref={ref as any} // Cast ref to any to avoid TypeScript errors when using a custom component
+        className={buttonClasses}
         disabled={disabled || isLoading}
+        {...anchorProps}
         {...props}
       >
         {isLoading ? (
@@ -92,7 +106,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             {rightIcon && <span className="ml-2">{rightIcon}</span>}
           </>
         )}
-      </button>
+      </Component>
     );
   }
 );
