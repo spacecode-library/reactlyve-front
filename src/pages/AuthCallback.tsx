@@ -1,33 +1,24 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,useSearchParams } from 'react-router-dom';
 import axios from 'axios';
+import api from '../services/api';
+
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
+  console.log(token,"token")
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        // After Google OAuth redirect, the backend should have set the cookie
-        // We just need to fetch the user data
-        const response = await axios.get('/api/auth/user', { withCredentials: true });
-        
-        if (response.data.user) {
-          // Successfully authenticated, redirect to dashboard
-          navigate('/dashboard');
-        } else {
-          // Something went wrong
-          setError('Failed to get user data. Please try again.');
-        }
-      } catch (err) {
-        console.error('Auth callback error:', err);
-        setError('Authentication failed. Please try again.');
-      }
-    };
+    if (token) {
+      localStorage.setItem('token', token);
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      navigate('/');
+    }
+  }, [token, navigate]);
 
-    fetchUserData();
-  }, [navigate]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">

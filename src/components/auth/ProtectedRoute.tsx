@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requireAdmin = false }) => {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   const location = useLocation();
 
   // Show loading spinner while checking authentication
@@ -20,7 +20,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requireAdmin = false })
   }
 
   // If not authenticated, redirect to login
-  if (!isAuthenticated) {
+  if (!user) {
     return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
   }
 

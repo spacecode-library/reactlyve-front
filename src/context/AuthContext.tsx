@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import axios from 'axios';
+import api from '../services/api';
 
 interface User {
   id: string;
@@ -11,9 +12,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
+  token: string | null;
   login: () => void;
   logout: () => void;
 }
@@ -21,56 +20,41 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // Check if user is already authenticated
-    const checkAuth = async () => {
-      try {
-        const response = await axios.get('/api/auth/user', { withCredentials: true });
-        if (response.data.user) {
-          setUser(response.data.user);
-        }
-      } catch (err) {
-        // User is not authenticated, that's okay
-        console.error('Auth check error:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
+    const stored = localStorage.getItem('token');
+    if (stored) {
+      setToken(stored);
+      api.defaults.headers.common['Authorization'] = `Bearer ${stored}`;
+      api.get('/auth/me')
+        .then(res => setUser(res.data.user))
+        .catch(() => {
+          localStorage.removeItem('token');
+          setToken(null);
+        });
+    }
   }, []);
 
   const login = () => {
     // Redirect to Google OAuth
     window.location.href = 'http://localhost:8000/api/auth/google';
   };
-
-  const logout = async () => {
-    try {
-      await axios.post('/api/auth/logout', {}, { withCredentials: true });
-      setUser(null);
-    } catch (err) {
-      setError('Failed to logout. Please try again.');
-    }
+  console.log("user",user)
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    delete api.defaults.headers.common['Authorization'];
+    localStorage.removeItem('token');
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: !!user,
-        isLoading,
-        error,
-        login,
-        logout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={{ user, token, login, logout }}>
+    {children}
+  </AuthContext.Provider>
   );
 }
 

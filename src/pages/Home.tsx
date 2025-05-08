@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
-  const { isAuthenticated } = useAuth();
+  const { user, logout } = useAuth();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -15,20 +15,19 @@ const Home = () => {
               </span>
             </div>
             <div className="flex items-center space-x-4">
-              {isAuthenticated ? (
-                <Link
-                  to="/dashboard"
-                  className="btn-primary"
-                >
-                  Dashboard
-                </Link>
+            <Link to="/">MyApp</Link>
+              {user ? (
+                <div className="flex items-center space-x-2">
+                  {user.picture && (
+                    <img src={user.picture} alt="avatar" className="w-8 h-8 rounded-full" />
+                  )}
+                  <span>{user.name}</span>
+                  <button onClick={logout} className="px-3 py-1 border rounded">
+                    Logout
+                  </button>
+                </div>
               ) : (
-                <Link
-                  to="/login"
-                  className="btn-primary"
-                >
-                  Sign In
-                </Link>
+                <Link to="/login">Login</Link>
               )}
             </div>
           </div>
@@ -46,7 +45,7 @@ const Home = () => {
               Share moments that matter, capture authentic responses.
             </p>
             <div className="mt-10 flex justify-center gap-4">
-              {isAuthenticated ? (
+              {user ? (
                 <Link
                   to="/create"
                   className="btn-primary px-8 py-3 text-base"
