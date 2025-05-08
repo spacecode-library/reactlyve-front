@@ -8,15 +8,34 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import AuthCallback from './pages/AuthCallback';
+import Create from './pages/Create';
+import Dashboard from './pages/Dashboard';
+import View from './pages/View';
+import About from './pages/About';
 import NotFound from './pages/NotFound';
 
-// We'll create these pages later
-const Dashboard = () => <div>Dashboard Page (Coming Soon)</div>;
-const Create = () => <div>Create Message Page (Coming Soon)</div>;
-const View = () => <div>View Message Page (Coming Soon)</div>;
-const Admin = () => <div>Admin Page (Coming Soon)</div>;
-const About = () => <div>About Page (Coming Soon)</div>;
-const Profile = () => <div>Profile Page (Coming Soon)</div>;
+// Admin and Profile components (placeholder for now)
+const Admin = () => (
+  <div className="flex h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">
+    <div className="text-center">
+      <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Admin Dashboard</h1>
+      <p className="mt-4 text-neutral-600 dark:text-neutral-300">
+        Coming soon. This page will provide admin controls for managing users and content.
+      </p>
+    </div>
+  </div>
+);
+
+const Profile = () => (
+  <div className="flex h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">
+    <div className="text-center">
+      <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">User Profile</h1>
+      <p className="mt-4 text-neutral-600 dark:text-neutral-300">
+        Coming soon. This page will allow users to manage their profile settings.
+      </p>
+    </div>
+  </div>
+);
 
 function App() {
   return (
