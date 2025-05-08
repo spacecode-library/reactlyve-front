@@ -66,7 +66,7 @@ reactlyve-frontend/
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/reactlyve-frontend.git
+   git clone https://github.com/spacecode-library/reactlyve-frontend.git
    cd reactlyve-frontend
    ```
 
