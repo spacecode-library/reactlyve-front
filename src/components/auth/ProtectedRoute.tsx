@@ -11,6 +11,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requireAdmin = false })
   const { user ,isLoading} = useAuth();
   const location = useLocation();
 
+  
   // Show loading spinner while checking authentication
   if (isLoading) {
     return (
