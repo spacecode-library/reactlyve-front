@@ -1,7 +1,5 @@
 # Reactlyve Frontend
 
-![Reactlyve Logo](public/logo.svg)
-
 ## Overview
 
 Reactlyve is a modern web application that allows users to create and share surprise messages, then record recipients' authentic reactions via webcam. Built with React, TypeScript, and Tailwind CSS, it offers a seamless user experience with a focus on capturing genuine moments.
