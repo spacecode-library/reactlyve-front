@@ -47,15 +47,12 @@ export const authApi = {
 };
 
 // Messages API
+// Messages API
 export const messagesApi = {
-  create: (data: {
-    message: string;
-    image?: File | null;
-    hasPasscode: boolean;
-    passcode?: string;
-  }) => {
+  create: (data: {message: string;image?: File | null;hasPasscode: boolean;passcode?: string;}) => {
     const formData = new FormData();
-    formData.append('message', data.message);
+    // Change this line - rename message to content
+    formData.append('content', data.message); // Changed from 'message' to 'content'
     if (data.image) {
       formData.append('image', data.image);
     }
@@ -63,13 +60,18 @@ export const messagesApi = {
     if (data.hasPasscode && data.passcode) {
       formData.append('passcode', data.passcode);
     }
-    
-    return api.post('/messages/create', formData, {
+    // Log all form data entries
+    console.log('Form data contents:');
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}: ${value}`);
+    }
+    return api.post('/messages/send', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
   },
+  // These routes might also need to be fixed
   getAll: () => api.get('/messages'),
   getById: (id: string) => api.get(`/messages/${id}`),
   delete: (id: string) => api.delete(`/messages/${id}`),
