@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { MESSAGE_ROUTES, REACTION_ROUTES } from '../components/constants/apiRoutes.ts';
 import { MESSAGE_ERRORS } from '../components/constants/errorMessages';
 import PasscodeEntry from '../components/recipient/PasscodeEntry';
 import MessageViewer from '../components/recipient/MessageViewer';
@@ -20,6 +19,9 @@ interface MessageData {
     picture?: string;
   };
 }
+
+// Base API URL - hardcoded to ensure we're using the correct one
+const API_BASE_URL = 'http://localhost:8000/api';
 
 const View: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -41,33 +43,109 @@ const View: React.FC = () => {
         return;
       }
       
-      try {
-        const response = await axios.get(MESSAGE_ROUTES.GET_BY_ID(id));
-        const messageData = response.data;
-        
-        setMessage(messageData);
-        setNeedsPasscode(messageData.hasPasscode && !messageData.passcodeVerified);
-        setPasscodeVerified(messageData.passcodeVerified || false);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching message:', error);
-        
-        // Handle specific error cases
-        if (axios.isAxiosError(error)) {
-          if (error.response?.status === 404) {
-            setError(MESSAGE_ERRORS.NOT_FOUND);
-          } else if (error.response?.status === 401) {
-            setError(MESSAGE_ERRORS.INVALID_PASSCODE);
-            setNeedsPasscode(true);
-          } else if (error.response?.status === 410) {
-            setError(MESSAGE_ERRORS.LINK_EXPIRED);
-          } else {
-            setError(MESSAGE_ERRORS.NOT_FOUND);
+      // Extract UUID if the ID contains it (e.g., from a URL path)
+      const uuidRegex = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
+      const match = id.match(uuidRegex);
+      const cleanId = match ? match[1] : id;
+      
+      console.log('Clean message ID:', cleanId);
+      
+      // Try multiple API endpoints to find the one that works
+      const endpoints = [
+        // Try standard message endpoint
+        `/messages/${cleanId}`,
+        // Try view-specific endpoint
+        `/messages/view/${cleanId}`,
+        // Try shared-specific endpoint
+        `/messages/shared/${cleanId}`,
+        // Try messages/m endpoint
+        `/messages/m/${cleanId}`,
+        // Try with v prefix (some APIs use this)
+        `/v1/messages/${cleanId}`,
+        // Try just the plain endpoint 
+        `/message/${cleanId}`
+      ];
+      
+      let foundMessage = false;
+      
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`Trying endpoint: ${API_BASE_URL}${endpoint}`);
+          
+          const response = await axios.get(`${API_BASE_URL}${endpoint}`, {
+            withCredentials: true
+          });
+          
+          // If we get here, the request was successful
+          console.log('Successful response from endpoint:', endpoint);
+          console.log('Response data:', response.data);
+          
+          if (response.data) {
+            setMessage(response.data);
+            
+            // Determine if passcode is needed
+            const requiresPasscode = 
+              response.data.hasPasscode === true || 
+              response.data.requiresPasscode === true;
+              
+            const isVerified = 
+              response.data.passcodeVerified === true ||
+              !requiresPasscode;
+              
+            setNeedsPasscode(requiresPasscode && !isVerified);
+            setPasscodeVerified(isVerified);
+            
+            setLoading(false);
+            foundMessage = true;
+            
+            // Save the successful endpoint for future use
+            localStorage.setItem('reactlyve_message_endpoint', endpoint);
+            
+            break;
           }
-        } else {
-          setError('Failed to load message. Please try again later.');
+        } catch (error) {
+          console.error(`Error with endpoint ${endpoint}:`, error);
+          // Continue trying other endpoints
         }
-        
+      }
+      
+      if (!foundMessage) {
+        // Try one more approach - direct axios call to the display URL
+        try {
+          console.log('Trying direct display URL fetch');
+          
+          // This assumes your backend has an endpoint that matches the URL pattern
+          const displayUrl = `/m/${cleanId}`; 
+          const response = await axios.get(`${API_BASE_URL}${displayUrl}`, {
+            withCredentials: true
+          });
+          
+          if (response.data) {
+            setMessage(response.data);
+            setNeedsPasscode(
+              response.data.hasPasscode === true && 
+              !response.data.passcodeVerified
+            );
+            setPasscodeVerified(
+              response.data.passcodeVerified || 
+              !response.data.hasPasscode
+            );
+            setLoading(false);
+            
+            // Save the successful endpoint for future use
+            localStorage.setItem('reactlyve_message_endpoint', displayUrl);
+            
+            foundMessage = true;
+          }
+        } catch (endpointError) {
+          console.error('Error with display URL endpoint:', endpointError);
+          // Continue to error state
+        }
+      }
+      
+      if (!foundMessage) {
+        console.error('Message not found with any endpoint');
+        setError(MESSAGE_ERRORS.NOT_FOUND);
         setLoading(false);
       }
     };
@@ -77,14 +155,30 @@ const View: React.FC = () => {
   
   // Handle passcode submission
   const handleSubmitPasscode = async (passcode: string): Promise<boolean> => {
-    if (!id) return false;
+    if (!id || !message) return false;
     
     try {
-      const response = await axios.post(MESSAGE_ROUTES.VERIFY_PASSCODE(id), { passcode });
+      const uuidRegex = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i;
+      const match = id.match(uuidRegex);
+      const cleanId = match ? match[1] : id;
       
-      if (response.data.verified) {
+      // Use the passcode verification endpoint
+      const response = await axios.post(
+        `${API_BASE_URL}/messages/${cleanId}/verify-passcode`, 
+        { passcode },
+        { withCredentials: true }
+      );
+      
+      console.log('Passcode verification response:', response);
+      
+      if (response.data && (response.data.verified || response.status === 200)) {
         setPasscodeVerified(true);
-        setMessage(response.data.message);
+        
+        // If the response includes the message data, update it
+        if (response.data.message) {
+          setMessage(response.data.message);
+        }
+        
         return true;
       }
       
@@ -98,11 +192,19 @@ const View: React.FC = () => {
   // Handle recording reaction
   const handleRecordReaction = async (messageId: string, videoBlob: Blob): Promise<void> => {
     try {
-      await axios.post(REACTION_ROUTES.UPLOAD(messageId), videoBlob, {
-        headers: {
-          'Content-Type': 'video/webm',
-        },
-      });
+      const formData = new FormData();
+      formData.append('video', videoBlob, 'reaction.webm');
+      
+      await axios.post(
+        `${API_BASE_URL}/reactions/${messageId}`, 
+        formData, 
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          withCredentials: true
+        }
+      );
       
       setReactionComplete(true);
       toast.success('Your reaction has been recorded!');
@@ -119,6 +221,21 @@ const View: React.FC = () => {
     toast.success('You have chosen to skip recording a reaction.');
   };
   
+  // Display debugging information
+  const renderDebugInfo = () => {
+    if (process.env.NODE_ENV !== 'development') return null;
+    
+    return (
+      <div className="mt-4 rounded-md bg-gray-100 p-4 dark:bg-gray-800">
+        <h3 className="text-sm font-semibold">Debug Information:</h3>
+        <p className="text-xs">Message ID: {id}</p>
+        <p className="text-xs">Clean ID: {id ? id.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i)?.[1] : 'None'}</p>
+        <p className="text-xs">API Base URL: {API_BASE_URL}</p>
+        <p className="text-xs">Last successful endpoint: {localStorage.getItem('reactlyve_message_endpoint') || 'None'}</p>
+      </div>
+    );
+  };
+  
   // Loading state
   if (loading) {
     return (
@@ -128,6 +245,7 @@ const View: React.FC = () => {
           <p className="mt-4 text-neutral-600 dark:text-neutral-300">
             Loading message...
           </p>
+          {renderDebugInfo()}
         </div>
       </div>
     );
@@ -167,6 +285,7 @@ const View: React.FC = () => {
           >
             Return Home
           </button>
+          {renderDebugInfo()}
         </div>
       </div>
     );
@@ -214,6 +333,7 @@ const View: React.FC = () => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
         <PasscodeEntry onSubmitPasscode={handleSubmitPasscode} />
+        {renderDebugInfo()}
       </div>
     );
   }
@@ -227,6 +347,7 @@ const View: React.FC = () => {
           onRecordReaction={handleRecordReaction}
           onSkipReaction={handleSkipReaction}
         />
+        {renderDebugInfo()}
       </div>
     );
   }
@@ -245,6 +366,7 @@ const View: React.FC = () => {
         >
           Return Home
         </button>
+        {renderDebugInfo()}
       </div>
     </div>
   );

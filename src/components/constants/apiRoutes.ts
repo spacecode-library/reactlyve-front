@@ -14,8 +14,10 @@ export const MESSAGE_ROUTES = {
   GET_ALL: `${API_BASE_URL}/messages`,
   GET_BY_ID: (id: string) => `${API_BASE_URL}/messages/${id}`,
   DELETE: (id: string) => `${API_BASE_URL}/messages/${id}`,
-  VIEW: (id: string) => `${API_BASE_URL}/messages/view/${id}`,
+  VIEW: (id: string) => `${API_BASE_URL}/messages/shared/${id}`,
   VERIFY_PASSCODE: (id: string) => `${API_BASE_URL}/messages/${id}/verify-passcode`,
+  // Add the specific endpoint for shared messages that matches your backend
+  SHARED: (id: string) => `${API_BASE_URL}/messages/shared/${id}`,
 };
 
 // Reaction Routes

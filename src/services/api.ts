@@ -1,20 +1,24 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { API_BASE_URL } from '../components/constants/apiRoutes';
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: API_BASE_URL,
   withCredentials: true, // Important for cookies
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Add request interceptor
+// Add request interceptor to include auth token on every request
 api.interceptors.request.use(
   (config) => {
-    // You can modify request config here if needed
-    // For example, add authorization header etc.
+    // Try to get the token from localStorage on each request
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
@@ -47,6 +51,9 @@ export const authApi = {
 };
 
 // Messages API
+// Messages API
+// Messages API
+// Messages API
 export const messagesApi = {
   create: (data: {
     message: string;
@@ -55,7 +62,8 @@ export const messagesApi = {
     passcode?: string;
   }) => {
     const formData = new FormData();
-    formData.append('message', data.message);
+    // Use 'content' as the field name to match backend expectation
+    formData.append('content', data.message);
     if (data.image) {
       formData.append('image', data.image);
     }
@@ -64,15 +72,46 @@ export const messagesApi = {
       formData.append('passcode', data.passcode);
     }
     
-    return api.post('/messages/create', formData, {
+    const response = api.post('/messages/send', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
+    console.log('API response:', response);
   },
   getAll: () => api.get('/messages'),
   getById: (id: string) => api.get(`/messages/${id}`),
   delete: (id: string) => api.delete(`/messages/${id}`),
+  
+  // For public access, create a separate axios instance without auth requirements
+// For public access, create a separate axios instance without auth requirements
+getByShareableLink: (linkId: string) => {
+  // Create public API instance
+  const publicApi = axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    // Add timeout for quicker failure when trying multiple formats
+    timeout: 5000,
+  });
+  
+  // Encode the linkId if it contains a URL (to handle full URL formats)
+  const encodedLinkId = linkId.includes('http') ? 
+    encodeURIComponent(linkId) : linkId;
+    
+  return publicApi.get(`/messages/shared/${encodedLinkId}`);
+},
+  
+  verifyPasscode: (linkId: string, passcode: string) => {
+    const publicApi = axios.create({
+      baseURL: API_BASE_URL,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return publicApi.get(`/messages/shared/${linkId}?passcode=${passcode}`);
+  },
 };
 
 // Reactions API

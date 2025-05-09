@@ -53,6 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           api.defaults.headers.common['Authorization'] = `Bearer ${stored}`;
           const response = await api.get('/auth/me');
           setUser(response.data.user);
+          console.log('User authenticated successfully:', response.data.user);
         } catch (err) {
           console.error('Authentication failed:', err);
           setError('Failed to authenticate');
@@ -60,6 +61,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setToken(null);
           delete api.defaults.headers.common['Authorization'];
         }
+      } else {
+        console.log('No token found in localStorage');
       }
       
       setIsLoading(false);
