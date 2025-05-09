@@ -29,6 +29,7 @@ api.interceptors.request.use(
 // Add response interceptor
 api.interceptors.response.use(
   (response) => {
+    console.log("response from service 32",response)
     return response;
   },
   (error) => {
@@ -55,7 +56,7 @@ export const authApi = {
 // Messages API
 // Messages API
 export const messagesApi = {
-  create: (data: {
+  create:async (data: {
     message: string;
     image?: File | null;
     hasPasscode: boolean;
@@ -72,12 +73,13 @@ export const messagesApi = {
       formData.append('passcode', data.passcode);
     }
     
-    const response = api.post('/messages/send', formData, {
+    const response = await api.post('/messages/send', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
-    console.log('API response:', response);
+    console.log("response from service",response)
+    return response;
   },
   getAll: () => api.get('/messages'),
   getById: (id: string) => api.get(`/messages/${id}`),

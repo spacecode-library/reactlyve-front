@@ -91,7 +91,7 @@ const onSubmit = useCallback(async (data: MessageFormValues) => {
       
       // Call API to create message
       const response = await messagesApi.create(formData);
-      console.log('API response:', response.shareablelink);
+      console.log('API response:', JSON.stringify(response, null, 2));
       console.log('Message created successfully, full response:', response);
       console.log('Response data structure:', Object.keys(response.data));
       

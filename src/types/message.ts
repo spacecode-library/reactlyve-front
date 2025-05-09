@@ -1,18 +1,18 @@
 export interface Message {
   id: string;
   userId?: string;
-  senderId?: string;
+  senderId: string;
   content: string;
-  imageUrl?: string;
+  imageUrl: string;
   hasPasscode?: boolean;
   requiresPasscode?: boolean;
-  shareableLink?: string;
+  shareableLink: string;
   link?: string;
   url?: string;
   viewCount?: number;
   viewed?: boolean;
-  createdAt: string;
-  updatedAt?: string;
+  createdat: string;
+  updatedat?: string;
 }
 
 export interface MessageFormData {
@@ -25,7 +25,7 @@ export interface MessageFormData {
 export interface MessageWithReactions extends Message {
   reactions: {
     id: string;
-    createdAt: string;
+    createdat: string;
     thumbnailUrl?: string;
   }[];
 }

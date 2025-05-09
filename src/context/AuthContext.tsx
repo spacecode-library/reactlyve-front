@@ -53,7 +53,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           api.defaults.headers.common['Authorization'] = `Bearer ${stored}`;
           const response = await api.get('/auth/me');
           setUser(response.data.user);
-          console.log('User authenticated successfully:', response.data.user);
         } catch (err) {
           console.error('Authentication failed:', err);
           setError('Failed to authenticate');
@@ -76,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Redirect to Google OAuth
     window.location.href = 'http://localhost:8000/api/auth/google';
   };
-  console.log("user",user)
+
   const logout = async () => {
     setIsLoading(true);
     try {

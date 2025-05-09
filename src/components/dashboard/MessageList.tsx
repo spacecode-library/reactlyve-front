@@ -30,7 +30,7 @@ const MessageList: React.FC<MessageListProps> = ({
   const filteredAndSortedMessages = useMemo(() => {
     // Apply filters
     let result = [...messages];
-    
+    console.log('Messages:', result);
     if (filterBy === 'withReactions') {
       result = result.filter(message => message.reactions.length > 0);
     } else if (filterBy === 'noReactions') {
@@ -221,22 +221,22 @@ const MessageList: React.FC<MessageListProps> = ({
                 <div className="mt-1 flex items-center text-sm text-neutral-500 dark:text-neutral-400">
                   <span
                     className="cursor-help"
-                    title={formatDate(message.createdAt)}
+                    title={formatDate(message.createdat)}
                   >
-                    {formatRelativeTime(message.createdAt)}
+                    {formatRelativeTime(message.createdat)}
                   </span>
-                  <span className="mx-1">&bull;</span>
-                  <span>
+                  {/* <span className="mx-1">&bull;</span> */}
+                  {/* <span>
                     {message.viewCount === 0
                       ? 'Not viewed yet'
                       : `${message.viewCount} ${message.viewCount === 1 ? 'view' : 'views'}`}
                   </span>
                   <span className="mx-1">&bull;</span>
                   <span>
-                    {message.reactions.length === 0
+                    {message.length === 0
                       ? 'No reactions'
-                      : `${message.reactions.length} ${message.reactions.length === 1 ? 'reaction' : 'reactions'}`}
-                  </span>
+                      : `${message.length} ${message.length === 1 ? 'reaction' : 'reactions'}`}
+                  </span> */}
                 </div>
               </div>
               
@@ -291,13 +291,13 @@ const MessageList: React.FC<MessageListProps> = ({
             </div>
             
             {/* Reactions preview (if any) */}
-            {message.reactions.length > 0 && (
+            {message.length > 0 && (
               <div className="mt-4">
                 <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                   Reactions
                 </h4>
                 <div className="mt-2 flex space-x-2 overflow-x-auto pb-2">
-                  {message.reactions.map(reaction => (
+                  {message.map(reaction => (
                     <button
                       key={reaction.id}
                       type="button"
