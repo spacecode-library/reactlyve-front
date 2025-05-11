@@ -118,13 +118,13 @@ getByShareableLink: (linkId: string) => {
 
 // Reactions API
 export const reactionsApi = {
-  upload: (messageId: string, video: Blob) => {
+ upload: (messageId: string, video: Blob) => {
     const formData = new FormData();
-    formData.append('video', video, 'reaction.webm');
+    formData.append('video', video, 'reaction.webm'); // Added filename to help with MIME type detection
     
     return api.post(`/reactions/${messageId}`, formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': 'multipart/form-data', // Explicitly set content type
       },
     });
   },

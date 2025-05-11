@@ -75,17 +75,23 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
       
       const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
       setStream(mediaStream);
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
-        // Ensure the video element is not already playing or loading a new stream
+
+        await new Promise<void>((resolve) => {
+          videoRef.current!.onloadedmetadata = () => {
+            resolve();
+          };
+        });
+
         if (videoRef.current.paused) {
           await videoRef.current.play().catch(err => {
             throw new Error(`Failed to play video stream: ${err.message}`);
           });
         }
       }
-      
+            
       await checkPermission();
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to access webcam/microphone');

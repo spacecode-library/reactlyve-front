@@ -15,7 +15,7 @@ interface WebcamRecorderProps {
   className?: string;
   autoStart?: boolean;
   onPermissionDenied?: (error: string) => void;
-  onCountdownComplete?: () => void;
+  onCountdownComplete?: () => void; 
   isReplyMode?: boolean;
 }
 
@@ -91,7 +91,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       setTimeout(() => {
         stopWebcam();
         stopRecording();
-      }, 100);
+      }, 300);
     };
   }, [isBrowserSupported, autoStart, startWebcam, stopWebcam, stopRecording, permissionState, startRecording, onPermissionDenied]);
 

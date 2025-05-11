@@ -32,7 +32,7 @@ interface UseMediaRecorderReturn {
 
 const useMediaRecorder = ({
   stream,
-  mimeType = 'video/webm;codecs=vp9,opus',
+  mimeType = 'video/webm',
   timeSlice = 1000,
   maxDuration = 30000,
   audioBitsPerSecond = 128000,
@@ -135,7 +135,9 @@ const useMediaRecorder = ({
       
       recorder.onstop = () => {
         try {
-          const blob = new Blob(chunksRef.current, { type: supportedType });
+          const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+          console.log('Blob type:', blob.type); // should log "video/webm"
+
           setRecordedBlob(blob);
           setStatus('stopped');
           
