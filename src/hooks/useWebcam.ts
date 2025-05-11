@@ -29,32 +29,29 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
   const [permissionState, setPermissionState] = useState<PermissionState | null>(null);
-  
-  // Fix: Explicitly type this as RefObject<HTMLVideoElement>
   const videoRef = useRef<HTMLVideoElement>(null) as React.RefObject<HTMLVideoElement>;
 
   const checkPermission = useCallback(async () => {
     try {
-      // Check if permissions API is supported
       if (navigator.permissions && navigator.permissions.query) {
         const cameraPermission = await navigator.permissions.query({ name: 'camera' as PermissionName });
-        setPermissionState(cameraPermission.state);
+        const micPermission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        setPermissionState(cameraPermission.state === 'granted' && micPermission.state === 'granted' ? 'granted' : cameraPermission.state);
         
-        // Listen for permission changes
         cameraPermission.addEventListener('change', () => {
           setPermissionState(cameraPermission.state);
         });
+        micPermission.addEventListener('change', () => {
+          setPermissionState(micPermission.state);
+        });
       }
     } catch (err) {
-      // Permissions API might not be supported or may fail
-      console.error('Error checking camera permission:', err);
+      console.error('Error checking permissions:', err);
     }
   }, []);
 
   useEffect(() => {
     checkPermission();
-    
-    // Cleanup
     return () => {
       if (stream) {
         stopWebcam();
@@ -79,7 +76,6 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
       const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
       setStream(mediaStream);
       
-      // Connect stream to video element
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
         await videoRef.current.play();
@@ -87,8 +83,9 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
       
       await checkPermission();
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error starting webcam'));
-      console.error('Error accessing webcam:', err);
+      const error = err instanceof Error ? err : new Error('Failed to access webcam/microphone');
+      setError(error);
+      throw error;
     } finally {
       setIsLoading(false);
     }

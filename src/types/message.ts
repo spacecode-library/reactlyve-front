@@ -23,6 +23,8 @@ export interface MessageFormData {
 }
 
 export interface MessageWithReactions extends Message {
+  length: number;
+  map(arg0: (reaction: any) => import("react/jsx-runtime").JSX.Element): import("react").ReactNode;
   reactions: {
     id: string;
     createdat: string;

@@ -10,26 +10,33 @@ import { classNames } from '../../utils/classNames';
 interface WebcamRecorderProps {
   onRecordingComplete: (blob: Blob) => void;
   onCancel: () => void;
-  maxDuration?: number; // in milliseconds
-  countdownDuration?: number; // in seconds
+  maxDuration?: number;
+  countdownDuration?: number;
   className?: string;
+  autoStart?: boolean;
+  onPermissionDenied?: (error: string) => void;
+  onCountdownComplete?: () => void;
+  isReplyMode?: boolean;
 }
 
 const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   onRecordingComplete,
   onCancel,
-  maxDuration = 20000, // 20 seconds
-  countdownDuration = 3, // 3 seconds
+  maxDuration = 30000,
+  countdownDuration = 3,
   className,
+  autoStart = false,
+  onPermissionDenied,
+  onCountdownComplete,
+  isReplyMode = false,
 }) => {
   const [showCountdown, setShowCountdown] = useState<boolean>(false);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [isBrowserSupported, setIsBrowserSupported] = useState<boolean>(true);
-  
-  // Refs
+  const [permissionError, setPermissionError] = useState<string | undefined>(undefined);
+
   const videoContainerRef = useRef<HTMLDivElement>(null);
-  
-  // Setup webcam hook
+
   const {
     stream,
     videoRef,
@@ -42,8 +49,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     facingMode: 'user',
     audio: true,
   });
-  
-  // Setup media recorder hook
+
   const {
     status: recordingStatus,
     recordedBlob,
@@ -56,67 +62,78 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     stream,
     maxDuration,
   });
-  
+
   // Check browser support
   useEffect(() => {
     setIsBrowserSupported(supportsMediaRecording());
   }, []);
-  
-  // Initialize webcam when component mounts
+
+  // Initialize webcam and handle auto-start
   useEffect(() => {
-    if (isBrowserSupported) {
-      startWebcam().catch(error => {
-        console.error('Failed to start webcam:', error);
-      });
+    if (isBrowserSupported && autoStart) {
+      startWebcam()
+        .then(() => {
+          if (permissionState === 'granted') {
+            setShowCountdown(true);
+            startRecording();
+            setIsRecording(true);
+          }
+        })
+        .catch(error => {
+          console.error('Failed to start webcam:', error);
+          setPermissionError(error.message || 'Failed to access camera/microphone.');
+          onPermissionDenied?.(error.message || 'Failed to access camera/microphone.');
+        });
     }
-    
+
     return () => {
       stopWebcam();
+      stopRecording();
     };
-  }, [isBrowserSupported, startWebcam, stopWebcam]);
-  
+  }, [isBrowserSupported, autoStart, startWebcam, stopWebcam, stopRecording, permissionState, startRecording, onPermissionDenied]);
+
   // Watch for recording completion
   useEffect(() => {
     if (recordingStatus === 'stopped' && recordedBlob) {
       onRecordingComplete(recordedBlob);
+      setIsRecording(false);
     }
   }, [recordingStatus, recordedBlob, onRecordingComplete]);
-  
+
   // Handle countdown completion
   const handleCountdownComplete = () => {
     setShowCountdown(false);
-    setIsRecording(true);
-    startRecording();
+    if (!isRecording) {
+      startRecording();
+      setIsRecording(true);
+    }
+    onCountdownComplete?.();
   };
-  
+
   // Handle cancel
   const handleCancel = () => {
-    if (recordingStatus === 'recording') {
-      stopRecording();
-    }
+    stopRecording();
     clearRecording();
     onCancel();
   };
-  
+
   // Handle stop recording
   const handleStopRecording = () => {
-    if (recordingStatus === 'recording') {
-      stopRecording();
-      setIsRecording(false);
-    }
+    stopRecording();
+    setIsRecording(false);
   };
-  
-  // Handle start recording (shows countdown first)
+
+  // Handle start recording
   const handleStartRecording = () => {
     if (stream && recordingStatus === 'inactive') {
       setShowCountdown(true);
     }
   };
-  
-  // If browser is not supported
+
+  // Render browser not supported
   if (!isBrowserSupported) {
     return (
-      <div className="rounded-lg bg-red-50 p-4 text-center dark:bg-red-900/20">
+      <div className="card mx-auto max-w-md text-center">
         <h3 className="text-lg font-medium text-red-800 dark:text-red-400">
           Browser Not Supported
         </h3>
@@ -125,34 +142,34 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
         </p>
         <button
           onClick={onCancel}
-          className="mt-4 rounded-md bg-red-100 px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-200 dark:bg-red-800 dark:text-red-200 dark:hover:bg-red-700"
+          className="btn btn-outline mt-4"
         >
           Go Back
         </button>
       </div>
     );
   }
-  
-  // If waiting for permissions or permission denied
-  if (permissionState === 'denied' || webcamError) {
+
+  // Render permission error
+  if (permissionState === 'denied' || webcamError || permissionError) {
     return (
       <PermissionRequest
         onCancel={onCancel}
-        permissionType="camera"
-        errorMessage={webcamError?.message}
+        permissionType="both"
+        errorMessage={webcamError?.message || permissionError}
+        isReplyMode={isReplyMode}
       />
     );
   }
-  
+
   return (
-    <div className={classNames('flex flex-col items-center', className || '')}>
+    <div className={classNames('flex flex-col items-center w-full max-w-2xl mx-auto', className || '')}>
       {/* Webcam preview container */}
       <div
         ref={videoContainerRef}
         className="relative overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-800"
         style={{ width: '100%', maxWidth: '640px', aspectRatio: '16 / 9' }}
       >
-        {/* Video element for webcam preview */}
         {isWebcamLoading ? (
           <div className="flex h-full items-center justify-center">
             <svg
@@ -185,7 +202,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
             className="h-full w-full object-cover"
           />
         )}
-        
+
         {/* Recording indicator */}
         {isRecording && (
           <div className="absolute left-4 top-4 flex items-center rounded-full bg-red-500 px-3 py-1 text-sm text-white">
@@ -193,74 +210,77 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
             Recording: {formatDuration(duration)}
           </div>
         )}
-        
+
         {/* Countdown overlay */}
         {showCountdown && (
           <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <CountdownTimer
               duration={countdownDuration}
               onComplete={handleCountdownComplete}
-              onCancel={() => setShowCountdown(false)}
+              onCancel={handleCancel}
               size="lg"
             />
           </div>
         )}
-        
-        {/* Recording guide overlay */}
-        {!isRecording && !showCountdown && (
+
+        {/* Guide overlay for reply mode */}
+        {!isRecording && !showCountdown && !autoStart && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-40 p-4 text-center text-white">
-            <h3 className="text-xl font-medium">Ready to capture your reaction?</h3>
+            <h3 className="text-xl font-medium">
+              {isReplyMode ? 'Ready to record your reply?' : 'Ready to capture your reaction?'}
+            </h3>
             <p className="mt-2 max-w-md text-sm">
-              Position yourself in frame and click the button below when you're ready to record.
+              Position yourself in frame and click the button below to start recording.
               We'll count down from {countdownDuration} before recording begins.
             </p>
           </div>
         )}
       </div>
-      
+
       {/* Control buttons */}
-      <div className="mt-4 flex space-x-4">
-        {isRecording ? (
-          <button
-            onClick={handleStopRecording}
-            className="flex items-center rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700 dark:hover:bg-red-600"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="mr-2 h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+      {!autoStart && (
+        <div className="mt-4 flex space-x-4">
+          {isRecording ? (
+            <button
+              onClick={handleStopRecording}
+              className="btn btn-primary bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600"
             >
-              <rect x="6" y="6" width="8" height="8" />
-            </svg>
-            Stop Recording
-          </button>
-        ) : (
-          <button
-            onClick={handleStartRecording}
-            disabled={!stream || isWebcamLoading || showCountdown}
-            className="flex items-center rounded-md bg-primary-600 px-4 py-2 text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-primary-400 dark:bg-primary-700 dark:hover:bg-primary-600 dark:disabled:bg-primary-800"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="mr-2 h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="mr-2 h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <rect x="6" y="6" width="8" height="8" />
+              </svg>
+              Stop Recording
+            </button>
+          ) : (
+            <button
+              onClick={handleStartRecording}
+              disabled={!stream || isWebcamLoading || showCountdown}
+              className="btn btn-primary"
             >
-              <circle cx="10" cy="10" r="6" />
-            </svg>
-            Start Recording
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="mr-2 h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <circle cx="10" cy="10" r="6" />
+              </svg>
+              Start Recording
+            </button>
+          )}
+          <button
+            onClick={handleCancel}
+            className="btn btn-outline"
+          >
+            Cancel
           </button>
-        )}
-        
-        <button
-          onClick={handleCancel}
-          className="rounded-md border border-neutral-300 bg-white px-4 py-2 text-neutral-700 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
-        >
-          Cancel
-        </button>
-      </div>
-      
+        </div>
+      )}
+
       {/* Error message */}
       {recordingError && (
         <div className="mt-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20">
@@ -269,7 +289,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
           </p>
         </div>
       )}
-      
+
       {/* Recording time limit notice */}
       <p className="mt-4 text-sm text-neutral-500 dark:text-neutral-400">
         Maximum recording time: {formatDuration(maxDuration)}

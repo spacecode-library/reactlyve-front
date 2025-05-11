@@ -5,14 +5,15 @@ interface PermissionRequestProps {
   onCancel: () => void;
   permissionType: 'camera' | 'microphone' | 'both';
   errorMessage?: string;
+  isReplyMode?: boolean;
 }
 
 const PermissionRequest: React.FC<PermissionRequestProps> = ({
   onCancel,
   permissionType,
   errorMessage,
+  isReplyMode = false,
 }) => {
-  // Determine the device type and browser for specific instructions
   const isIOSDevice = isIOS();
   const isMacOS = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
   const isChrome = navigator.userAgent.indexOf('Chrome') > -1;
@@ -20,7 +21,6 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
   const isFirefox = navigator.userAgent.indexOf('Firefox') > -1;
   const isEdge = navigator.userAgent.indexOf('Edg') > -1;
 
-  // Get permission text based on type
   const getPermissionText = () => {
     switch (permissionType) {
       case 'camera':
@@ -34,7 +34,6 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
     }
   };
 
-  // Get platform-specific instructions
   const getPlatformInstructions = () => {
     if (isIOSDevice) {
       return (
@@ -42,11 +41,11 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
           <h4 className="mt-4 font-medium">iOS Instructions:</h4>
           <ol className="ml-5 mt-2 list-decimal space-y-1 text-sm">
             <li>Open <strong>Settings</strong> on your device</li>
-            <li>Scroll down and tap <strong>Safari</strong> (or the browser you're using)</li>
-            <li>Scroll down to <strong>Settings for Websites</strong></li>
+            <li>Scroll down and tap <strong>Safari</strong> (or your browser)</li>
+            <li>Scroll to <strong>Settings for Websites</strong></li>
             <li>Tap <strong>Camera</strong> and/or <strong>Microphone</strong></li>
-            <li>Find this website and select <strong>Allow</strong></li>
-            <li>Return to this page and refresh</li>
+            <li>Select <strong>Allow</strong> for this website</li>
+            <li>Refresh this page</li>
           </ol>
         </>
       );
@@ -56,10 +55,10 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
           <h4 className="mt-4 font-medium">macOS Instructions:</h4>
           <ol className="ml-5 mt-2 list-decimal space-y-1 text-sm">
             <li>Open <strong>System Preferences</strong></li>
-            <li>Click on <strong>Security & Privacy</strong></li>
+            <li>Click <strong>Security & Privacy</strong></li>
             <li>Select the <strong>Privacy</strong> tab</li>
-            <li>Click on <strong>Camera</strong> and/or <strong>Microphone</strong> in the sidebar</li>
-            <li>Make sure your browser is checked</li>
+            <li>Click <strong>Camera</strong> and/or <strong>Microphone</strong></li>
+            <li>Check your browser</li>
             <li>Restart your browser and try again</li>
           </ol>
         </>
@@ -70,7 +69,7 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
           <h4 className="mt-4 font-medium">Chrome Instructions:</h4>
           <ol className="ml-5 mt-2 list-decimal space-y-1 text-sm">
             <li>Click the lock icon in the address bar</li>
-            <li>Under "{getPermissionText()}", select <strong>Allow</strong></li>
+            <li>Select <strong>Allow</strong> for "{getPermissionText()}"</li>
             <li>Refresh the page</li>
           </ol>
         </>
@@ -81,10 +80,10 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
           <h4 className="mt-4 font-medium">Firefox Instructions:</h4>
           <ol className="ml-5 mt-2 list-decimal space-y-1 text-sm">
             <li>Click the lock icon in the address bar</li>
-            <li>Click on <strong>More Information</strong></li>
+            <li>Click <strong>More Information</strong></li>
             <li>Go to the <strong>Permissions</strong> tab</li>
-            <li>Find "Use the {getPermissionText()}" and change to <strong>Allow</strong></li>
-            <li>Close the dialog and refresh the page</li>
+            <li>Allow "Use the {getPermissionText()}"</li>
+            <li>Refresh the page</li>
           </ol>
         </>
       );
@@ -94,7 +93,7 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
           <h4 className="mt-4 font-medium">Edge Instructions:</h4>
           <ol className="ml-5 mt-2 list-decimal space-y-1 text-sm">
             <li>Click the lock icon in the address bar</li>
-            <li>Under "{getPermissionText()} access", select <strong>Allow</strong></li>
+            <li>Select <strong>Allow</strong> for "{getPermissionText()} access"</li>
             <li>Refresh the page</li>
           </ol>
         </>
@@ -112,16 +111,15 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
         </>
       );
     } else {
-      // Generic instructions
       return (
         <>
           <h4 className="mt-4 font-medium">Browser Instructions:</h4>
           <ol className="ml-5 mt-2 list-decimal space-y-1 text-sm">
-            <li>Look for the permission dialog that may have appeared</li>
-            <li>Click <strong>Allow</strong> to give permission</li>
-            <li>If no dialog appeared, click the lock or info icon in your address bar</li>
-            <li>Update the permission settings for {getPermissionText()}</li>
-            <li>Refresh the page after making changes</li>
+            <li>Check for a permission dialog</li>
+            <li>Click <strong>Allow</strong></li>
+            <li>Click the lock or info icon in the address bar if needed</li>
+            <li>Update {getPermissionText()} permissions</li>
+            <li>Refresh the page</li>
           </ol>
         </>
       );
@@ -129,7 +127,7 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
   };
 
   return (
-    <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-6 text-center dark:border-yellow-800 dark:bg-yellow-900/20">
+    <div className="card mx-auto max-w-md text-center">
       <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -147,17 +145,16 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
         </svg>
       </div>
       
-      <h3 className="mt-4 text-lg font-medium text-yellow-800 dark:text-yellow-300">
-        {permissionType === 'camera' 
-          ? 'Camera Permission Required' 
-          : permissionType === 'microphone' 
-            ? 'Microphone Permission Required' 
+      <h3 className="mt-4 text-lg font-medium text-neutral-900 dark:text-white">
+        {permissionType === 'camera'
+          ? 'Camera Permission Required'
+          : permissionType === 'microphone'
+            ? 'Microphone Permission Required'
             : 'Camera & Microphone Permissions Required'}
       </h3>
       
-      <p className="mt-2 text-sm text-yellow-700 dark:text-yellow-400">
-        To record your reaction, we need permission to access your {getPermissionText()}.
-        Please allow access when prompted by your browser.
+      <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
+        We need access to your {getPermissionText()} to record your {isReplyMode ? 'reply' : 'reaction'}. Please allow access in your browser.
       </p>
       
       {errorMessage && (
@@ -169,21 +166,21 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
       )}
       
       <div className="mt-4 text-left">
-        <h4 className="font-medium text-yellow-800 dark:text-yellow-300">How to enable access:</h4>
+        <h4 className="font-medium text-neutral-900 dark:text-white">How to enable access:</h4>
         {getPlatformInstructions()}
       </div>
       
-      <div className="mt-6 flex justify-center">
+      <div className="mt-6 flex justify-center space-x-3">
         <button
           onClick={() => window.location.reload()}
-          className="mr-3 rounded-md bg-yellow-100 px-4 py-2 text-sm font-medium text-yellow-800 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 dark:bg-yellow-800 dark:text-yellow-100 dark:hover:bg-yellow-700"
+          className="btn btn-primary bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-700 dark:hover:bg-yellow-600"
         >
           Refresh Page
         </button>
         
         <button
           onClick={onCancel}
-          className="rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+          className="btn btn-outline"
         >
           Go Back
         </button>
