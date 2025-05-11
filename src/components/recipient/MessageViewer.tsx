@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import WebcamRecorder from './WebcamRecorder';
 import PermissionRequest from './PermissionRequest';
 import PasscodeEntry from './PasscodeEntry';
 import { formatDistanceToNow } from 'date-fns';
-import { classNames } from '../../utils/classNames';
 
 interface MessageData {
   id: string;

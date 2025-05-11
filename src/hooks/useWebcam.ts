@@ -78,7 +78,12 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
       
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
-        await videoRef.current.play();
+        // Ensure the video element is not already playing or loading a new stream
+        if (videoRef.current.paused) {
+          await videoRef.current.play().catch(err => {
+            throw new Error(`Failed to play video stream: ${err.message}`);
+          });
+        }
       }
       
       await checkPermission();
@@ -98,6 +103,7 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
       
       if (videoRef.current) {
         videoRef.current.srcObject = null;
+        videoRef.current.pause(); // Explicitly pause to avoid play() conflicts
       }
     }
   }, [stream]);

@@ -87,8 +87,11 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     }
 
     return () => {
-      stopWebcam();
-      stopRecording();
+      // Delay cleanup to avoid interrupting play()
+      setTimeout(() => {
+        stopWebcam();
+        stopRecording();
+      }, 100);
     };
   }, [isBrowserSupported, autoStart, startWebcam, stopWebcam, stopRecording, permissionState, startRecording, onPermissionDenied]);
 
