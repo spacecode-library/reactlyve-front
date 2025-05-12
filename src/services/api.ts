@@ -80,6 +80,7 @@ export const messagesApi = {
     console.log("response from service",response)
     return response;
   },
+  // These routes might also need to be fixed
   getAll: () => api.get('/messages'),
   getById: (id: string) => api.get(`/messages/${id}`),
   delete: (id: string) => api.delete(`/messages/${id}`),
