@@ -73,8 +73,8 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
     setValue('passcode', passcode, { shouldValidate: true });
   }, [setValue]);
   
-  // Submit form
-  const onSubmit = useCallback(async (data: MessageFormValues) => {
+// Submit form
+const onSubmit = useCallback(async (data: MessageFormValues) => {
     setIsSubmitting(true);
     
     try {
@@ -91,13 +91,30 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
       
       // Call API to create message
       const response = await messagesApi.create(formData);
+      console.log('API response:', JSON.stringify(response, null, 2));
+      console.log('Message created successfully, full response:', response);
+      console.log('Response data structure:', Object.keys(response.data));
       
-      // Set shareable link
-      setShareableLink(response.data.shareableLink);
+      // Check if the response contains a URL that could be the shareable link
+      // Sometimes the backend might name it differently
+      const possibleLinkKeys = ['shareableLink', 'link', 'url', 'shareLink', 'shareUrl'];
+      let linkFound = false;
       
+      for (const key of possibleLinkKeys) {
+        if (response.data[key]) {
+          console.log(`Found shareable link with key "${key}":`, response.data[key]);
+          setShareableLink(response.data[key]);
+          linkFound = true;
+          break;
+        }
+      }
+      
+      // Show success message
       showToast({
-        message: 'Message created successfully!',
-        type: 'success',
+        message: linkFound 
+          ? 'Message created successfully!' 
+          : 'Message created but unable to generate link. Please check your dashboard.',
+        type: linkFound ? 'success' : 'warning',
       });
     } catch (error) {
       console.error('Error creating message:', error);

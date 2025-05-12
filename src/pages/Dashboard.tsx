@@ -11,6 +11,7 @@ import MessageList from '../components/dashboard/MessageList';
 import ReactionViewer from '../components/dashboard/ReactionViewer';
 import Modal from '../components/common/Modal';
 import Button from '../components/common/Button';
+import api from '@/services/api.ts';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -33,20 +34,20 @@ const Dashboard: React.FC = () => {
     const fetchMessages = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(MESSAGE_ROUTES.GET_ALL);
-        setMessages(response.data);
-        
+        const response = await api.get(MESSAGE_ROUTES.GET_ALL);
+        setMessages(response.data.messages);
+        console.log(messages,'messages')
         // Calculate stats
-        const totalMessages = response.data.length;
-        const messagesWithViews = response.data.filter((msg: MessageWithReactions) => msg.viewCount > 0);
-        const messagesWithReactions = response.data.filter((msg: MessageWithReactions) => msg.reactions.length > 0);
-        const totalReactions = response.data.reduce((acc: number, msg: MessageWithReactions) => acc + msg.reactions.length, 0);
+        const totalMessages = response.data.messages.length;
+        const messagesWithViews = response.data.stats.viewedMessages
+        const messagesWithReactions = response.data.stats.reactionRate
+        const totalReactions = response.data.stats.totalReactions
         
         setStats({
           totalMessages,
           totalReactions,
-          viewRate: totalMessages > 0 ? (messagesWithViews.length / totalMessages) * 100 : 0,
-          reactionRate: messagesWithViews.length > 0 ? (messagesWithReactions.length / messagesWithViews.length) * 100 : 0,
+          viewRate: messagesWithViews,
+          reactionRate:messagesWithReactions,
         });
       } catch (error) {
         console.error('Error fetching messages:', error);
@@ -88,9 +89,9 @@ const Dashboard: React.FC = () => {
   // Handle viewing a reaction
   const handleViewReaction = async (reactionId: string) => {
     try {
-      const response = await axios.get(REACTION_ROUTES.GET_BY_ID(reactionId));
+      const response = await api.get(REACTION_ROUTES.GET_BY_ID(reactionId));
       const reaction = response.data;
-      
+      console.log(reaction,'reactiondashboard')
       // Find the message this reaction belongs to
       const relatedMessage = messages.find(msg => 
         msg.reactions.some(r => r.id === reactionId)
@@ -305,7 +306,7 @@ const Dashboard: React.FC = () => {
                     </dt>
                     <dd>
                       <div className="text-lg font-medium text-neutral-900 dark:text-white">
-                        {stats.reactionRate.toFixed(0)}%
+                        {stats.reactionRate}
                       </div>
                     </dd>
                   </dl>

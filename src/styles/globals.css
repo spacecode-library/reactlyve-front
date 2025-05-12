@@ -61,6 +61,6 @@
   }
   
   .animate-slide-up {
-    @apply animate-slideUp;
+    @apply animate-fadeIn; /* Changed from animate-slideUp to animate-fadeIn */
   }
 }

@@ -48,6 +48,7 @@ function App() {
           <Route path="/auth/success" element={<AuthCallback />} />
           <Route path="/about" element={<About />} />
           <Route path="/view/:id" element={<View />} />
+          <Route path="/m/:id" element={<View />} />
           
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>

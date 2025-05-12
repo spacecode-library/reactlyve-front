@@ -60,6 +60,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setToken(null);
           delete api.defaults.headers.common['Authorization'];
         }
+      } else {
+        console.log('No token found in localStorage');
       }
       
       setIsLoading(false);
@@ -73,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Redirect to Google OAuth
     window.location.href = 'http://localhost:8000/api/auth/google';
   };
-  console.log("user",user)
+
   const logout = async () => {
     setIsLoading(true);
     try {
