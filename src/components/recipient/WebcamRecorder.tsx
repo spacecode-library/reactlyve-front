@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import useWebcam from '../../hooks/useWebcam';
 import useMediaRecorder from '../../hooks/useMediaRecorder';
-import CountdownTimer from './CountdownTimer';
-import PermissionRequest from './PermissionRequest';
 import { formatDuration } from '../../utils/formatters';
 import { supportsMediaRecording } from '../../utils/validators';
 import { classNames } from '../../utils/classNames';
@@ -19,14 +17,6 @@ interface WebcamRecorderProps {
   isReplyMode?: boolean;
 }
 
-/**
- * WebcamRecorder component with countdown and recording functionality
- * Flow: 
- * 1. Initialize webcam
- * 2. Show countdown (3, 2, 1)
- * 3. Start recording
- * 4. On stop/completion, call onRecordingComplete with the blob
- */
 const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   onRecordingComplete,
   onCancel,
@@ -106,10 +96,8 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
         setWebcamInitialized(true);
         console.log('Webcam initialized successfully');
         
-        // Reset retry count on success
         setRetryCount(0);
         
-        // In autoStart mode, we start countdown immediately after webcam is ready
         if (autoStart) {
           console.log('Auto-starting countdown due to autoStart=true');
           setShowCountdown(true);
@@ -117,15 +105,13 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       } catch (error) {
         console.error('Failed to start webcam:', error);
         
-        // If we haven't exceeded retry attempts, try again
         if (retryCount < MAX_RETRY_ATTEMPTS - 1) {
           console.log(`Retrying webcam initialization in ${RETRY_DELAY}ms`);
           setTimeout(() => {
             setRetryCount(prev => prev + 1);
           }, RETRY_DELAY);
         } else {
-          // Give up after max retries
-          const errorMsg = error.message || 'Failed to access camera/microphone after multiple attempts.';
+          const errorMsg = 'Failed to access camera/microphone after multiple attempts.';
           setPermissionError(errorMsg);
           onPermissionDenied?.(errorMsg);
         }
@@ -135,7 +121,6 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     initializeWebcam();
 
     return () => {
-      // Cleanup when component unmounts
       stopWebcam();
       stopRecording();
     };
@@ -146,57 +131,47 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     if (recordingStatus === 'stopped' && recordedBlob) {
       setRecordingCompleted(true);
       setIsRecording(false);
-      // Provide the blob to the parent component
       onRecordingComplete(recordedBlob);
     }
   }, [recordingStatus, recordedBlob, onRecordingComplete]);
 
   const [countdownValue, setCountdownValue] = useState<number>(countdownDuration);
   
-  // Custom countdown timer implementation with permission handling
+  // Countdown timer implementation with permission handling
   useEffect(() => {
     let countdownInterval: NodeJS.Timeout | null = null;
     let permissionCheckInterval: NodeJS.Timeout | null = null;
     
     if (showCountdown && countdownValue > 0) {
-      // First ensure permissions are ready before starting countdown
       if (!stream) {
         console.log('Stream not available at countdown start, attempting to ensure permissions');
         
-        // Try to ensure permissions during countdown
         permissionCheckInterval = setInterval(() => {
           if (stream) {
             console.log('Stream became available during countdown');
             if (permissionCheckInterval) clearInterval(permissionCheckInterval);
           } else {
             console.log('Still waiting for stream during countdown');
-            // If we're still in countdown but don't have stream, try restarting webcam
             if (!isWebcamLoading) {
               console.log('Attempting to restart webcam during countdown');
               startWebcam().catch(err => console.error('Failed to restart webcam during countdown:', err));
             }
           }
-        }, 500); // Check every 500ms
+        }, 500);
       }
       
-      // Start the actual countdown
       countdownInterval = setInterval(() => {
         setCountdownValue((prev) => {
           if (prev <= 1) {
-            // When countdown reaches 0, clear all intervals
             if (countdownInterval) clearInterval(countdownInterval);
             if (permissionCheckInterval) clearInterval(permissionCheckInterval);
             
-            // Hide countdown
             setShowCountdown(false);
             
-            // Start recording if stream is available
             if (stream) {
               startRecording();
               setIsRecording(true);
               console.log('Recording started after countdown');
-              
-              // Call the callback if provided
               onCountdownComplete?.();
             } else {
               console.error('Cannot start recording: Stream not available after countdown');
@@ -233,48 +208,6 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     onCancel();
   };
 
-  // Handle stop recording
-  const handleStopRecording = () => {
-    stopRecording();
-    setIsRecording(false);
-  };
-
-  // Handle start recording button click
-  const handleStartRecording = () => {
-    // Always try to start countdown, even if stream isn't ready yet
-    // The countdown effect will handle permission checks
-    if (recordingStatus === 'inactive') {
-      console.log('Starting countdown before recording');
-      
-      // If webcam is not initialized, try to initialize it first
-      if (!webcamInitialized) {
-        startWebcam()
-          .then(() => {
-            setWebcamInitialized(true);
-            console.log('Webcam initialized on demand before countdown');
-            // Start countdown after webcam is initialized
-            setShowCountdown(true);
-          })
-          .catch(error => {
-            console.error('Failed to initialize webcam before countdown:', error);
-            setPermissionError('Failed to access camera. Please check permissions and try again.');
-          });
-      } else {
-        // If webcam is already initialized, just start countdown
-        // The countdown will try to ensure permissions
-        setShowCountdown(true);
-        
-        // If stream is not available, try to restart webcam in background
-        if (!stream) {
-          console.log('Stream not available, attempting to reinitialize during countdown');
-          startWebcam().catch(err => console.error('Failed to restart webcam before countdown:', err));
-        }
-      }
-    } else {
-      console.warn('Cannot start countdown: recording already active');
-    }
-  };
-
   // Function to retry webcam initialization
   const handleRetryWebcam = () => {
     setPermissionError(undefined);
@@ -292,10 +225,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
         <p className="mt-2 text-sm text-red-700 dark:text-red-300">
           Your browser does not support video recording. Please try a modern browser like Chrome, Firefox, or Edge.
         </p>
-        <button
-          onClick={onCancel}
-          className="btn btn-outline mt-4"
-        >
+        <button onClick={onCancel} className="btn btn-outline mt-4">
           Go Back
         </button>
       </div>
@@ -313,16 +243,10 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
           {webcamError?.message || permissionError || "Unable to access your camera and microphone."}
         </p>
         <div className="mt-4 flex justify-center space-x-2">
-          <button
-            onClick={handleRetryWebcam}
-            className="btn btn-primary"
-          >
+          <button onClick={handleRetryWebcam} className="btn btn-primary">
             Retry
           </button>
-          <button
-            onClick={onCancel}
-            className="btn btn-outline"
-          >
+          <button onClick={onCancel} className="btn btn-outline">
             Go Back
           </button>
         </div>
@@ -332,11 +256,16 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
 
   return (
     <div className={classNames('flex flex-col items-center w-full max-w-2xl mx-auto', className || '')}>
-      {/* Webcam preview container */}
+      {/* Webcam preview container - smaller during countdown, hidden during recording */}
       <div
         ref={videoContainerRef}
         className="relative overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-800"
-        style={{ width: '100%', maxWidth: '640px', aspectRatio: '16 / 9' }}
+        style={{
+          width: '100%',
+          maxWidth: showCountdown ? '320px' : '640px', // Smaller during countdown
+          aspectRatio: '16 / 9',
+          display: isRecording ? 'none' : 'block', // Hide during recording
+        }}
       >
         {isWebcamLoading ? (
           <div className="flex h-full items-center justify-center">
@@ -346,19 +275,8 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
               fill="none"
               viewBox="0 0 24 24"
             >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
           </div>
         ) : (
@@ -372,33 +290,31 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
 
         {/* Stream status indicator */}
         {webcamInitialized && !streamAvailable && (
-          <div className="absolute right-4 top-4 flex items-center rounded-full bg-yellow-500 px-3 py-1 text-xs text-white">
-            <span className="mr-1 h-2 w-2 animate-pulse rounded-full bg-white"></span>
+          <div className="absolute right-2 top-2 flex items-center rounded-full bg-yellow-500 px-2 py-1 text-xs text-white">
+            <span className="mr-1 h-2 w-2 animate-pulse rounded-full bg-white" />
             Reconnecting...
           </div>
         )}
 
-        {/* Recording indicator */}
+        {/* Recording indicator - shown even if video is hidden */}
         {isRecording && (
-          <div className="absolute left-4 top-4 flex items-center rounded-full bg-red-500 px-3 py-1 text-sm text-white">
-            <span className="mr-2 h-3 w-3 animate-pulse rounded-full bg-white"></span>
+          <div className="absolute left-2 top-2 flex items-center rounded-full bg-red-500 px-2 py-1 text-xs text-white">
+            <span className="mr-1 h-2 w-2 animate-pulse rounded-full bg-white" />
             Recording: {formatDuration(duration)}
           </div>
         )}
 
-        {/* Countdown overlay with permission status */}
+        {/* Countdown overlay */}
         {showCountdown && (
           <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
             <div className="flex flex-col items-center">
-              <div className="text-8xl font-bold text-white mb-4">
+              <div className="text-6xl font-bold text-white mb-4">
                 {countdownValue}
               </div>
-              
-              {/* Show permission status during countdown */}
               <div className="mb-4 flex items-center">
                 {stream ? (
                   <span className="flex items-center text-green-400 text-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                     Camera Ready
@@ -406,14 +322,13 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
                 ) : (
                   <span className="flex items-center text-yellow-400 text-sm">
                     <svg className="animate-spin h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
                     Setting Up Camera...
                   </span>
                 )}
               </div>
-              
               <button
                 onClick={() => {
                   setShowCountdown(false);
@@ -430,119 +345,31 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
         {/* Recording completed overlay */}
         {recordingCompleted && !isRecording && !showCountdown && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-60 text-white">
-            <div className="rounded-full bg-green-500 p-4 mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" viewBox="0 0 20 20" fill="currentColor">
+            <div className="rounded-full bg-green-500 p-3 mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
             </div>
-            <h3 className="text-xl font-medium">Recording Complete!</h3>
+            <h3 className="text-lg font-medium">Recording Complete!</h3>
             <p className="mt-2 text-sm">Your video has been successfully recorded.</p>
-          </div>
-        )}
-
-        {/* Guide overlay for ready state */}
-        {!isRecording && !showCountdown && !recordingCompleted && !autoStart && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-40 p-4 text-center text-white">
-            <h3 className="text-xl font-medium">
-              {isReplyMode ? 'Ready to record your reply?' : 'Ready to capture your reaction?'}
-            </h3>
-            <p className="mt-2 max-w-md text-sm">
-              Position yourself in frame and click the button below to start recording.
-              We'll count down from {countdownDuration} before recording begins.
-            </p>
           </div>
         )}
       </div>
 
-      {/* Control buttons */}
+      {/* Control buttons - only show Cancel */}
       <div className="mt-4 flex space-x-4">
-        {recordingCompleted ? (
-          <>
-            <button
-              onClick={() => {
-                // Reset everything to record again
-                setRecordingCompleted(false);
-                clearRecording();
-              }}
-              className="btn btn-primary"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1z" clipRule="evenodd" />
-              </svg>
-              Record Again
-            </button>
-            <button
-              onClick={handleCancel}
-              className="btn btn-outline"
-            >
-              Done
-            </button>
-          </>
-        ) : isRecording ? (
-          <button
-            onClick={handleStopRecording}
-            className="btn btn-primary bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="mr-2 h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <rect x="6" y="6" width="8" height="8" />
-            </svg>
-            Stop Recording
-          </button>
-        ) : !autoStart ? (
-          <button
-            onClick={handleStartRecording}
-            disabled={!stream || isWebcamLoading || showCountdown || !webcamInitialized}
-            className={`btn ${!stream ? 'btn-warning' : 'btn-primary'}`}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="mr-2 h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <circle cx="10" cy="10" r="6" />
-            </svg>
-            {!stream && webcamInitialized ? 'Reconnect Camera' : 'Start Recording'}
-          </button>
-        ) : null}
-        
         {!recordingCompleted && (
-          <button
-            onClick={handleCancel}
-            className="btn btn-outline"
-          >
+          <button onClick={handleCancel} className="btn btn-outline">
             Cancel
           </button>
         )}
       </div>
 
-      {/* Error message */}
-      {recordingError && (
-        <div className="mt-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20">
-          <p className="text-sm text-red-700 dark:text-red-300">
-            {recordingError.message}
-          </p>
-        </div>
-      )}
-
-      {/* Stream status message */}
-      {webcamInitialized && !streamAvailable && !permissionError && (
-        <div className="mt-4 rounded-md bg-yellow-50 p-4 dark:bg-yellow-900/20">
-          <p className="text-sm text-yellow-700 dark:text-yellow-300">
-            Camera stream is currently unavailable. Click "Reconnect Camera" to try again.
-          </p>
-        </div>
-      )}
 
       {/* Recording time limit notice */}
       {!recordingCompleted && (
         <p className="mt-4 text-sm text-neutral-500 dark:text-neutral-400">
-          Maximum recording time: {formatDuration(maxDuration)}
+          Recording time: {formatDuration(maxDuration)}
         </p>
       )}
     </div>
