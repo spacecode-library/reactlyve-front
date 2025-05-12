@@ -29,7 +29,6 @@ api.interceptors.request.use(
 // Add response interceptor
 api.interceptors.response.use(
   (response) => {
-    console.log("response from service 32",response)
     return response;
   },
   (error) => {
