@@ -55,32 +55,39 @@ export const authApi = {
 // Messages API
 // Messages API
 export const messagesApi = {
-  create:async (data: {
-    message: string;
-    image?: File | null;
-    hasPasscode: boolean;
-    passcode?: string;
-  }) => {
-    const formData = new FormData();
-    // Use 'content' as the field name to match backend expectation
-    formData.append('content', data.message);
-    if (data.image) {
-      formData.append('image', data.image);
-    }
-    formData.append('hasPasscode', String(data.hasPasscode));
-    if (data.hasPasscode && data.passcode) {
-      formData.append('passcode', data.passcode);
-    }
+  // create:async (data: {
+  //   message: string;
+  //   image?: File | null;
+  //   hasPasscode: boolean;
+  //   passcode?: string;
+  // }) => {
+  //   const formData = new FormData();
+  //   // Use 'content' as the field name to match backend expectation
+  //   formData.append('content', data.message);
+  //   if (data.image) {
+  //     formData.append('image', data.image);
+  //   }
+  //   formData.append('hasPasscode', String(data.hasPasscode));
+  //   if (data.hasPasscode && data.passcode) {
+  //     formData.append('passcode', data.passcode);
+  //   }
     
-    const response = await api.post('/messages/send', formData, {
+  //   const response = await api.post('/messages/send', formData, {
+  //     headers: {
+  //       'Content-Type': 'multipart/form-data',
+  //     },
+  //   });
+  //   console.log("response from service",response)
+  //   return response;
+  // },
+  // These routes might also need to be fixed
+  createWithFormData: async (formData) => {
+    return api.post('/messages/send', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
-    console.log("response from service",response)
-    return response;
   },
-  // These routes might also need to be fixed
   getAll: () => api.get('/messages'),
   getById: (id: string) => api.get(`/messages/${id}`),
   delete: (id: string) => api.delete(`/messages/${id}`),
