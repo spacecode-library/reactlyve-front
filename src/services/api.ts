@@ -5,7 +5,7 @@ import { API_BASE_URL, REPLY_ROUTES } from '../components/constants/apiRoutes';
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true, // Important for cookies
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -14,7 +14,6 @@ const api = axios.create({
 // Add request interceptor to include auth token on every request
 api.interceptors.request.use(
   (config) => {
-    // Try to get the token from localStorage on each request
     const token = localStorage.getItem('token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
@@ -32,14 +31,10 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Handle errors globally
     const errorMessage = error.response?.data?.message || 'Something went wrong';
-    
-    // Don't show toast for 401 errors, they will be handled by auth context
     if (error.response?.status !== 401) {
       toast.error(errorMessage);
     }
-    
     return Promise.reject(error);
   }
 );
@@ -59,7 +54,6 @@ export const messagesApi = {
     passcode?: string;
   }) => {
     const formData = new FormData();
-    // Use 'content' as the field name to match backend expectation
     formData.append('content', data.message);
     if (data.image) {
       formData.append('image', data.image);
@@ -80,10 +74,7 @@ export const messagesApi = {
   getAll: () => api.get('/messages'),
   getById: (id: string) => api.get(`/messages/${id}`),
   delete: (id: string) => api.delete(`/messages/${id}`),
-  
-  // For public access, create a separate axios instance without auth requirements
   getByShareableLink: (linkId: string) => {
-    // Create public API instance
     const publicApi = axios.create({
       baseURL: API_BASE_URL,
       headers: {
@@ -92,13 +83,11 @@ export const messagesApi = {
       timeout: 5000,
     });
     
-    // Encode the linkId if it contains a URL (to handle full URL formats)
     const encodedLinkId = linkId.includes('http') ? 
       encodeURIComponent(linkId) : linkId;
       
     return publicApi.get(`/messages/shared/${encodedLinkId}`);
   },
-  
   verifyPasscode: (linkId: string, passcode: string) => {
     const publicApi = axios.create({
       baseURL: API_BASE_URL,
@@ -114,7 +103,7 @@ export const messagesApi = {
 export const reactionsApi = {
   upload: (messageId: string, video: Blob) => {
     const formData = new FormData();
-    formData.append('video', video, 'reaction.webm'); // Added filename to help with MIME type detection
+    formData.append('video', video, 'reaction.webm');
     
     return api.post(`/reactions/${messageId}`, formData, {
       headers: {
@@ -129,19 +118,14 @@ export const reactionsApi = {
 
 // Replies API
 export const repliesApi = {
-  upload: (messageId: string, video: Blob) => {
-    // Create public API instance since replies are uploaded by recipients (not authenticated users)
+  sendText: (messageId: string, text: string) => {
     const publicApi = axios.create({
       baseURL: API_BASE_URL,
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': 'application/json',
       },
     });
-
-    const formData = new FormData();
-    formData.append('video', video, 'reply.webm'); // Added filename to help with MIME type detection
-    
-    return publicApi.post(REPLY_ROUTES.UPLOAD(messageId), formData);
+    return publicApi.post(REPLY_ROUTES.UPLOAD(messageId), { text });
   },
 };
 

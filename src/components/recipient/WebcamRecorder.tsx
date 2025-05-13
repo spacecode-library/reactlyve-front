@@ -13,7 +13,7 @@ interface WebcamRecorderProps {
   className?: string;
   autoStart?: boolean;
   onPermissionDenied?: (error: string) => void;
-  onCountdownComplete?: () => void; 
+  onCountdownComplete?: () => void;
   isReplyMode?: boolean;
 }
 
@@ -296,7 +296,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
           </div>
         )}
 
-        {/* Recording indicator - shown even if video is hidden */}
+        {/* Recording indicator with red dot and duration */}
         {isRecording && (
           <div className="absolute left-2 top-2 flex items-center rounded-full bg-red-500 px-2 py-1 text-xs text-white">
             <span className="mr-1 h-2 w-2 animate-pulse rounded-full bg-white" />
@@ -329,15 +329,6 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
                   </span>
                 )}
               </div>
-              <button
-                onClick={() => {
-                  setShowCountdown(false);
-                  handleCancel();
-                }}
-                className="btn btn-sm btn-outline text-white border-white hover:bg-white hover:text-black"
-              >
-                Cancel
-              </button>
             </div>
           </div>
         )}
@@ -356,20 +347,10 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
         )}
       </div>
 
-      {/* Control buttons - only show Cancel */}
-      <div className="mt-4 flex space-x-4">
-        {!recordingCompleted && (
-          <button onClick={handleCancel} className="btn btn-outline">
-            Cancel
-          </button>
-        )}
-      </div>
-
-
       {/* Recording time limit notice */}
       {!recordingCompleted && (
         <p className="mt-4 text-sm text-neutral-500 dark:text-neutral-400">
-          Recording time: {formatDuration(maxDuration)}
+          Maximum recording time: {formatDuration(maxDuration)}
         </p>
       )}
     </div>

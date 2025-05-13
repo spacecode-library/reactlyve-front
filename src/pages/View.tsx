@@ -41,13 +41,11 @@ const View: React.FC = () => {
       }
       
       try {
-        // Use the API endpoint that matches our backend
         const response = await api.get(`/messages/view/${id}`);
         
         if (response.data) {
           setMessage(response.data);
           
-          // Determine if passcode is needed
           const requiresPasscode = response.data.hasPasscode === true;
           const isVerified = response.data.passcodeVerified === true || !requiresPasscode;
               
@@ -70,7 +68,6 @@ const View: React.FC = () => {
     if (!id || !message) return false;
     
     try {
-      // Use the direct verify-passcode endpoint
       const response = await api.post(
         `/messages/${id}/verify-passcode`, 
         { passcode }
@@ -79,7 +76,6 @@ const View: React.FC = () => {
       if (response.data && (response.data.verified || response.status === 200)) {
         setPasscodeVerified(true);
         
-        // If the response includes the message data, update it
         if (response.data.message) {
           setMessage(response.data.message);
         }
@@ -119,24 +115,11 @@ const View: React.FC = () => {
     }
   };
 
-  // Handle recording reply
-  const handleRecordReply = async (messageId: string, videoBlob: Blob): Promise<void> => {
+  // Handle text reply
+  const handleSendTextReply = async (messageId: string, text: string): Promise<void> => {
     try {
-      const formData = new FormData();
-      formData.append('video', videoBlob, 'reply.webm');
-      if (videoBlob.size > 0) {
-        await api.post(
-          `/replies/${messageId}`, // Assuming this is the endpoint for replies
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            }
-          }
-        );
-        
-        toast.success('Your reply has been sent!');
-      }
+      await api.post(`/replies/${messageId}`, { text });
+      toast.success('Your reply has been sent!');
     } catch (error) {
       console.error('Error uploading reply:', error);
       toast.error('Failed to upload reply. Please try again.');
@@ -226,9 +209,9 @@ const View: React.FC = () => {
         <MessageViewer
           message={message}
           onRecordReaction={handleRecordReaction}
-          onRecordReply={handleRecordReply}
           onSkipReaction={handleSkipReaction}
           onSubmitPasscode={handleSubmitPasscode}
+          onSendTextReply={handleSendTextReply}
         />
       </div>
     );
