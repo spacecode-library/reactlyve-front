@@ -13,6 +13,7 @@ import Dashboard from './pages/Dashboard';
 import View from './pages/View';
 import About from './pages/About';
 import NotFound from './pages/NotFound';
+import Message from './pages/Message';
 
 // Admin and Profile components (placeholder for now)
 const Admin = () => (
@@ -55,6 +56,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/create" element={<Create />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/message/:id" element={<Message/>} />
           </Route>
           
           {/* Admin routes */}

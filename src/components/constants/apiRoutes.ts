@@ -13,7 +13,7 @@ export const MESSAGE_ROUTES = {
   CREATE: `${API_BASE_URL}/messages/create`,
   GET_ALL: `${API_BASE_URL}/messages`,
   GET_BY_ID: (id: string) => `${API_BASE_URL}/messages/${id}`,
-  DELETE: (id: string) => `${API_BASE_URL}/messages/${id}`,
+  DELETE: (id: string) => `${API_BASE_URL}/messages/${id}/delete`,
   VIEW: (id: string) => `${API_BASE_URL}/messages/shared/${id}`,
   VERIFY_PASSCODE: (id: string) => `${API_BASE_URL}/messages/${id}/verify-passcode`,
   SHARED: (id: string) => `${API_BASE_URL}/messages/shared/${id}`,
@@ -24,7 +24,7 @@ export const REACTION_ROUTES = {
   UPLOAD: (messageId: string) => `${API_BASE_URL}/reactions/${messageId}`,
   GET_BY_MESSAGE_ID: (messageId: string) => `${API_BASE_URL}/reactions/message/${messageId}`,
   GET_BY_ID: (id: string) => `${API_BASE_URL}/reactions/${id}`,
-  DELETE: (id: string) => `${API_BASE_URL}/reactions/${id}`,
+  DELETE: (id: string) => `${API_BASE_URL}/messages/${id}/delete`,
   DOWNLOAD: (id: string) => `${API_BASE_URL}/reactions/${id}/download`,
 };
 

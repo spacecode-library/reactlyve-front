@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { MESSAGE_ROUTES, REACTION_ROUTES } from '../components/constants/apiRoutes.ts';
@@ -15,6 +15,7 @@ import api from '@/services/api.ts';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   
   const [messages, setMessages] = useState<MessageWithReactions[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,6 +23,8 @@ const Dashboard: React.FC = () => {
   const [selectedMessageSummary, setSelectedMessageSummary] = useState<string>('');
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [currentPage,setCurrentPage] = useState(1);
+  const [limit] = useState(20);
   const [stats, setStats] = useState({
     totalMessages: 0,
     totalReactions: 0,
@@ -34,21 +37,22 @@ const Dashboard: React.FC = () => {
     const fetchMessages = async () => {
       try {
         setLoading(true);
-        const response = await api.get(MESSAGE_ROUTES.GET_ALL);
+        const response = await api.get( `${MESSAGE_ROUTES.GET_ALL}?page=${currentPage}&limit=${limit}`);
         setMessages(response.data.messages);
-        console.log(messages,'messages')
+
         // Calculate stats
-        const totalMessages = response.data.messages.length;
+        const totalMessages = response.data.stats.totalMessages;
         const messagesWithViews = response.data.stats.viewedMessages
         const messagesWithReactions = response.data.stats.reactionRate
         const totalReactions = response.data.stats.totalReactions
-        
+        console.log('messages data',messages)
         setStats({
           totalMessages,
           totalReactions,
           viewRate: messagesWithViews,
           reactionRate:messagesWithReactions,
         });
+
       } catch (error) {
         console.error('Error fetching messages:', error);
         toast.error('Failed to load your messages. Please try again.');
@@ -58,7 +62,13 @@ const Dashboard: React.FC = () => {
     };
     
     fetchMessages();
-  }, []);
+  }, [currentPage,messageToDelete]);
+
+  // handle page change
+  const handlepagechange = (page:number)=>{
+    setCurrentPage(page)
+
+  }
   
   // Handle message deletion
   const handleDeleteMessage = (messageId: string) => {
@@ -89,44 +99,40 @@ const Dashboard: React.FC = () => {
   // Handle viewing a reaction
   const handleViewReaction = async (reactionId: string) => {
     try {
-      const response = await api.get(REACTION_ROUTES.GET_BY_ID(reactionId));
-      const reaction = response.data;
-      console.log(reaction,'reactiondashboard')
-      // Find the message this reaction belongs to
-      const relatedMessage = messages.find(msg => 
-        msg.reactions.some(r => r.id === reactionId)
-      );
+      // const response = await api.get(MESSAGE_ROUTES.GET_BY_ID(reactionId));
+      // const reaction = response.data;
+      // console.log(reaction,'reactiondashboard')
+      navigate(`/message/${reactionId}`)
       
-      setSelectedReaction(reaction);
-      setSelectedMessageSummary(relatedMessage ? truncateString(relatedMessage.content, 100) : '');
-    } catch (error) {
+      } catch (error) {
       console.error('Error fetching reaction:', error);
       toast.error('Failed to load the reaction. Please try again.');
     }
   };
   
   // Handle deleting a reaction
-  const handleDeleteReaction = async (reactionId: string) => {
-    try {
-      await axios.delete(REACTION_ROUTES.DELETE(reactionId));
+  // const handleDeleteReaction = async (reactionId: string) => {
+  //   try {
+
+  //     await api.delete(MESSAGE_ROUTES.DELETE(reactionId))
       
-      // Update messages state
-      setMessages(prevMessages => 
-        prevMessages.map(msg => ({
-          ...msg,
-          reactions: msg.reactions.filter(r => r.id !== reactionId)
-        }))
-      );
+  //     // Update messages state
+  //     setMessages(prevMessages => 
+  //       prevMessages.map(msg => ({
+  //         ...msg,
+  //         reactions: msg.reactions.filter(r => r.id !== reactionId)
+  //       }))
+  //     );
       
-      // Close the reaction viewer
-      setSelectedReaction(null);
+  //     // Close the reaction viewer
+  //     setSelectedReaction(null);
       
-      toast.success('Reaction deleted successfully.');
-    } catch (error) {
-      console.error('Error deleting reaction:', error);
-      toast.error('Failed to delete the reaction. Please try again.');
-    }
-  };
+  //     toast.success('Reaction deleted successfully.');
+  //   } catch (error) {
+  //     console.error('Error deleting reaction:', error);
+  //     toast.error('Failed to delete the reaction. Please try again.');
+  //   }
+  // };
   
   // Helper function to truncate strings
   const truncateString = (str: string, maxLength: number): string => {
@@ -332,6 +338,26 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
+        <div className='flex justify-end items-center mt-4'>
+          <Button
+          variant='outline'
+          onClick={()=>handlepagechange(currentPage -1)}
+          disabled = {currentPage === 1}
+          >
+            Previous
+          </Button>
+          <span className='mx-2 text-neutral-500 dark:text-neutral-400'>
+            Page {currentPage} of {Math.ceil( stats.totalMessages / limit)}
+          </span>
+          <Button
+          variant='outline'
+          onClick={()=>handlepagechange(currentPage + 1)}
+          disabled = {currentPage === Math.ceil(stats.totalMessages / limit)}
+          >
+            Next
+          </Button>
+          
+        </div>
       </div>
       
       {/* Reaction viewer modal */}
@@ -341,7 +367,7 @@ const Dashboard: React.FC = () => {
             <ReactionViewer
               reaction={selectedReaction}
               messageSummary={selectedMessageSummary}
-              onDeleteReaction={handleDeleteReaction}
+              // onDeleteReaction={handleDeleteReaction}
               onClose={() => setSelectedReaction(null)}
             />
           </div>
