@@ -130,7 +130,7 @@ export const reactionsApi = {
   },
   getByMessageId: (messageId: string) => api.get(`/reactions/message/${messageId}`),
   getById: (id: string) => api.get(`/reactions/${id}`),
-  delete: (id: string) => api.delete(`/reactions/${id}`),
+  delete: (id: string) => api.delete(`/messages/${id}/delete`),
 };
 
 // Admin API
