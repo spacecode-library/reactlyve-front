@@ -1,6 +1,6 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { API_BASE_URL } from '../components/constants/apiRoutes';
+import { API_BASE_URL, REPLY_ROUTES } from '../components/constants/apiRoutes';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -51,11 +51,8 @@ export const authApi = {
 };
 
 // Messages API
-// Messages API
-// Messages API
-// Messages API
 export const messagesApi = {
-  create:async (data: {
+  create: async (data: {
     message: string;
     image?: File | null;
     hasPasscode: boolean;
@@ -77,33 +74,30 @@ export const messagesApi = {
         'Content-Type': 'multipart/form-data',
       },
     });
-    console.log("response from service",response)
+    console.log("response from service", response);
     return response;
   },
-  // These routes might also need to be fixed
   getAll: () => api.get('/messages'),
   getById: (id: string) => api.get(`/messages/${id}`),
   delete: (id: string) => api.delete(`/messages/${id}`),
   
   // For public access, create a separate axios instance without auth requirements
-// For public access, create a separate axios instance without auth requirements
-getByShareableLink: (linkId: string) => {
-  // Create public API instance
-  const publicApi = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    // Add timeout for quicker failure when trying multiple formats
-    timeout: 5000,
-  });
-  
-  // Encode the linkId if it contains a URL (to handle full URL formats)
-  const encodedLinkId = linkId.includes('http') ? 
-    encodeURIComponent(linkId) : linkId;
+  getByShareableLink: (linkId: string) => {
+    // Create public API instance
+    const publicApi = axios.create({
+      baseURL: API_BASE_URL,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      timeout: 5000,
+    });
     
-  return publicApi.get(`/messages/shared/${encodedLinkId}`);
-},
+    // Encode the linkId if it contains a URL (to handle full URL formats)
+    const encodedLinkId = linkId.includes('http') ? 
+      encodeURIComponent(linkId) : linkId;
+      
+    return publicApi.get(`/messages/shared/${encodedLinkId}`);
+  },
   
   verifyPasscode: (linkId: string, passcode: string) => {
     const publicApi = axios.create({
@@ -118,19 +112,37 @@ getByShareableLink: (linkId: string) => {
 
 // Reactions API
 export const reactionsApi = {
- upload: (messageId: string, video: Blob) => {
+  upload: (messageId: string, video: Blob) => {
     const formData = new FormData();
     formData.append('video', video, 'reaction.webm'); // Added filename to help with MIME type detection
     
     return api.post(`/reactions/${messageId}`, formData, {
       headers: {
-        'Content-Type': 'multipart/form-data', // Explicitly set content type
+        'Content-Type': 'multipart/form-data',
       },
     });
   },
   getByMessageId: (messageId: string) => api.get(`/reactions/message/${messageId}`),
   getById: (id: string) => api.get(`/reactions/${id}`),
   delete: (id: string) => api.delete(`/reactions/${id}`),
+};
+
+// Replies API
+export const repliesApi = {
+  upload: (messageId: string, video: Blob) => {
+    // Create public API instance since replies are uploaded by recipients (not authenticated users)
+    const publicApi = axios.create({
+      baseURL: API_BASE_URL,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    const formData = new FormData();
+    formData.append('video', video, 'reply.webm'); // Added filename to help with MIME type detection
+    
+    return publicApi.post(REPLY_ROUTES.UPLOAD(messageId), formData);
+  },
 };
 
 // Admin API

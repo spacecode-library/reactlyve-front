@@ -40,17 +40,49 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [passcodeVerified, setPasscodeVerified] = useState<boolean>(message.passcodeVerified || !message.hasPasscode);
   const [countdownComplete, setCountdownComplete] = useState<boolean>(false);
+  const [showThankYou, setShowThankYou] = useState<boolean>(false);
 
   const formattedDate = message.createdAt
     ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
     : '';
 
+  // Debugging: Log component lifecycle
+  useEffect(() => {
+    console.log('MessageViewer: Component mounted');
+    return () => {
+      console.log('MessageViewer: Component unmounted');
+    };
+  }, []);
+
+  // Debugging: Log state changes
+  useEffect(() => {
+    console.log('State Update:', {
+      showRecorder,
+      isReactionRecorded,
+      showReplyRecorder,
+      countdownComplete,
+      permissionError,
+      showThankYou,
+    });
+  }, [showRecorder, isReactionRecorded, showReplyRecorder, countdownComplete, permissionError, showThankYou]);
+
+  // Debugging: Log when isReactionRecorded changes
+  useEffect(() => {
+    console.log('isReactionRecorded changed:', isReactionRecorded);
+    if (isReactionRecorded) {
+      console.log('Setting showThankYou to true');
+      setShowThankYou(true); // Trigger Thank You page within this component
+    }
+  }, [isReactionRecorded]);
+
   // Handle reaction recording completion
   const handleReactionComplete = async (blob: Blob) => {
+    console.log('handleReactionComplete: Starting reaction upload');
     try {
-      await onRecordReaction(message.id, blob);
-      setIsReactionRecorded(true);
-      setShowRecorder(false);
+      await onRecordReaction(message.id, blob); // Wait for upload to complete
+      console.log('handleReactionComplete: Reaction upload successful');
+      setIsReactionRecorded(true); // Only set after successful upload
+      setShowRecorder(false); // Hide recorder
     } catch (error) {
       console.error('Error saving reaction:', error);
       setPermissionError('Failed to save reaction. Please try again.');
@@ -60,8 +92,10 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   // Handle reply recording completion
   const handleReplyComplete = async (blob: Blob) => {
     if (onRecordReply) {
+      console.log('handleReplyComplete: Starting reply upload');
       try {
         await onRecordReply(message.id, blob);
+        console.log('handleReplyComplete: Reply upload successful');
         setShowReplyRecorder(false);
       } catch (error) {
         console.error('Error saving reply:', error);
@@ -72,13 +106,16 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   // Handle permission denial
   const handlePermissionDenied = (error: string) => {
+    console.log('handlePermissionDenied:', error);
     setPermissionError(error);
   };
 
   // Handle passcode submission
   const handlePasscodeSubmit = async (passcode: string) => {
+    console.log('handlePasscodeSubmit: Submitting passcode');
     const isValid = await onSubmitPasscode(passcode);
     if (isValid) {
+      console.log('handlePasscodeSubmit: Passcode verified');
       setPasscodeVerified(true);
     }
     return isValid;
@@ -86,11 +123,16 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   // Handle countdown completion
   const handleCountdownComplete = () => {
-    setCountdownComplete(true);
+    console.log('handleCountdownComplete: Countdown completed');
+    // Defer state update to avoid React warning
+    setTimeout(() => {
+      setCountdownComplete(true);
+    }, 0);
   };
 
   // Render passcode entry if required
   if (!passcodeVerified && message.hasPasscode) {
+    console.log('Rendering PasscodeEntry');
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
         <PasscodeEntry onSubmitPasscode={handlePasscodeSubmit} />
@@ -100,10 +142,14 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   // Render permission error
   if (permissionError) {
+    console.log('Rendering PermissionRequest due to error:', permissionError);
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
         <PermissionRequest
-          onCancel={() => onSkipReaction?.()}
+          onCancel={() => {
+            console.log('PermissionRequest onCancel triggered');
+            onSkipReaction?.();
+          }}
           permissionType="both"
           errorMessage={permissionError}
         />
@@ -111,8 +157,9 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     );
   }
 
-  // Render message content
+  // Render message content with "Thank You" and reply section
   const renderMessageContent = () => {
+    console.log('renderMessageContent: Rendering message content', { isReactionRecorded, showThankYou, countdownComplete });
     return (
       <div className="card w-full max-w-2xl mx-auto animate-slide-up">
         {/* Sender info */}
@@ -166,44 +213,60 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           </div>
         )}
 
-        {/* Reply section integrated into the same card */}
-        {isReactionRecorded && !showReplyRecorder && (
-          <div className="mt-6">
-            <h3 className="mb-2 text-xl font-semibold text-neutral-900 dark:text-white">
-              Reply to Sender
-            </h3>
-            <p className="mb-4 text-neutral-600 dark:text-neutral-300">
-              Want to send a video reply to {message.sender?.name || 'the sender'}? Record up to 3 minutes.
-            </p>
-            <div className="flex flex-col space-y-3 sm:flex-row sm:space-x-3 sm:space-y-0">
-              <button
-                onClick={() => setShowReplyRecorder(true)}
-                className="btn btn-primary"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="mr-2 h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  />
-                </svg>
-                Record Reply
-              </button>
-              <button
-                onClick={() => onSkipReaction?.()}
-                className="btn btn-outline"
-              >
-                Skip
-              </button>
+        {/* Thank You message and reply section */}
+        {(isReactionRecorded && showThankYou) && (
+          <>
+            <div className="mt-6">
+              <h3 className="mb-2 text-xl font-semibold text-green-600 dark:text-green-400">
+                Thank You!
+              </h3>
+              <p className="mb-4 text-neutral-600 dark:text-neutral-300">
+                Your reaction video has been successfully uploaded. Would you like to send a reply?
+              </p>
             </div>
-          </div>
+            <div className="mt-6">
+              <h3 className="mb-2 text-xl font-semibold text-neutral-900 dark:text-white">
+                Reply to Sender
+              </h3>
+              <p className="mb-4 text-neutral-600 dark:text-neutral-300">
+                Want to send a video reply to {message.sender?.name || 'the sender'}? Record up to 3 minutes.
+              </p>
+              <div className="flex flex-col space-y-3 sm:flex-row sm:space-x-3 sm:space-y-0">
+                <button
+                  onClick={() => {
+                    console.log('Record Reply button clicked');
+                    setShowReplyRecorder(true);
+                  }}
+                  className="btn btn-primary"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="mr-2 h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                  Record Reply
+                </button>
+                <button
+                  onClick={() => {
+                    console.log('Skip button clicked');
+                    onSkipReaction?.();
+                  }}
+                  className="btn btn-outline"
+                >
+                  Skip
+                </button>
+              </div>
+            </div>
+          </>
         )}
       </div>
     );
@@ -214,7 +277,10 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       {showRecorder && (
         <WebcamRecorder
           onRecordingComplete={handleReactionComplete}
-          onCancel={() => onSkipReaction?.()}
+          onCancel={() => {
+            console.log('WebcamRecorder onCancel triggered');
+            onSkipReaction?.();
+          }}
           maxDuration={30000} // 30 seconds
           countdownDuration={3}
           onPermissionDenied={handlePermissionDenied}
@@ -228,7 +294,10 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           <div className="card w-full max-w-2xl mx-auto">
             <WebcamRecorder
               onRecordingComplete={handleReplyComplete}
-              onCancel={() => setShowReplyRecorder(false)}
+              onCancel={() => {
+                console.log('Reply WebcamRecorder onCancel triggered');
+                setShowReplyRecorder(false);
+              }}
               maxDuration={180000} // 3 minutes
               countdownDuration={3}
               isReplyMode={true}
