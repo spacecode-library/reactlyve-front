@@ -174,7 +174,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         {message.mediatype == 'image' && (
           <div className="mt-4 overflow-hidden rounded-lg">
             <img
-              src={message.imageurl}
+              src={message.imageUrl}
               alt="Message attachment"
               className="w-full object-cover"
             />
@@ -183,7 +183,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         {message.mediatype == 'video' && (
           <div className="mt-4 overflow-hidden rounded-lg">
             <video
-              src={message.imageurl}
+              src={message.imageUrl}
               autoPlay
               controls
               className="w-full object-cover"
