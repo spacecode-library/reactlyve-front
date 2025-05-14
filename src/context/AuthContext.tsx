@@ -72,8 +72,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = () => {
     setIsLoading(true);
-    // Redirect to Google OAuth
-    window.location.href = 'http://localhost:8000/api/auth/google';
+    const isLocal = window.location.hostname === 'localhost';
+    const baseUrl = isLocal
+    ? 'http://localhost:8000'
+    : 'https://reactlyve-backend.onrender.com'; // 🔁 Update this to match your actual backend Render URL
+    window.location.href = `${baseUrl}/api/auth/google`;
   };
 
   const logout = async () => {
