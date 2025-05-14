@@ -15,7 +15,11 @@ interface MessageData {
   passcodeVerified?: boolean;
   viewCount?: number;
   createdAt: string;
-  mediatype?: string;
+  mediatype?: 'image' | 'video';
+  isreply?: string | null;
+  videourl?: string | null;
+  thumbnailurl?: string | null;
+  duration?: number | null;
   sender?: {
     name: string;
     picture?: string;
