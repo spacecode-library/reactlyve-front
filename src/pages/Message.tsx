@@ -287,7 +287,7 @@ interface MessageDetails {
   passcode: string | null;
   shareablelink: string;
   reactionid: string | null;
-  replyurl: string | null;
+  isreply: string | null;
   videourl: string | null;
   mediatype: 'image' | 'video' | null;
   thumbnailurl: string | null;
@@ -336,14 +336,32 @@ const Message: React.FC = () => {
     }, 2000);
   };
 
-  const downloadVideo = (url: string, filename: string) => {
+  const downloadVideo = async (url: string, filename: string) => {
+  try {
+    // 1) fetch the file as a blob
+    const response = await fetch(url, { mode: 'cors' });
+    if (!response.ok) {
+      throw new Error(`Network error: ${response.status}`);
+    }
+    const blob = await response.blob();
+
+    // 2) create a temporary object URL
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    // 3) create and click the link
     const a = document.createElement('a');
-    a.href = url;
+    a.href = blobUrl;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
+
+    // 4) cleanup
     document.body.removeChild(a);
-  };
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (err) {
+    console.error('Error downloading video:', err);
+  }
+};
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -356,6 +374,7 @@ const Message: React.FC = () => {
       timeAgo: formatDistance(date, new Date(), { addSuffix: true }),
     };
   };
+  
 
   if (loading) {
     return (
@@ -532,20 +551,15 @@ const Message: React.FC = () => {
                     </div>
                   )}
 
-                  {message.replyurl && (
+                  {message.isreply && (
                     <div className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
                       <p className="mb-3 text-sm text-neutral-700 dark:text-neutral-300">
-                        Download reply video
+                        Text reply
                       </p>
-                      <button
-                        onClick={() =>
-                          downloadVideo(message.replyurl!, 'reply-video.mp4')
-                        }
-                        className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                      >
-                        <DownloadIcon size={16} />
-                        <span>Download Reply</span>
-                      </button>
+                      <p className="text-neutral-700 dark:text-neutral-200">
+                      {message.isreply}
+                      </p>
+                      
                     </div>
                   )}
                 </div>

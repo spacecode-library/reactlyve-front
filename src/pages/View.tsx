@@ -42,9 +42,9 @@ const View: React.FC = () => {
       
       try {
         const response = await api.get(`/messages/view/${id}`);
-        
+        const responsee = await api.get(`/messages/${response.data.id}`)
         if (response.data) {
-          setMessage(response.data);
+          setMessage(responsee.data);
           
           const requiresPasscode = response.data.hasPasscode === true;
           const isVerified = response.data.passcodeVerified === true || !requiresPasscode;

@@ -3,12 +3,14 @@ import WebcamRecorder from './WebcamRecorder';
 import PermissionRequest from './PermissionRequest';
 import PasscodeEntry from './PasscodeEntry';
 import { formatDistanceToNow } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 interface MessageData {
   id: string;
   content: string;
-  imageUrl?: string;
-  videoUrl?: string;
+  imageurl?: string;
+  videourl?: string;
+  mediatype: "image" | "video";
   hasPasscode: boolean;
   passcodeVerified?: boolean;
   viewCount?: number;
@@ -42,7 +44,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const [countdownComplete, setCountdownComplete] = useState<boolean>(false);
   const [replyText, setReplyText] = useState<string>(''); // State for text reply
   const [isSendingReply, setIsSendingReply] = useState<boolean>(false); // State for reply submission
-
+  const navigate = useNavigate();
   const formattedDate = message.createdAt
     ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
     : '';
@@ -184,19 +186,19 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         </div>
 
         {/* Message media */}
-        {message.imageUrl && (
+        {message.mediatype == 'image' && (
           <div className="mt-4 overflow-hidden rounded-lg">
             <img
-              src={message.imageUrl}
+              src={message.imageurl}
               alt="Message attachment"
               className="w-full object-cover"
             />
           </div>
         )}
-        {message.videoUrl && (
+        {message.mediatype == 'video' && (
           <div className="mt-4 overflow-hidden rounded-lg">
             <video
-              src={message.videoUrl}
+              src={message.imageurl}
               autoPlay
               controls
               className="w-full object-cover"
@@ -257,7 +259,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
             <button
               onClick={() => {
                 console.log('Skip button clicked');
-                onSkipReaction?.();
+                navigate('/')
               }}
               className="btn btn-outline"
             >
