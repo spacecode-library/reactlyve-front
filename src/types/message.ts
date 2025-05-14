@@ -13,6 +13,15 @@ export interface Message {
   viewed?: boolean;
   createdat: string;
   updatedat?: string;
+  videoUrl?: string | null;
+  mediatype?: 'image' | 'video';
+  duration?: number;
+  isreply?: string;
+  sender?: {
+    name: string;
+    picture?: string;
+  };
+  passcodeVerified?: boolean;
 }
 
 export interface MessageFormData {
