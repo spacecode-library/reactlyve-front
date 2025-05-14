@@ -6,12 +6,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Only enable the proxy in development
 const isDevelopment = process.env.NODE_ENV === 'development';
-
-// Use the PORT environment variable for Render deployments
-const port = parseInt(process.env.PORT || '4173');
 
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
@@ -31,7 +26,9 @@ export default defineConfig({
       }
     : undefined,
   preview: {
-    port,
-    host: '0.0.0.0', // required to expose the preview server externally (e.g., for Render)
-  },
+    host: true,
+    port: 10000,
+    strictPort: true,
+    allowedHosts: ['reactlyve.onrender.com'],
+  }
 });
