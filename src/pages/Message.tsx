@@ -388,7 +388,7 @@ const Message: React.FC = () => {
     );
   }
 
-  const { formattedDate, timeAgo } = formatDate(message.createdat);
+  const { formattedDate, timeAgo } = formatDate(message.createdAt);
 
   return (
     <MainLayout>
