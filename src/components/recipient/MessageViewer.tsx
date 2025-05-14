@@ -4,7 +4,7 @@ import PermissionRequest from './PermissionRequest';
 import PasscodeEntry from './PasscodeEntry';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-import { Message } from '../types/message';
+import { Message } from '../../types/message';
 
 interface MessageViewerProps {
   message: Message;
