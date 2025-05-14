@@ -15,6 +15,7 @@ interface MessageData {
   passcodeVerified?: boolean;
   viewCount?: number;
   createdAt: string;
+  mediatype?: string;
   sender?: {
     name: string;
     picture?: string;
