@@ -11,7 +11,7 @@ export interface Message {
   url?: string;
   viewCount?: number;
   viewed?: boolean;
-  createdat: string;
+  createdAt: string;
   updatedat?: string;
   videoUrl?: string | null;
   mediatype?: 'image' | 'video';
