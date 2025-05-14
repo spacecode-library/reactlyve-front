@@ -12,7 +12,7 @@
 //   imageurl: string | null;
 //   passcode: string | null;
 //   shareablelink: string;
-//   reactionid: string | null;
+//   reactionId: string | null;
 //   replyurl: string | null;
 //   videourl: string | null;
 // }
@@ -207,7 +207,7 @@
 //             </div>
 
 //             {/* Reaction Downloads (if available) */}
-//             {message.reactionid ? (
+//             {message.reactionId ? (
 //               <div className="mb-6">
 //                 <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
 //                   Reaction Downloads
@@ -280,6 +280,7 @@ import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon } from 'lucide-react';
 import api from '@/services/api';
 import { MESSAGE_ROUTES } from '@/components/constants/apiRoutes';
 import { Message } from '../types/message';
+import type { Message } from '../types/message';
 
 const Message: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -428,7 +429,7 @@ const Message: React.FC = () => {
                       src={message.imageUrl}
                       controls
                       className="h-auto w-full max-w-lg"
-                      poster={message.thumbnailurl || undefined}
+                      poster={message.thumbnailUrl || undefined}
                     />
                   ) : (
                     <img
@@ -515,7 +516,7 @@ const Message: React.FC = () => {
             </div>
 
             {/* Reaction Downloads (if available) */}
-            {message.reactionid ? (
+            {message.reactionId ? (
               <div className="mb-6">
                 <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
                   Reaction Downloads
