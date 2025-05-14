@@ -6,25 +6,7 @@ import PasscodeEntry from '../components/recipient/PasscodeEntry';
 import MessageViewer from '../components/recipient/MessageViewer';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import api from '../services/api';
-
-interface MessageData {
-  id: string;
-  content: string;
-  imageUrl?: string;
-  hasPasscode: boolean;
-  passcodeVerified?: boolean;
-  viewCount?: number;
-  createdAt: string;
-  mediatype?: 'image' | 'video';
-  isreply?: string | null;
-  videourl?: string | null;
-  thumbnailurl?: string | null;
-  duration?: number | null;
-  sender?: {
-    name: string;
-    picture?: string;
-  };
-}
+import { Message as MessageData } from '../types/message';
 
 const View: React.FC = () => {
   const { id } = useParams<{ id: string }>();
