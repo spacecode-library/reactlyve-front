@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "format": "prettier --write 'src/**/*.{ts,tsx,css,json}'"
+    "start": "vite preview"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.15",
