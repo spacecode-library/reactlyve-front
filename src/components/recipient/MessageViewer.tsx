@@ -4,25 +4,10 @@ import PermissionRequest from './PermissionRequest';
 import PasscodeEntry from './PasscodeEntry';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-
-interface MessageData {
-  id: string;
-  content: string;
-  imageurl?: string;
-  videourl?: string;
-  mediatype: "image" | "video";
-  hasPasscode: boolean;
-  passcodeVerified?: boolean;
-  viewCount?: number;
-  createdAt: string;
-  sender?: {
-    name: string;
-    picture?: string;
-  };
-}
+import { Message } from '../types/message';
 
 interface MessageViewerProps {
-  message: MessageData;
+  message: Message;
   onRecordReaction: (messageId: string, videoBlob: Blob) => Promise<void>;
   onRecordReply?: (messageId: string, videoBlob: Blob) => Promise<void>;
   onSkipReaction?: () => void;
