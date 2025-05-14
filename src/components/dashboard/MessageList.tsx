@@ -119,9 +119,9 @@ const MessageList: React.FC<MessageListProps> = ({
                 <div className="mt-1 flex items-center text-sm text-neutral-500 dark:text-neutral-400">
                   <span
                     className="cursor-help"
-                    title={formatDate(message.createdat)}
+                    title={formatDate(message.createdAt)}
                   >
-                    {formatRelativeTime(message.createdat)}
+                    {formatRelativeTime(message.createdAt)}
                   </span>
                   
                 </div>
