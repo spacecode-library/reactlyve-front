@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import WebcamRecorder from './WebcamRecorder';
 import PermissionRequest from './PermissionRequest';
 import PasscodeEntry from './PasscodeEntry';
 import { formatDistanceToNow } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 interface MessageData {
   id: string;
   content: string;
-  imageUrl?: string;
-  videoUrl?: string;
+  imageurl?: string;
+  videourl?: string;
+  mediatype: "image" | "video";
   hasPasscode: boolean;
   passcodeVerified?: boolean;
   viewCount?: number;
@@ -23,70 +25,107 @@ interface MessageViewerProps {
   message: MessageData;
   onRecordReaction: (messageId: string, videoBlob: Blob) => Promise<void>;
   onRecordReply?: (messageId: string, videoBlob: Blob) => Promise<void>;
-  onSkipReaction?: () => void;
+  onSkipReaction?: () => {href: "http://localhost:5173"};
   onSubmitPasscode: (passcode: string) => Promise<boolean>;
+  onSendTextReply?: (messageId: string, text: string) => Promise<void>;
 }
 
 const MessageViewer: React.FC<MessageViewerProps> = ({
   message,
   onRecordReaction,
-  onRecordReply,
   onSkipReaction,
   onSubmitPasscode,
+  onSendTextReply,
 }) => {
   const [showRecorder, setShowRecorder] = useState<boolean>(true);
-  const [showMessage, setShowMessage] = useState<boolean>(false);
   const [isReactionRecorded, setIsReactionRecorded] = useState<boolean>(false);
-  const [showReplyRecorder, setShowReplyRecorder] = useState<boolean>(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [passcodeVerified, setPasscodeVerified] = useState<boolean>(message.passcodeVerified || !message.hasPasscode);
-
+  const [countdownComplete, setCountdownComplete] = useState<boolean>(false);
+  const [replyText, setReplyText] = useState<string>(''); // State for text reply
+  const [isSendingReply, setIsSendingReply] = useState<boolean>(false); // State for reply submission
+  const navigate = useNavigate();
   const formattedDate = message.createdAt
     ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
     : '';
 
+  // Debugging: Log component lifecycle
+  useEffect(() => {
+    console.log('MessageViewer: Component mounted');
+    return () => {
+      console.log('MessageViewer: Component unmounted');
+    };
+  }, []);
+
+  // Debugging: Log state changes
+  useEffect(() => {
+    console.log('State Update:', {
+      showRecorder,
+      isReactionRecorded,
+      countdownComplete,
+      permissionError,
+    });
+  }, [showRecorder, isReactionRecorded, countdownComplete, permissionError]);
+
   // Handle reaction recording completion
   const handleReactionComplete = async (blob: Blob) => {
+    console.log('handleReactionComplete: Starting reaction upload');
     try {
-      await onRecordReaction(message.id, blob);
-      setIsReactionRecorded(true);
-      setShowRecorder(false);
-      setShowMessage(true);
+      await onRecordReaction(message.id, blob); // Wait for upload to complete
+      console.log('handleReactionComplete: Reaction upload successful');
+      setIsReactionRecorded(true); // Only set after successful upload
+      setShowRecorder(false); // Hide recorder
     } catch (error) {
       console.error('Error saving reaction:', error);
       setPermissionError('Failed to save reaction. Please try again.');
     }
   };
 
-  // Handle reply recording completion
-  const handleReplyComplete = async (blob: Blob) => {
-    if (onRecordReply) {
-      try {
-        await onRecordReply(message.id, blob);
-        setShowReplyRecorder(false);
-      } catch (error) {
-        console.error('Error saving reply:', error);
-        setPermissionError('Failed to save reply. Please try again.');
-      }
-    }
-  };
-
   // Handle permission denial
   const handlePermissionDenied = (error: string) => {
+    console.log('handlePermissionDenied:', error);
     setPermissionError(error);
   };
 
   // Handle passcode submission
   const handlePasscodeSubmit = async (passcode: string) => {
+    console.log('handlePasscodeSubmit: Submitting passcode');
     const isValid = await onSubmitPasscode(passcode);
     if (isValid) {
+      console.log('handlePasscodeSubmit: Passcode verified');
       setPasscodeVerified(true);
     }
     return isValid;
   };
 
+  // Handle countdown completion
+  const handleCountdownComplete = () => {
+    console.log('handleCountdownComplete: Countdown completed');
+    // Defer state update to avoid React warning
+    setTimeout(() => {
+      setCountdownComplete(true);
+    }, 0);
+  };
+
+  // Handle text reply submission
+  const handleSendReply = async () => {
+    if (!replyText.trim() || !onSendTextReply) return;
+    setIsSendingReply(true);
+    try {
+      await onSendTextReply(message.id, replyText.trim());
+      setReplyText(''); // Clear the input after successful submission
+      console.log('Text reply sent successfully');
+    } catch (error) {
+      console.error('Error sending text reply:', error);
+      setPermissionError('Failed to send reply. Please try again.');
+    } finally {
+      setIsSendingReply(false);
+    }
+  };
+
   // Render passcode entry if required
   if (!passcodeVerified && message.hasPasscode) {
+    console.log('Rendering PasscodeEntry');
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
         <PasscodeEntry onSubmitPasscode={handlePasscodeSubmit} />
@@ -96,10 +135,14 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   // Render permission error
   if (permissionError) {
+    console.log('Rendering PermissionRequest due to error:', permissionError);
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
         <PermissionRequest
-          onCancel={() => onSkipReaction?.()}
+          onCancel={() => {
+            console.log('PermissionRequest onCancel triggered');
+            onSkipReaction?.();
+          }}
           permissionType="both"
           errorMessage={permissionError}
         />
@@ -107,10 +150,11 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     );
   }
 
-  // Render message content
+  // Render message content with reply input
   const renderMessageContent = () => {
+    console.log('renderMessageContent: Rendering message content', { isReactionRecorded, countdownComplete });
     return (
-      <div className="card mx-auto mb-6 w-full max-w-2xl animate-slide-up">
+      <div className="card w-full max-w-2xl mx-auto animate-slide-up">
         {/* Sender info */}
         {message.sender && (
           <div className="mb-4 flex items-center">
@@ -142,81 +186,87 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         </div>
 
         {/* Message media */}
-        {message.imageUrl && (
+        {message.mediatype == 'image' && (
           <div className="mt-4 overflow-hidden rounded-lg">
             <img
-              src={message.imageUrl}
+              src={message.imageurl}
               alt="Message attachment"
               className="w-full object-cover"
             />
           </div>
         )}
-        {message.videoUrl && (
+        {message.mediatype == 'video' && (
           <div className="mt-4 overflow-hidden rounded-lg">
             <video
-              src={message.videoUrl}
+              src={message.imageurl}
               autoPlay
               controls
               className="w-full object-cover"
             />
           </div>
         )}
-      </div>
-    );
-  };
 
-  // Render reply section
-  const renderReplySection = () => {
-    if (showReplyRecorder) {
-      return (
-        <div className="card mx-auto w-full max-w-2xl animate-slide-up">
-          <WebcamRecorder
-            onRecordingComplete={handleReplyComplete}
-            onCancel={() => setShowReplyRecorder(false)}
-            maxDuration={180000} // 3 minutes
-            countdownDuration={3}
-            isReplyMode={true}
-          />
-        </div>
-      );
-    }
-
-    return (
-      <div className="card mx-auto w-full max-w-2xl animate-slide-up">
-        <h3 className="mb-4 text-xl font-semibold text-neutral-900 dark:text-white">
-          Send a Reply
-        </h3>
-        <p className="mb-6 text-neutral-600 dark:text-neutral-300">
-          Want to send a video reply to {message.sender?.name || 'the sender'}? Record up to 3 minutes.
-        </p>
-        <div className="flex flex-col space-y-3 sm:flex-row sm:space-x-3 sm:space-y-0">
-          <button
-            onClick={() => setShowReplyRecorder(true)}
-            className="btn btn-primary"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="mr-2 h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+        {/* Reply Section */}
+        <div className="mt-6">
+          <h3 className="mb-2 text-xl font-semibold text-neutral-900 dark:text-white">
+            Reply to {message.sender?.name || 'the sender'}
+          </h3>
+          <p className="mb-4 text-neutral-600 dark:text-neutral-300">
+            Share your thoughts or say thanks—your reply means a lot!
+          </p>
+          <div className="flex items-center space-x-3">
+            <textarea
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              placeholder={`Let ${message.sender?.name || 'them'} know what you think!`}
+              className="flex-1 p-3 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder-neutral-500 dark:placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+              rows={3}
+              maxLength={500}
+              disabled={isSendingReply}
+            />
+            <button
+              onClick={handleSendReply}
+              disabled={!replyText.trim() || isSendingReply}
+              className={`btn btn-primary flex items-center space-x-2 ${!replyText.trim() || isSendingReply ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-              />
-            </svg>
-            Record Reply
-          </button>
-          <button
-            onClick={() => onSkipReaction?.()}
-            className="btn btn-outline"
-          >
-            Skip
-          </button>
+              {isSendingReply ? (
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              )}
+              <span>{isSendingReply ? 'Sending...' : 'Send Reply'}</span>
+            </button>
+          </div>
+          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+            {replyText.length}/500 characters
+          </p>
         </div>
+
+        {/* Post-reaction actions */}
+        {isReactionRecorded && (
+          <div className="mt-6">
+            <h3 className="mb-2 text-xl font-semibold text-green-600 dark:text-green-400">
+              Thank You!
+            </h3>
+            <p className="mb-4 text-neutral-600 dark:text-neutral-300">
+              Your reaction video has been successfully uploaded.
+            </p>
+            <button
+              onClick={() => {
+                console.log('Skip button clicked');
+                navigate('/')
+              }}
+              className="btn btn-outline"
+            >
+              Done
+            </button>
+          </div>
+        )}
       </div>
     );
   };
@@ -226,16 +276,15 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       {showRecorder && (
         <WebcamRecorder
           onRecordingComplete={handleReactionComplete}
-          onCancel={() => onSkipReaction?.()}
+          onCancel={() => {}} // Empty handler since cancel button is removed
           maxDuration={30000} // 30 seconds
           countdownDuration={3}
           onPermissionDenied={handlePermissionDenied}
           autoStart={true}
-          onCountdownComplete={() => setShowMessage(true)}
+          onCountdownComplete={handleCountdownComplete}
         />
       )}
-      {showMessage && renderMessageContent()}
-      {isReactionRecorded && renderReplySection()}
+      {countdownComplete && renderMessageContent()}
     </div>
   );
 };

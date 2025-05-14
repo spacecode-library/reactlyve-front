@@ -21,42 +21,6 @@ const MessageList: React.FC<MessageListProps> = ({
   loading = false,
   className,
 }) => {
-  // State for sorting and filtering
-  const [sortBy, setSortBy] = useState<'date' | 'reactions'>('date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [filterBy, setFilterBy] = useState<'all' | 'withReactions' | 'noReactions'>('all');
-  
-  // Filter and sort messages
-  const filteredAndSortedMessages = useMemo(() => {
-    // Apply filters
-    let result = [...messages];
-    console.log('Messages:', result);
-    if (filterBy === 'withReactions') {
-      result = result.filter(message => message.reactions.length > 0);
-    } else if (filterBy === 'noReactions') {
-      result = result.filter(message => message.reactions.length === 0);
-    }
-    
-    // Apply sorting
-    result.sort((a, b) => {
-      let comparison = 0;
-      
-      if (sortBy === 'date') {
-        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      } else if (sortBy === 'reactions') {
-        comparison = a.reactions.length - b.reactions.length;
-      }
-      
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
-    
-    return result;
-  }, [messages, sortBy, sortOrder, filterBy]);
-  
-  // Toggle sort order
-  const toggleSortOrder = () => {
-    setSortOrder(prevOrder => (prevOrder === 'asc' ? 'desc' : 'asc'));
-  };
   
   // Empty state
   if (!loading && messages.length === 0) {
@@ -117,77 +81,11 @@ const MessageList: React.FC<MessageListProps> = ({
   
   return (
     <div className={className}>
-      {/* Filters and sorting controls */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center space-x-2">
-          <label htmlFor="filter-by" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-            Show:
-          </label>
-          <select
-            id="filter-by"
-            value={filterBy}
-            onChange={e => setFilterBy(e.target.value as any)}
-            className="rounded-md border-neutral-300 py-1 pl-2 pr-8 text-sm focus:border-primary-500 focus:ring-primary-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
-          >
-            <option value="all">All Messages</option>
-            <option value="withReactions">With Reactions</option>
-            <option value="noReactions">No Reactions</option>
-          </select>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <label htmlFor="sort-by" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-            Sort by:
-          </label>
-          <select
-            id="sort-by"
-            value={sortBy}
-            onChange={e => setSortBy(e.target.value as any)}
-            className="rounded-md border-neutral-300 py-1 pl-2 pr-8 text-sm focus:border-primary-500 focus:ring-primary-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
-          >
-            <option value="date">Date</option>
-            <option value="reactions">Reactions</option>
-          </select>
-          
-          <button
-            type="button"
-            onClick={toggleSortOrder}
-            className="rounded-md border border-neutral-300 p-1 text-neutral-500 hover:text-neutral-700 dark:border-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
-          >
-            {sortOrder === 'asc' ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            )}
-          </button>
-        </div>
-      </div>
+     
       
       {/* Message list */}
       <div className="space-y-4">
-        {filteredAndSortedMessages.map(message => (
+        {messages.map(message => (
           <Card
             key={message.id}
             className="transition-shadow hover:shadow-md"
@@ -225,26 +123,15 @@ const MessageList: React.FC<MessageListProps> = ({
                   >
                     {formatRelativeTime(message.createdat)}
                   </span>
-                  {/* <span className="mx-1">&bull;</span> */}
-                  {/* <span>
-                    {message.viewCount === 0
-                      ? 'Not viewed yet'
-                      : `${message.viewCount} ${message.viewCount === 1 ? 'view' : 'views'}`}
-                  </span>
-                  <span className="mx-1">&bull;</span>
-                  <span>
-                    {message.length === 0
-                      ? 'No reactions'
-                      : `${message.length} ${message.length === 1 ? 'reaction' : 'reactions'}`}
-                  </span> */}
+                  
                 </div>
               </div>
               
               <div className="flex space-x-2">
                 {/* View link button */}
-                <Button
-                  as="a"
-                  href={message.shareableLink}
+                {onViewReaction && (
+                  <Button
+                  onClick={()=> onViewReaction(message.id)}
                   target="_blank"
                   variant="outline"
                   size="sm"
@@ -262,6 +149,7 @@ const MessageList: React.FC<MessageListProps> = ({
                 >
                   View
                 </Button>
+                )}
                 
                 {/* Delete button */}
                 {onDeleteMessage && (
@@ -346,26 +234,6 @@ const MessageList: React.FC<MessageListProps> = ({
           </Card>
         ))}
       </div>
-      
-      {/* Empty state if filtered results are empty */}
-      {filteredAndSortedMessages.length === 0 && (
-        <div className="mt-8 text-center">
-          <p className="text-neutral-500 dark:text-neutral-400">
-            No messages match the current filters.
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setFilterBy('all');
-              setSortBy('date');
-              setSortOrder('desc');
-            }}
-            className="mt-2 text-sm font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
-          >
-            Reset filters
-          </button>
-        </div>
-      )}
     </div>
   );
 };

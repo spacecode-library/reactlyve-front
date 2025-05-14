@@ -1,3 +1,5 @@
+
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface UseWebcamOptions {
@@ -59,48 +61,90 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
     };
   }, [checkPermission, stream]);
 
+  async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+    let timeout: ReturnType<typeof setTimeout>;
+    const timer = new Promise<never>((_, rej) => {
+      timeout = setTimeout(() => rej(new Error('Operation timed out')), ms);
+    });
+    const result = await Promise.race([promise, timer]);
+    clearTimeout(timeout!);
+    return result as T;
+  }
+
   const startWebcam = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     
+    // Simplified constraints to improve compatibility
+    const constraints = {
+      video: {
+        facingMode: facingMode,
+        // Removed fixed width/height to improve compatibility
+      },
+      audio: audio
+    };
+
+    let mediaStream: MediaStream;
     try {
-      const constraints: MediaStreamConstraints = {
-        video: {
-          facingMode,
-          width: { ideal: width },
-          height: { ideal: height },
-        },
-        audio,
-      };
-      
-      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      mediaStream = await withTimeout(
+        navigator.mediaDevices.getUserMedia(constraints),
+        10000
+      );
       setStream(mediaStream);
+      await checkPermission();
+    } catch (gumErr) {
+      setError(new Error('Could not access camera: ' + gumErr));
+      setIsLoading(false);
+      throw gumErr;
+    }
 
+    if (!videoRef.current) {
+      console.warn('videoRef missing, skipping playback');
+      setIsLoading(false);
+      return;
+    }
+
+    videoRef.current.srcObject = mediaStream;
+
+    try {
+      // Add event listener for when video can play
+      await new Promise<void>((resolve) => {
+        if (!videoRef.current) {
+          resolve();
+          return;
+        }
+        
+        // If metadata is already loaded, we can proceed
+        if (videoRef.current.readyState >= 1) {
+          resolve();
+          return;
+        }
+        
+        // Otherwise wait for metadata to load
+        videoRef.current.onloadedmetadata = () => resolve();
+      });
+      
+      // Only try to play if video element exists and is ready
       if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-
-        await new Promise<void>((resolve) => {
-          videoRef.current!.onloadedmetadata = () => {
-            resolve();
-          };
-        });
-
-        if (videoRef.current.paused) {
-          await videoRef.current.play().catch(err => {
-            throw new Error(`Failed to play video stream: ${err.message}`);
+        try {
+          // Use a promise to handle play
+          await videoRef.current.play().catch(playErr => {
+            console.warn('Playback failed, likely due to browser autoplay policy:', playErr);
+            // Don't treat this as fatal, the user can start playback manually
           });
+        } catch (playErr) {
+          console.warn('Play attempt failed:', playErr);
+          // Continue anyway - this is not a fatal error
         }
       }
-            
-      await checkPermission();
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to access webcam/microphone');
-      setError(error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+      console.warn('Error during video setup:', err);
+      // Continue anyway - the stream is still set up correctly
     }
-  }, [facingMode, width, height, audio, checkPermission]);
+
+    await checkPermission();
+    setIsLoading(false);
+  }, [facingMode, audio, checkPermission]);
 
   const stopWebcam = useCallback(() => {
     if (stream) {
@@ -109,7 +153,7 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
       
       if (videoRef.current) {
         videoRef.current.srcObject = null;
-        videoRef.current.pause(); // Explicitly pause to avoid play() conflicts
+        videoRef.current.pause();
       }
     }
   }, [stream]);
@@ -126,3 +170,4 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
 };
 
 export default useWebcam;
+
