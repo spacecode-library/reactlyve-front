@@ -72,12 +72,14 @@ const View: React.FC = () => {
         `/messages/${id}/verify-passcode`, 
         { passcode }
       );
-      
+      const responseview = await api.get(`/messages/view/${id}`);
+      const responsebyid = await api.get(`/messages/${responseview.data.id}`)
+
       if (response.data && (response.data.verified || response.status === 200)) {
         setPasscodeVerified(true);
         
-        if (response.data.message) {
-          setMessage(response.data.message);
+        if (responsebyid.data.message) {
+          setMessage(responsebyid.data.message);
         }
         
         return true;
