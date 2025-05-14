@@ -6,10 +6,10 @@
 "scripts": {
   "dev": "vite",
   "build": "tsc -b && vite build",
-  "start": "serve -s dist",
   "lint": "eslint .",
   "preview": "vite preview",
-  "format": "prettier --write 'src/**/*.{ts,tsx,css,json}'"
+  "format": "prettier --write 'src/**/*.{ts,tsx,css,json}'",
+  "start": "serve -s dist"
 },
   "dependencies": {
     "@headlessui/react": "^1.7.15",
