@@ -2,10 +2,13 @@ export interface Message {
   id: string;
   userId?: string;
   senderId: string;
+  reactionId?: string;
   content: string;
-  imageUrl: string;
+  imageUrl?: string;
+  thumbnailUrl?: string;
   hasPasscode?: boolean;
   requiresPasscode?: boolean;
+  passcode?: string;
   shareableLink: string;
   link?: string;
   url?: string;
