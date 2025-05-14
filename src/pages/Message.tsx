@@ -279,7 +279,6 @@ import { formatDistance } from 'date-fns';
 import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon } from 'lucide-react';
 import api from '@/services/api';
 import { MESSAGE_ROUTES } from '@/components/constants/apiRoutes';
-import { Message } from '../types/message';
 import type { Message } from '../types/message';
 
 const Message: React.FC = () => {
