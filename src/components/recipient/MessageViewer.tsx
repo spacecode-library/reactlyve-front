@@ -25,7 +25,7 @@ interface MessageViewerProps {
   message: MessageData;
   onRecordReaction: (messageId: string, videoBlob: Blob) => Promise<void>;
   onRecordReply?: (messageId: string, videoBlob: Blob) => Promise<void>;
-  onSkipReaction?: () => {href: "http://localhost:5173"};
+  onSkipReaction?: () => void;
   onSubmitPasscode: (passcode: string) => Promise<boolean>;
   onSendTextReply?: (messageId: string, text: string) => Promise<void>;
 }
