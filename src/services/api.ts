@@ -73,7 +73,7 @@ export const messagesApi = {
   //   return response;
   // },
   // These routes might also need to be fixed
-  createWithFormData: async (formData) => {
+  createWithFormData: async (formData: FormData) => {
     return api.post('/messages/send', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
