@@ -12,7 +12,7 @@ export interface Message {
   viewCount?: number;
   viewed?: boolean;
   createdAt: string;
-  updatedat?: string;
+  updatedAt?: string;
   videoUrl?: string | null;
   mediatype?: 'image' | 'video';
   duration?: number;
