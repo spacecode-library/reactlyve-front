@@ -10,7 +10,9 @@ const __dirname = path.dirname(__filename);
 // Only enable the proxy in development
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-// https://vitejs.dev/config/
+// Use the PORT environment variable for Render deployments
+const port = parseInt(process.env.PORT || '4173');
+
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   resolve: {
@@ -28,4 +30,8 @@ export default defineConfig({
         },
       }
     : undefined,
+  preview: {
+    port,
+    host: '0.0.0.0', // required to expose the preview server externally (e.g., for Render)
+  },
 });
