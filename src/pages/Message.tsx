@@ -279,24 +279,11 @@ import { formatDistance } from 'date-fns';
 import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon } from 'lucide-react';
 import api from '@/services/api';
 import { MESSAGE_ROUTES } from '@/components/constants/apiRoutes';
-
-interface MessageDetails {
-  content: string;
-  createdat: string;
-  imageurl: string | null;
-  passcode: string | null;
-  shareablelink: string;
-  reactionid: string | null;
-  isreply: string | null;
-  videourl: string | null;
-  mediatype: 'image' | 'video' | null;
-  thumbnailurl: string | null;
-  duration: number | null;
-}
+import { Message } from '../types/message';
 
 const Message: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [message, setMessage] = useState<MessageDetails | null>(null);
+  const [message, setMessage] = useState<Message | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<{ passcode: boolean; link: boolean }>({
