@@ -417,7 +417,7 @@ const Message: React.FC = () => {
             </div>
 
             {/* Message Media (image or video) */}
-            {message.imageurl && (
+            {message.imageUrl && (
               <div className="mb-6">
                 <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
                   {message.mediatype === 'video' ? 'Video' : 'Image'}
@@ -425,14 +425,14 @@ const Message: React.FC = () => {
                 <div className="overflow-hidden rounded-lg">
                   {message.mediatype === 'video' ? (
                     <video
-                      src={message.imageurl}
+                      src={message.imageUrl}
                       controls
                       className="h-auto w-full max-w-lg"
                       poster={message.thumbnailurl || undefined}
                     />
                   ) : (
                     <img
-                      src={message.imageurl}
+                      src={message.imageUrl}
                       alt="Message attachment"
                       className="h-auto w-full max-w-lg object-cover"
                     />
@@ -441,7 +441,7 @@ const Message: React.FC = () => {
                 {message.mediatype === 'video' && (
                   <div className="mt-3">
                     <button
-                      onClick={() => downloadVideo(message.imageurl!, 'message-video.mp4')}
+                      onClick={() => downloadVideo(message.imageUrl!, 'message-video.mp4')}
                       className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                     >
                       <DownloadIcon size={16} />
@@ -459,17 +459,17 @@ const Message: React.FC = () => {
 
             {/* Sharable Link & Passcode */}
             <div className="mb-6 grid gap-4 md:grid-cols-2">
-              {message.shareablelink && (
+              {message.shareableLink && (
                 <div>
                   <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
                     Shareable Link
                   </h2>
                   <div className="flex items-center gap-2 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
                     <p className="flex-1 truncate text-sm text-neutral-700 dark:text-neutral-300">
-                      {message.shareablelink}
+                      {message.shareableLink}
                     </p>
                     <button
-                      onClick={() => copyToClipboard(message.shareablelink, 'link')}
+                      onClick={() => copyToClipboard(message.shareableLink, 'link')}
                       className="flex items-center justify-center rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700"
                       title="Copy link"
                     >
@@ -521,14 +521,14 @@ const Message: React.FC = () => {
                   Reaction Downloads
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {message.videourl && (
+                  {message.videoUrl && (
                     <div className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
                       <p className="mb-3 text-sm text-neutral-700 dark:text-neutral-300">
                         Download reaction video
                       </p>
                       <button
                         onClick={() =>
-                          downloadVideo(message.videourl!, 'reaction-video.mp4')
+                          downloadVideo(message.videoUrl!, 'reaction-video.mp4')
                         }
                         className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                       >
@@ -557,7 +557,7 @@ const Message: React.FC = () => {
                   Share this link with your friend to capture their reaction!
                 </p>
                 <button
-                  onClick={() => copyToClipboard(message.shareablelink, 'link')}
+                  onClick={() => copyToClipboard(message.shareableLink, 'link')}
                   className="mx-auto flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                 >
                   <LinkIcon size={16} />
