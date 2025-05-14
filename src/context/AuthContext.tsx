@@ -17,7 +17,7 @@ interface AuthContextType {
   error: string | null;
   login: () => void;
   logout: () => void;
-
+  isAuthenticated: boolean; // ✅ Add this line
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -102,7 +102,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isLoading,
       error,
       login, 
-      logout 
+      logout,
+      isAuthenticated: !!user
     }}
   >
     {children}
