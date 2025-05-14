@@ -1,5 +1,5 @@
 // Base API URL
-export const API_BASE_URL = 'http://localhost:8000/api';
+export const API_BASE_URL = 'https://reactlyve-backend.onrender.com:8000/api';
 
 // Auth Routes
 export const AUTH_ROUTES = {
