@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { MessageWithReactions } from '../../types/message';
 import { formatDate, formatRelativeTime, truncateString } from '../../utils/formatters';
@@ -21,8 +21,6 @@ const MessageList: React.FC<MessageListProps> = ({
   loading = false,
   className,
 }) => {
-  
-  // Empty state
   if (!loading && messages.length === 0) {
     return (
       <div className={classNames('text-center', className || '')}>
@@ -69,8 +67,7 @@ const MessageList: React.FC<MessageListProps> = ({
       </div>
     );
   }
-  
-  // Loading state
+
   if (loading) {
     return (
       <div className={classNames('flex justify-center py-8', className || '')}>
@@ -78,14 +75,11 @@ const MessageList: React.FC<MessageListProps> = ({
       </div>
     );
   }
-  
+
   return (
     <div className={className}>
-     
-      
-      {/* Message list */}
       <div className="space-y-4">
-        {messages.map(message => (
+        {messages.map((message) => (
           <Card
             key={message.id}
             className="transition-shadow hover:shadow-md"
@@ -115,43 +109,36 @@ const MessageList: React.FC<MessageListProps> = ({
                     </span>
                   )}
                 </div>
-                
+
                 <div className="mt-1 flex items-center text-sm text-neutral-500 dark:text-neutral-400">
-                  <span
-                    className="cursor-help"
-                    title={formatDate(message.createdAt)}
-                  >
+                  <span className="cursor-help" title={formatDate(message.createdAt)}>
                     {formatRelativeTime(message.createdAt)}
                   </span>
-                  
                 </div>
               </div>
-              
+
               <div className="flex space-x-2">
-                {/* View link button */}
                 {onViewReaction && (
                   <Button
-                  onClick={()=> onViewReaction(message.id)}
-                  target="_blank"
-                  variant="outline"
-                  size="sm"
-                  leftIcon={
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                      <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                    </svg>
-                  }
-                >
-                  View
-                </Button>
+                    onClick={() => onViewReaction(message.id)}
+                    target="_blank"
+                    variant="outline"
+                    size="sm"
+                    leftIcon={
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                        <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                      </svg>
+                    }
+                  >
+                    View
+                  </Button>
                 )}
-                
-                {/* Delete button */}
                 {onDeleteMessage && (
                   <Button
                     variant="outline"
@@ -177,56 +164,64 @@ const MessageList: React.FC<MessageListProps> = ({
                 )}
               </div>
             </div>
-            
-            {/* Reactions preview (if any) */}
-            {message.length > 0 && (
+
+            {/* Reaction thumbnails */}
+            {message.reactions && message.reactions.length > 0 && (
               <div className="mt-4">
-                <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                  Reactions
-                </h4>
+                <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Reactions</h4>
                 <div className="mt-2 flex space-x-2 overflow-x-auto pb-2">
-                  {message.map(reaction => (
-                    <button
-                      key={reaction.id}
-                      type="button"
-                      onClick={() => onViewReaction?.(reaction.id)}
-                      className="relative flex-shrink-0 overflow-hidden rounded-md bg-neutral-100 shadow-sm dark:bg-neutral-700"
-                    >
-                      {reaction.thumbnailUrl ? (
-                        <img
-                          src={reaction.thumbnailUrl}
-                          alt="Reaction thumbnail"
-                          className="h-16 w-28 object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-16 w-28 items-center justify-center">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-6 w-6 text-neutral-400"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
+                  {message.reactions.map((reaction) => (
+                    <div key={reaction.id}>
+                      <button
+                        type="button"
+                        onClick={() => onViewReaction?.(reaction.id)}
+                        className="relative flex-shrink-0 overflow-hidden rounded-md bg-neutral-100 shadow-sm dark:bg-neutral-700"
+                      >
+                        {reaction.thumbnailUrl ? (
+                          <img
+                            src={reaction.thumbnailUrl}
+                            alt="Reaction thumbnail"
+                            className="h-16 w-28 object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-16 w-28 items-center justify-center">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-6 w-6 text-neutral-400"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth={2}
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity hover:opacity-100">
+                          <span className="text-xs font-medium text-white">View Reaction</span>
+                        </div>
+                      </button>
+                      {reaction.thumbnailUrl && (
+                        <div className="text-right mt-1 pr-1">
+                          <a
+                            href={reaction.thumbnailUrl}
+                            download={`reaction-${reaction.id}.mp4`}
+                            className="text-xs text-primary-600 hover:underline dark:text-primary-400"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
+                            Download
+                          </a>
                         </div>
                       )}
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity hover:opacity-100">
-                        <span className="text-xs font-medium text-white">
-                          View Reaction
-                        </span>
-                      </div>
-                    </button>
+                    </div>
                   ))}
                 </div>
               </div>
