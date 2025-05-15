@@ -10,15 +10,18 @@ const AuthCallback = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   console.log(token,"token")
-
+  
   useEffect(() => {
     if (token) {
       localStorage.setItem('token', token);
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      navigate('/');
+    
+      // Force a full reload to trigger AuthContext init with the new token
+      window.location.href = '/dashboard';
+    } else {
+      setError('Missing authentication token.');
     }
-  }, [token, navigate]);
-
+  }, [token]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">
