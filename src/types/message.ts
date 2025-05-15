@@ -1,3 +1,5 @@
+import type { Reaction } from './reaction';
+
 export interface Message {
   id: string;
   userId?: string;
@@ -33,15 +35,6 @@ export interface Reply {
   id: string;
   text: string;
   createdAt: string;
-}
-
-export interface Reaction {
-  id: string;
-  videoUrl?: string;
-  thumbnailUrl?: string;
-  duration?: number;
-  createdAt: string;
-  updatedAt?: string;
 }
 
 export interface MessageFormData {
