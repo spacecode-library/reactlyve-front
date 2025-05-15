@@ -21,23 +21,8 @@ const Message: React.FC = () => {
         setLoading(true);
         const response = await api.get(MESSAGE_ROUTES.GET_BY_ID(id!));
         if (!response.data) throw new Error('No message found');
-
-        const raw = response.data;
-        console.log('🔍 Raw API response:', raw);
-
-        // Normalize snake_case keys
-        const normalized: MessageWithReactions = {
-          ...raw,
-          imageUrl: raw.imageurl,
-          videoUrl: raw.videourl,
-          thumbnailUrl: raw.thumbnailurl,
-          shareableLink: raw.shareablelink,
-          createdAt: raw.createdat || raw.createdAt,
-          updatedAt: raw.updatedat || raw.updatedAt,
-          reactions: raw.reactions || [], // fallback
-        };
-
-        setMessage(normalized);
+        setMessage(response.data);
+        console.log('🔍 Message data from API:', response.data);
       } catch (err) {
         setError('Failed to load message details');
         console.error(err);
@@ -115,6 +100,9 @@ const Message: React.FC = () => {
 
   const { formattedDate, timeAgo } = formatDate(message.createdAt);
 
+  const hasReactions = message.reactions && message.reactions.length > 0;
+  const hasReplies = message.replies && message.replies.length > 0;
+
   return (
     <MainLayout>
       <div className="mx-auto max-w-4xl px-4 py-8">
@@ -122,49 +110,32 @@ const Message: React.FC = () => {
           <div className="p-6">
             {/* Header */}
             <div className="mb-6 border-b border-neutral-200 pb-4 dark:border-neutral-700">
-              <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
-                Message Details
-              </h1>
+              <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Message Details</h1>
               <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
                 {formattedDate} ({timeAgo})
               </p>
             </div>
 
-            {/* Message Content */}
+            {/* Content */}
             <div className="mb-6">
-              <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
-                Message Content
-              </h2>
+              <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Message Content</h2>
               <div className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
                 <p className="text-neutral-700 dark:text-neutral-200">{message.content}</p>
               </div>
             </div>
 
-            {/* Media Section */}
+            {/* Media */}
             {message.mediatype === 'image' && message.imageUrl && (
               <div className="mb-6">
-                <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
-                  Image
-                </h2>
-                <img
-                  src={message.imageUrl}
-                  alt="Message"
-                  className="w-full max-w-lg rounded object-cover"
-                />
+                <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Image</h2>
+                <img src={message.imageUrl} alt="Message" className="w-full max-w-lg rounded object-cover" />
               </div>
             )}
 
             {message.mediatype === 'video' && message.videoUrl && (
               <div className="mb-6">
-                <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
-                  Video
-                </h2>
-                <video
-                  src={message.videoUrl}
-                  controls
-                  poster={message.thumbnailUrl}
-                  className="w-full max-w-lg"
-                />
+                <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Video</h2>
+                <video src={message.videoUrl} controls poster={message.thumbnailUrl} className="w-full max-w-lg" />
                 <div className="mt-3">
                   <button
                     onClick={() => downloadVideo(message.videoUrl!, 'message-video.mp4')}
@@ -185,11 +156,9 @@ const Message: React.FC = () => {
 
             {/* Shareable Link & Passcode */}
             <div className="mb-6 grid gap-4 md:grid-cols-2">
-              {message.shareableLink && (
+              {message.shareableLink && hasReactions && (
                 <div>
-                  <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
-                    Shareable Link
-                  </h2>
+                  <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Shareable Link</h2>
                   <div className="flex items-center gap-2 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
                     <p className="flex-1 truncate text-sm text-neutral-700 dark:text-neutral-300">
                       {message.shareableLink}
@@ -202,50 +171,36 @@ const Message: React.FC = () => {
                     </button>
                   </div>
                   {copied.link && (
-                    <p className="mt-1 text-xs text-green-600 dark:text-green-400">
-                      Link copied to clipboard!
-                    </p>
+                    <p className="mt-1 text-xs text-green-600 dark:text-green-400">Link copied to clipboard!</p>
                   )}
                 </div>
               )}
 
               {message.passcode && (
                 <div>
-                  <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
-                    Passcode
-                  </h2>
+                  <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Passcode</h2>
                   <div className="flex items-center gap-2 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
                     <p className="flex-1 text-sm font-mono text-neutral-700 dark:text-neutral-300">
                       {message.passcode}
                     </p>
                     <button
-                      onClick={() => copyToClipboard(message.passcode!, 'passcode')}
+                      onClick={() => copyToClipboard(message.passcode, 'passcode')}
                       className="rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700"
                     >
                       {copied.passcode ? <ClipboardIcon size={16} /> : <CopyIcon size={16} />}
                     </button>
                   </div>
-                  {copied.passcode && (
-                    <p className="mt-1 text-xs text-green-600 dark:text-green-400">
-                      Passcode copied to clipboard!
-                    </p>
-                  )}
                 </div>
               )}
             </div>
 
             {/* Reactions */}
-            {message.reactions?.length > 0 ? (
+            {hasReactions && (
               <div className="mb-6">
-                <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
-                  Reactions
-                </h2>
+                <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Reactions</h2>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {message.reactions.map((reaction: Reaction) => (
-                    <div
-                      key={reaction.id}
-                      className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700"
-                    >
+                  {message.reactions.map(reaction => (
+                    <div key={reaction.id} className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
                       <p className="mb-2 text-sm text-neutral-700 dark:text-neutral-300">
                         Received on {new Date(reaction.createdAt).toLocaleString()}
                       </p>
@@ -268,7 +223,10 @@ const Message: React.FC = () => {
                   ))}
                 </div>
               </div>
-            ) : (
+            )}
+
+            {/* Replies Fallback */}
+            {!hasReactions && (
               <div className="mb-6 rounded-md bg-neutral-100 p-5 text-center dark:bg-neutral-700">
                 <p className="mb-3 text-neutral-700 dark:text-neutral-300">
                   Share this link with your friend to capture their reaction!
