@@ -19,6 +19,8 @@ const Message: React.FC = () => {
       try {
         setLoading(true);
         const response = await api.get(MESSAGE_ROUTES.GET_BY_ID(id!));
+        console.log('🔍 Message data from API:', response.data); // <-- Debug log
+
         if (!response.data) throw new Error('No message found');
         setMessage(response.data);
       } catch (err) {
@@ -123,7 +125,7 @@ const Message: React.FC = () => {
               </div>
             </div>
 
-            {/* Media Section */}
+            {/* Media */}
             {message.mediatype === 'image' && message.imageUrl && (
               <div className="mb-6">
                 <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
@@ -224,7 +226,7 @@ const Message: React.FC = () => {
                   Reactions
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {message.reactions.map(reaction => (
+                  {message.reactions.map((reaction) => (
                     <div
                       key={reaction.id}
                       className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700"
