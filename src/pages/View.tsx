@@ -17,7 +17,7 @@ const View: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [needsPasscode, setNeedsPasscode] = useState(false);
   const [passcodeVerified, setPasscodeVerified] = useState(false);
-  
+
   // Fetch message data
   useEffect(() => {
     const fetchMessage = async () => {
@@ -26,16 +26,19 @@ const View: React.FC = () => {
         setLoading(false);
         return;
       }
-      
+
       try {
         const response = await api.get(`/messages/view/${id}`);
-        const responsee = await api.get(`/messages/${response.data.id}`)
-        if (response.data) {
-          setMessage(responsee.data);
-          
+        const messageId = response.data.id;
+
+        const responseById = await api.get(`/messages/${messageId}`);
+        const messageData = responseById.data;
+
+        if (messageData) {
           const requiresPasscode = response.data.hasPasscode === true;
           const isVerified = response.data.passcodeVerified === true || !requiresPasscode;
-              
+
+          setMessage(messageData);
           setNeedsPasscode(requiresPasscode && !isVerified);
           setPasscodeVerified(isVerified);
           setLoading(false);
@@ -46,55 +49,50 @@ const View: React.FC = () => {
         setLoading(false);
       }
     };
-    
+
     fetchMessage();
   }, [id]);
-  
+
   // Handle passcode submission
   const handleSubmitPasscode = async (passcode: string): Promise<boolean> => {
     if (!id || !message) return false;
-    
+
     try {
-      const response = await api.post(
-        `/messages/${id}/verify-passcode`, 
-        { passcode }
-      );
+      const response = await api.post(`/messages/${id}/verify-passcode`, { passcode });
+
       const responseview = await api.get(`/messages/view/${id}`);
-      const responsebyid = await api.get(`/messages/${responseview.data.id}`)
+      const responsebyid = await api.get(`/messages/${responseview.data.id}`);
 
       if (response.data && (response.data.verified || response.status === 200)) {
         setPasscodeVerified(true);
-        
-        if (responsebyid.data.message) {
-          setMessage(responsebyid.data.message);
+
+        if (responsebyid.data) {
+          setMessage(responsebyid.data);
         }
-        
+
         return true;
       }
-      
+
       return false;
     } catch (error) {
       console.error('Error verifying passcode:', error);
       return false;
     }
   };
-  
+
   // Handle recording reaction
   const handleRecordReaction = async (messageId: string, videoBlob: Blob): Promise<void> => {
     try {
       const formData = new FormData();
       formData.append('video', videoBlob, 'reaction.webm');
+
       if (videoBlob.size > 0) {
-        await api.post(
-          `/reactions/${messageId}`, 
-          formData, 
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            }
+        await api.post(`/reactions/${messageId}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
           }
-        );
-        
+        });
+
         toast.success('Your reaction has been recorded!');
       }
     } catch (error) {
@@ -115,11 +113,11 @@ const View: React.FC = () => {
       throw error;
     }
   };
-  
+
   // Handle skip reaction
   const handleSkipReaction = async () => {
     if (!id || !message) return;
-    
+
     try {
       await api.post(`/reactions/${id}/skip`);
       toast.success('You have chosen to skip recording a reaction.');
@@ -128,7 +126,7 @@ const View: React.FC = () => {
       toast.success('You have chosen to skip recording a reaction.');
     }
   };
-  
+
   // Loading state
   if (loading) {
     return (
@@ -142,7 +140,7 @@ const View: React.FC = () => {
       </div>
     );
   }
-  
+
   // Error state
   if (error) {
     return (
@@ -181,7 +179,7 @@ const View: React.FC = () => {
       </div>
     );
   }
-  
+
   // Passcode entry state
   if (needsPasscode && !passcodeVerified) {
     return (
@@ -190,7 +188,7 @@ const View: React.FC = () => {
       </div>
     );
   }
-  
+
   // Message viewer state
   if (message && (passcodeVerified || !needsPasscode)) {
     return (
@@ -205,8 +203,8 @@ const View: React.FC = () => {
       </div>
     );
   }
-  
-  // Fallback for any other state (shouldn't happen)
+
+  // Fallback
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">
       <div className="text-center">
