@@ -19,8 +19,6 @@ const Dashboard: React.FC = () => {
   
   const [messages, setMessages] = useState<MessageWithReactions[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedReaction, setSelectedReaction] = useState<Reaction | null>(null);
-  const [selectedMessageSummary, setSelectedMessageSummary] = useState<string>('');
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [currentPage,setCurrentPage] = useState(1);
@@ -97,18 +95,10 @@ const Dashboard: React.FC = () => {
   };
   
   // Handle viewing a reaction
-  const handleViewReaction = async (reactionId: string) => {
-    try {
-      // const response = await api.get(MESSAGE_ROUTES.GET_BY_ID(reactionId));
-      // const reaction = response.data;
-      // console.log(reaction,'reactiondashboard')
-      navigate(`/message/${reactionId}`)
-      
-      } catch (error) {
-      console.error('Error fetching reaction:', error);
-      toast.error('Failed to load the reaction. Please try again.');
-    }
-  };
+  const handleViewReaction = (reactionId: string) => {
+     navigate(`/message/${reactionId}`);
+    };
+
   
   // Handle deleting a reaction
   // const handleDeleteReaction = async (reactionId: string) => {
@@ -359,21 +349,8 @@ const Dashboard: React.FC = () => {
           
         </div>
       </div>
-      
-      {/* Reaction viewer modal */}
-      {selectedReaction && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4">
-          <div className="w-full max-w-4xl" onClick={e => e.stopPropagation()}>
-            <ReactionViewer
-              reaction={selectedReaction}
-              messageSummary={selectedMessageSummary}
-              // onDeleteReaction={handleDeleteReaction}
-              onClose={() => setSelectedReaction(null)}
-            />
-          </div>
-        </div>
-      )}
-      
+
+
       {/* Delete confirmation modal */}
       <Modal
         isOpen={deleteModalOpen}
