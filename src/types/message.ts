@@ -26,12 +26,22 @@ export interface Message {
   };
   passcodeVerified?: boolean;
   replies?: Reply[];
+  reactions?: Reaction[]; // Add this here if reactions come in single message payload too
 }
 
 export interface Reply {
   id: string;
   text: string;
   createdAt: string;
+}
+
+export interface Reaction {
+  id: string;
+  videoUrl?: string;
+  thumbnailUrl?: string;
+  duration?: number;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export interface MessageFormData {
@@ -42,11 +52,5 @@ export interface MessageFormData {
 }
 
 export interface MessageWithReactions extends Message {
-  length: number;
-  map(arg0: (reaction: any) => import("react/jsx-runtime").JSX.Element): import("react").ReactNode;
-  reactions: {
-    id: string;
-    createdat: string;
-    thumbnailUrl?: string;
-  }[];
+  reactions: Reaction[];
 }
