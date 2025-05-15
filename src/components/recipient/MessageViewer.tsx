@@ -96,17 +96,20 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const handleSendReply = async () => {
     if (!replyText.trim() || !onSendTextReply) return;
     setIsSendingReply(true);
+    setPermissionError(null); // Clear previous error
     try {
       await onSendTextReply(message.id, replyText.trim());
-      setReplyText(''); // Clear the input after successful submission
+      setReplyText(''); // Clear input
       console.log('Text reply sent successfully');
     } catch (error) {
       console.error('Error sending text reply:', error);
-      setPermissionError('Failed to send reply. Please try again.');
+      setPermissionError('Failed to send reply. Please check your connection and try again.');
     } finally {
       setIsSendingReply(false);
     }
   };
+
+  
 
   // Render passcode entry if required
   if (!passcodeVerified && message.hasPasscode) {
@@ -209,6 +212,9 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
               maxLength={500}
               disabled={isSendingReply}
             />
+            {permissionError && (
+              <p className="text-sm text-red-600 mt-2">{permissionError}</p>
+            )}
             <button
               onClick={handleSendReply}
               disabled={!replyText.trim() || isSendingReply}
