@@ -25,6 +25,13 @@ export interface Message {
     picture?: string;
   };
   passcodeVerified?: boolean;
+  replies?: Reply[];
+}
+
+export interface Reply {
+  id: string;
+  text: string;
+  createdAt: string;
 }
 
 export interface MessageFormData {
