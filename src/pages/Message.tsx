@@ -5,7 +5,8 @@ import { formatDistance } from 'date-fns';
 import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon } from 'lucide-react';
 import api from '@/services/api';
 import { MESSAGE_ROUTES } from '@/components/constants/apiRoutes';
-import type { MessageWithReactions, Reaction } from '../types/message';
+import type { MessageWithReactions } from '../types/message';
+import type { Reaction } from '../types/reaction';
 
 const Message: React.FC = () => {
   const { id } = useParams<{ id: string }>();
