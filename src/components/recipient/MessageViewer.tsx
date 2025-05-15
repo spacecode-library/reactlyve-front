@@ -33,6 +33,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const formattedDate = message.createdAt
     ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
     : '';
+  const [replyError, setReplyError] = useState<string | null>(null);
 
   // Debugging: Log component lifecycle
   useEffect(() => {
@@ -96,14 +97,14 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const handleSendReply = async () => {
     if (!replyText.trim() || !onSendTextReply) return;
     setIsSendingReply(true);
-    setPermissionError(null); // Clear previous error
+    setReplyError(null);
     try {
       await onSendTextReply(message.id, replyText.trim());
       setReplyText(''); // Clear input
       console.log('Text reply sent successfully');
     } catch (error) {
       console.error('Error sending text reply:', error);
-      setPermissionError('Failed to send reply. Please check your connection and try again.');
+      setReplyError('Failed to send reply. Please check your connection and try again.');
     } finally {
       setIsSendingReply(false);
     }
@@ -212,8 +213,8 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
               maxLength={500}
               disabled={isSendingReply}
             />
-            {permissionError && (
-              <p className="text-sm text-red-600 mt-2">{permissionError}</p>
+            {replyError && (
+              <p className="text-sm text-red-600 mt-2">{replyError}</p>
             )}
             <button
               onClick={handleSendReply}
