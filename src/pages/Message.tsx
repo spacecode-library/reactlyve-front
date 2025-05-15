@@ -10,21 +10,16 @@ import type { MessageWithReactions } from '../types/message';
 const Message: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [message, setMessage] = useState<MessageWithReactions | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState<{ passcode: boolean; link: boolean }>({
-    passcode: false,
-    link: false,
-  });
+  const [copied, setCopied] = useState({ passcode: false, link: false });
 
   useEffect(() => {
     const fetchMessageDetails = async () => {
       try {
         setLoading(true);
         const response = await api.get(MESSAGE_ROUTES.GET_BY_ID(id!));
-        if (!response.data) {
-          throw new Error('No message found');
-        }
+        if (!response.data) throw new Error('No message found');
         setMessage(response.data);
       } catch (err) {
         setError('Failed to load message details');
@@ -45,7 +40,6 @@ const Message: React.FC = () => {
       setCopied(prev => ({ ...prev, [type]: false }));
     }, 2000);
   };
-  
 
   const downloadVideo = async (url: string, filename: string) => {
     try {
@@ -119,7 +113,7 @@ const Message: React.FC = () => {
               </p>
             </div>
 
-            {/* Content */}
+            {/* Message Content */}
             <div className="mb-6">
               <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
                 Message Content
@@ -129,53 +123,52 @@ const Message: React.FC = () => {
               </div>
             </div>
 
-            {/* Media */}
-            {message.imageUrl && (
+            {/* Media Section */}
+            {message.mediatype === 'image' && message.imageUrl && (
               <div className="mb-6">
                 <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
-                  {message.mediatype === 'video' ? 'Video' : 'Image'}
+                  Image
                 </h2>
-                <div className="overflow-hidden rounded-lg">
-                  {message.mediatype === 'video' ? (
-                    <video
-                      src={message.imageUrl}
-                      controls
-                      className="w-full max-w-lg"
-                      poster={message.thumbnailUrl || undefined}
-                    />
-                  ) : (
-                    <img
-                      src={message.imageUrl}
-                      alt="Message attachment"
-                      className="w-full max-w-lg object-cover"
-                    />
+                <img
+                  src={message.imageUrl}
+                  alt="Message"
+                  className="w-full max-w-lg rounded object-cover"
+                />
+              </div>
+            )}
+
+            {message.mediatype === 'video' && message.videoUrl && (
+              <div className="mb-6">
+                <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
+                  Video
+                </h2>
+                <video
+                  src={message.videoUrl}
+                  controls
+                  poster={message.thumbnailUrl}
+                  className="w-full max-w-lg"
+                />
+                <div className="mt-3">
+                  <button
+                    onClick={() => downloadVideo(message.videoUrl!, 'message-video.mp4')}
+                    className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                  >
+                    <DownloadIcon size={16} />
+                    Download Video
+                  </button>
+                  {message.duration && (
+                    <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                      Duration: {Math.floor(message.duration / 60)}:
+                      {(message.duration % 60).toString().padStart(2, '0')}
+                    </p>
                   )}
                 </div>
-                {message.mediatype === 'video' && (
-                  <div className="mt-3">
-                    <button
-                      onClick={() =>
-                        downloadVideo(message.imageUrl, 'message-video.mp4')
-                      }
-                      className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                    >
-                      <DownloadIcon size={16} />
-                      Download Video
-                    </button>
-                    {message.duration && (
-                      <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-                        Duration: {Math.floor(message.duration / 60)}:
-                        {(message.duration % 60).toString().padStart(2, '0')}
-                      </p>
-                    )}
-                  </div>
-                )}
               </div>
             )}
 
             {/* Shareable Link & Passcode */}
             <div className="mb-6 grid gap-4 md:grid-cols-2">
-              {message.shareableLink ? (
+              {message.shareableLink && (
                 <div>
                   <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
                     Shareable Link
@@ -186,8 +179,7 @@ const Message: React.FC = () => {
                     </p>
                     <button
                       onClick={() => copyToClipboard(message.shareableLink, 'link')}
-                      className="flex items-center justify-center rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700"
-                      title="Copy link"
+                      className="rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700"
                     >
                       {copied.link ? <ClipboardIcon size={16} /> : <CopyIcon size={16} />}
                     </button>
@@ -198,7 +190,8 @@ const Message: React.FC = () => {
                     </p>
                   )}
                 </div>
-              ) : null}
+              )}
+
               {message.passcode && (
                 <div>
                   <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
@@ -212,11 +205,7 @@ const Message: React.FC = () => {
                       onClick={() => copyToClipboard(message.passcode!, 'passcode')}
                       className="rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700"
                     >
-                      {copied.passcode ? (
-                        <ClipboardIcon size={16} />
-                      ) : (
-                        <CopyIcon size={16} />
-                      )}
+                      {copied.passcode ? <ClipboardIcon size={16} /> : <CopyIcon size={16} />}
                     </button>
                   </div>
                   {copied.passcode && (
@@ -229,13 +218,13 @@ const Message: React.FC = () => {
             </div>
 
             {/* Reactions */}
-            {message.reactions && message.reactions.length > 0 ? (
+            {message.reactions?.length > 0 ? (
               <div className="mb-6">
                 <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
                   Reactions
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {message.reactions.map((reaction) => (
+                  {message.reactions.map(reaction => (
                     <div
                       key={reaction.id}
                       className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700"
@@ -246,8 +235,8 @@ const Message: React.FC = () => {
                       <video
                         src={reaction.videoUrl}
                         controls
-                        className="w-full rounded"
                         poster={reaction.thumbnailUrl || undefined}
+                        className="w-full rounded"
                       />
                       <button
                         onClick={() =>
@@ -273,7 +262,7 @@ const Message: React.FC = () => {
                     className="mx-auto flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                   >
                     <LinkIcon size={16} />
-                    <span>Copy Shareable Link</span>
+                    Copy Shareable Link
                   </button>
                 )}
               </div>
