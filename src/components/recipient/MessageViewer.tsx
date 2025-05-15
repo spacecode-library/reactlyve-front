@@ -248,7 +248,9 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
                   <li key={reply.id} className="p-3 bg-neutral-100 dark:bg-neutral-800 rounded-md shadow-sm">
                     <p className="text-sm text-neutral-900 dark:text-white">{reply.text}</p>
                     <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                      {new Date(reply.createdAt).toLocaleString()}
+                      {reply.createdAt && !isNaN(new Date(reply.createdAt).getTime())
+                      ? new Date(reply.createdAt).toLocaleString()
+                      : 'Unknown'}
                     </p>
                   </li>
                 ))}
