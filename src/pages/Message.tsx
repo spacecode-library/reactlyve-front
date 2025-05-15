@@ -5,7 +5,7 @@ import { formatDistance } from 'date-fns';
 import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon } from 'lucide-react';
 import api from '@/services/api';
 import { MESSAGE_ROUTES } from '@/components/constants/apiRoutes';
-import type { MessageWithReactions } from '../types/message';
+import type { MessageWithReactions, Reaction } from '../types/message';
 
 const Message: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,10 +19,24 @@ const Message: React.FC = () => {
       try {
         setLoading(true);
         const response = await api.get(MESSAGE_ROUTES.GET_BY_ID(id!));
-        console.log('🔍 Message data from API:', response.data); // <-- Debug log
-
         if (!response.data) throw new Error('No message found');
-        setMessage(response.data);
+
+        const raw = response.data;
+        console.log('🔍 Raw API response:', raw);
+
+        // Normalize snake_case keys
+        const normalized: MessageWithReactions = {
+          ...raw,
+          imageUrl: raw.imageurl,
+          videoUrl: raw.videourl,
+          thumbnailUrl: raw.thumbnailurl,
+          shareableLink: raw.shareablelink,
+          createdAt: raw.createdat || raw.createdAt,
+          updatedAt: raw.updatedat || raw.updatedAt,
+          reactions: raw.reactions || [], // fallback
+        };
+
+        setMessage(normalized);
       } catch (err) {
         setError('Failed to load message details');
         console.error(err);
@@ -125,7 +139,7 @@ const Message: React.FC = () => {
               </div>
             </div>
 
-            {/* Media */}
+            {/* Media Section */}
             {message.mediatype === 'image' && message.imageUrl && (
               <div className="mb-6">
                 <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
@@ -226,7 +240,7 @@ const Message: React.FC = () => {
                   Reactions
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {message.reactions.map((reaction) => (
+                  {message.reactions.map((reaction: Reaction) => (
                     <div
                       key={reaction.id}
                       className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700"
