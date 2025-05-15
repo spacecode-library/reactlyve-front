@@ -11,6 +11,7 @@ interface ReactionViewerProps {
   messageSummary?: string;
   onDeleteReaction?: (reactionId: string) => void;
   showCloseButton?: boolean;
+  onClose?: () => void;
   className?: string;
 }
 
