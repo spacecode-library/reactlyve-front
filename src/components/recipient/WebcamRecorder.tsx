@@ -36,6 +36,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   const [recordingCompleted, setRecordingCompleted] = useState<boolean>(false);
   const [retryMessage, setRetryMessage] = useState<string>('');
   const [countdownValue, setCountdownValue] = useState<number>(countdownDuration);
+  const [recordingCountdown, setRecordingCountdown] = useState<number | null>(null);
 
   const MAX_RETRY_ATTEMPTS = 3;
   const RETRY_DELAY = 2000;
@@ -113,6 +114,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
             if (stream) {
               startRecording();
               setIsRecording(true);
+              setRecordingCountdown(maxDuration / 1000);
               onCountdownComplete?.();
             } else {
               const err = 'Camera stream not available after countdown.';
@@ -131,6 +133,21 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   useEffect(() => {
     if (showCountdown) setCountdownValue(countdownDuration);
   }, [showCountdown, countdownDuration]);
+
+  useEffect(() => {
+    if (!isRecording || recordingCountdown === null) return;
+  
+    const interval = setInterval(() => {
+      setRecordingCountdown(prev => {
+        if (prev && prev > 1) return prev - 1;
+        clearInterval(interval);
+        return 0;
+      });
+    }, 1000);
+  
+    return () => clearInterval(interval);
+  }, [isRecording, recordingCountdown]);
+
 
   const handleRetryWebcam = () => {
     setWebcamInitialized(false);
@@ -179,8 +196,8 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
         </div>
       )}
       {isRecording && (
-        <p className="text-red-500 mt-2 text-sm">
-          Recording... {formatDuration(duration)}
+        <p className="text-red-500 mt-2 text-sm font-medium">
+          Recording... {recordingCountdown !== null ? `${recordingCountdown}s left` : ''}
         </p>
       )}
       {recordingCompleted && (
