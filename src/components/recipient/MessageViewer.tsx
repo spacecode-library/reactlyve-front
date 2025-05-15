@@ -237,6 +237,24 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
             {replyText.length}/500 characters
           </p>
+          
+          {message.replies && message.replies.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold text-neutral-800 dark:text-white mb-2">
+                Previous Replies
+              </h3>
+              <ul className="space-y-3">
+                {message.replies.map((reply) => (
+                  <li key={reply.id} className="p-3 bg-neutral-100 dark:bg-neutral-800 rounded-md shadow-sm">
+                    <p className="text-sm text-neutral-900 dark:text-white">{reply.text}</p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                      {new Date(reply.createdAt).toLocaleString()}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}          
         </div>
 
         {/* Post-reaction actions */}
