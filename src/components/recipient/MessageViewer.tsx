@@ -193,23 +193,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           {replyText.length}/500 characters
         </p>
 
-        {message.replies && message.replies.length > 0 && (
-          <div className="mt-6">
-            <h3 className="text-lg font-semibold text-neutral-800 dark:text-white mb-2">Previous Replies</h3>
-            <ul className="space-y-3">
-              {message.replies.map((reply) => (
-                <li key={reply.id} className="p-3 bg-neutral-100 dark:bg-neutral-800 rounded-md shadow-sm">
-                  <p className="text-sm text-neutral-900 dark:text-white">{reply.text}</p>
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                    {reply.createdAt && !isNaN(new Date(reply.createdAt).getTime())
-                      ? new Date(reply.createdAt).toLocaleString()
-                      : 'Unknown'}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
         {isReactionRecorded && !message.videoUrl && (
           <div className="mt-6">
             <h3 className="mb-2 text-xl font-semibold text-green-600 dark:text-green-400">
