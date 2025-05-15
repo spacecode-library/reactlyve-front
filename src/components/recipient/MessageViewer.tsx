@@ -269,7 +269,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           onRecordingComplete={handleReactionComplete}
           onCancel={() => {}} // Empty handler since cancel button is removed
           maxDuration={15000} // 15 seconds
-          countdownDuration={3}
+          countdownDuration={5}
           onPermissionDenied={handlePermissionDenied}
           autoStart={true}
           onCountdownComplete={handleCountdownComplete}
