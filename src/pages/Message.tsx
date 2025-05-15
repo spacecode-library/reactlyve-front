@@ -37,13 +37,15 @@ const Message: React.FC = () => {
     if (id) fetchMessageDetails();
   }, [id]);
 
-  const copyToClipboard = (text: string, type: 'passcode' | 'link') => {
+  const copyToClipboard = (text: string | undefined, type: 'passcode' | 'link') => {
+    if (!text) return;
     navigator.clipboard.writeText(text);
-    setCopied((prev) => ({ ...prev, [type]: true }));
+    setCopied(prev => ({ ...prev, [type]: true }));
     setTimeout(() => {
-      setCopied((prev) => ({ ...prev, [type]: false }));
+      setCopied(prev => ({ ...prev, [type]: false }));
     }, 2000);
   };
+  
 
   const downloadVideo = async (url: string, filename: string) => {
     try {
@@ -173,7 +175,7 @@ const Message: React.FC = () => {
 
             {/* Shareable Link & Passcode */}
             <div className="mb-6 grid gap-4 md:grid-cols-2">
-              {message.shareableLink && (
+              {message.shareableLink ? (
                 <div>
                   <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
                     Shareable Link
@@ -184,7 +186,8 @@ const Message: React.FC = () => {
                     </p>
                     <button
                       onClick={() => copyToClipboard(message.shareableLink, 'link')}
-                      className="rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700"
+                      className="flex items-center justify-center rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700"
+                      title="Copy link"
                     >
                       {copied.link ? <ClipboardIcon size={16} /> : <CopyIcon size={16} />}
                     </button>
@@ -195,7 +198,7 @@ const Message: React.FC = () => {
                     </p>
                   )}
                 </div>
-              )}
+              ) : null}
               {message.passcode && (
                 <div>
                   <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
@@ -264,13 +267,15 @@ const Message: React.FC = () => {
                 <p className="mb-3 text-neutral-700 dark:text-neutral-300">
                   Share this link with your friend to capture their reaction!
                 </p>
-                <button
-                  onClick={() => copyToClipboard(message.shareableLink, 'link')}
-                  className="mx-auto flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                >
-                  <LinkIcon size={16} />
-                  Copy Shareable Link
-                </button>
+                {message.shareableLink && (
+                  <button
+                    onClick={() => copyToClipboard(message.shareableLink, 'link')}
+                    className="mx-auto flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                  >
+                    <LinkIcon size={16} />
+                    <span>Copy Shareable Link</span>
+                  </button>
+                )}
               </div>
             )}
           </div>
