@@ -66,7 +66,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           setReactionId(latest.id);
           onInitReactionId?.(latest.id); // ✅ callback
         } else {
-          return reactionsApi.init(message.id).then((res) => {
+          return reactionsApi.init(message.id, sessionId).then((res) => {
             setReactionId(res.data.reactionId);
             onInitReactionId?.(res.data.reactionId); // ✅ callback
           });
