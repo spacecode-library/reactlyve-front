@@ -61,6 +61,8 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     return newSession;
   });
 
+  console.log("Sending sessionId:", sessionId, "for message:", message.id);
+  
   // Init reaction ID early
   useEffect(() => {
     reactionsApi
