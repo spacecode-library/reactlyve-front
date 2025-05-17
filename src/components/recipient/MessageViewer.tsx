@@ -43,16 +43,20 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   // Init reaction ID early
   useEffect(() => {
-    if (!normalizedMessage.videoUrl) {
-      reactionsApi
-        .init(message.id)
-        .then((res) => setReactionId(res.data.reactionId))
-        .catch((err) => {
-          console.error('Failed to initialize reaction:', err);
-          setPermissionError('Unable to prepare for recording. This message might no longer exist.');
-        });
-    }
-  }, [message.id, normalizedMessage.videoUrl]);
+    reactionsApi.getByMessageId(message.id)
+      .then((res) => {
+        const allReactions = res.data;
+        if (allReactions.length > 0) {
+          const latest = allReactions[allReactions.length - 1];
+          setReactionId(latest.id);
+        } else {
+          return reactionsApi.init(message.id).then((res) => {
+            setReactionId(res.data.reactionId);
+          });
+        }
+      })
+      .catch((err) => console.error('Failed to load or init reaction:', err));
+  }, [message.id]);
 
   useEffect(() => {
     if (normalizedMessage.videoUrl) {
