@@ -3,11 +3,14 @@ import { Message } from '../../types/message';
 import ReactionViewer from './ReactionViewer';
 import { formatDate } from '../../utils/formatters';
 import Button from '../common/Button';
+import { normalizeMessage } from '../utils/normalizeKeys';
 
 interface MessageDetailsProps {
   message: Message;
   onDeleteReaction?: (reactionId: string) => void;
 }
+
+const normalizedMessage = normalizeMessage(message);
 
 const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReaction }) => {
   return (
@@ -26,11 +29,11 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
       </div>
 
       {/* Media Preview */}
-      {message.imageUrl && message.mediaType === 'image' && (
-        <img src={message.imageUrl} alt="Message media" className="rounded-md mb-4 w-full" />
+      {normalizeMessage.imageUrl && normalizeMessage.mediaType === 'image' && (
+        <img src={normalizeMessage.imageUrl} alt="Message media" className="rounded-md mb-4 w-full" />
       )}
-      {message.imageUrl && message.mediaType === 'video' && (
-        <video src={message.imageUrl} controls className="rounded-md mb-4 w-full" />
+      {normalizeMessage.imageUrl && normalizeMessage.mediaType === 'video' && (
+        <video src={.imageUrl} controls className="rounded-md mb-4 w-full" />
       )}
 
       {/* Shareable Link */}
@@ -38,14 +41,14 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
         <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-2">Shareable Link</p>
         <div className="flex items-center space-x-2">
           <input
-            value={message.shareableLink}
+            value={normalizeMessage.shareableLink}
             readOnly
             className="flex-1 rounded border border-neutral-300 dark:border-neutral-600 p-2 text-sm dark:bg-neutral-800 dark:text-white"
           />
           <Button
             size="sm"
             onClick={() => {
-              navigator.clipboard.writeText(message.shareableLink);
+              navigator.clipboard.writeText(normalizeMessage.shareableLink);
               alert('Link copied!');
             }}
           >
