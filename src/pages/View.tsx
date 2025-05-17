@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+                  import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { MESSAGE_ERRORS } from '../components/constants/errorMessages';
@@ -20,6 +20,11 @@ const View: React.FC = () => {
 
   // 🔐 Store last recorded reactionId in ref (does not reset across re-renders)
   const lastRecordedReactionId = useRef<string | null>(null);
+  const reactionIdRef = useRef<string | null>(null);
+
+  const handleInitReactionId = (id: string) => {
+    reactionIdRef.current = id;
+  };                        
 
   // 🔄 Fetch message data
   useEffect(() => {
@@ -95,22 +100,22 @@ const View: React.FC = () => {
   };
 
   // 💬 Handle text reply
-  const handleSendTextReply = async (messageId: string, text: string): Promise<void> => {
-    try {
-      if (!lastRecordedReactionId.current) {
-        toast.error('Reaction not initialized yet. Please wait a moment.');
-        return;
-      }
+  const handleSendTextReply = async (_messageId: string, text: string): Promise<void> => {
+    const currentReactionId = reactionIdRef.current;
   
-      await repliesApi.sendText(lastRecordedReactionId.current, text);
+    if (!currentReactionId) {
+      toast.error('Reply channel not ready yet. Please wait a moment and try again.');
+      return;
+    }
+  
+    try {
+      await repliesApi.sendText(currentReactionId, text);
       toast.success('Your reply has been sent!');
     } catch (error) {
       console.error('Error uploading reply:', error);
       toast.error('Failed to upload reply. Please try again.');
-      throw error;
     }
   };
-
 
   // ⏭️ Skip reaction
   const handleSkipReaction = async () => {
@@ -190,9 +195,7 @@ const View: React.FC = () => {
           onSkipReaction={handleSkipReaction}
           onSubmitPasscode={handleSubmitPasscode}
           onSendTextReply={handleSendTextReply}
-          onInitReactionId={(id) => {
-            lastRecordedReactionId.current = id; // ✅ now we have it immediately
-          }}
+          onInitReactionId={handleInitReactionId}
         />
       </div>
     );
