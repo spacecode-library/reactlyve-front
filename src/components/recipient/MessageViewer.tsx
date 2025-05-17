@@ -121,11 +121,24 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   };
 
   const handleSendReply = async () => {
-    if (!replyText.trim() || !reactionId || !onSendTextReply) return;
+    const text = replyText.trim();
+    if (!text) return;
+  
     setIsSendingReply(true);
     setReplyError(null);
+  
     try {
-      await onSendTextReply(reactionId, replyText.trim());
+      let activeReactionId = reactionId;
+  
+      // ✅ Ensure reaction exists before sending reply
+      if (!activeReactionId) {
+        const res = await reactionsApi.init(message.id, sessionId);
+        activeReactionId = res.data.reactionId;
+        setReactionId(activeReactionId);
+        onInitReactionId?.(activeReactionId);
+      }
+  
+      await repliesApi.sendText(activeReactionId, text);
       setReplyText('');
     } catch (error) {
       console.error('Reply error:', error);
@@ -134,6 +147,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       setIsSendingReply(false);
     }
   };
+  
 
   if (!passcodeVerified && message.hasPasscode) {
     return (
