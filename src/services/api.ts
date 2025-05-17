@@ -113,7 +113,6 @@ export const reactionsApi = {
   upload: (messageId: string, video: Blob) => {
     const formData = new FormData();
     formData.append('video', video, 'reaction.webm');
-    
     return api.post(`/reactions/${messageId}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
