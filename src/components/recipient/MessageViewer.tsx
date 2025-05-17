@@ -139,7 +139,8 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       }
   
       // ✅ activeReactionId is now guaranteed to be string
-      await repliesApi.sendText(activeReactionId as string, text);
+      if (!activeReactionId) throw new Error("Missing reaction ID after init");
+        await repliesApi.sendText(activeReactionId, text);
       setReplyText('');
     } catch (error) {
       console.error('Reply error:', error);
