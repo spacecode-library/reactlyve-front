@@ -79,7 +79,7 @@ export const messagesApi = {
 // ------------------ REACTIONS API ------------------
 export const reactionsApi = {
   init: (messageId: string, sessionId: string) => {
-    return api.post(`/reactions/init/${messageId}`, { sessionId });
+    return api.post(`/api/reactions/init/${messageId}`, { sessionId });
   },
 
   uploadVideoToReaction: (reactionId: string, video: Blob) => {
