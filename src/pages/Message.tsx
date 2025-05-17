@@ -123,13 +123,13 @@ const Message: React.FC = () => {
             </div>
 
             {/* Media */}
-            {message.mediatype === 'image' && message.imageUrl && (
+            {message.mediaType === 'image' && message.imageUrl && (
               <div className="mb-6">
                 <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Image</h2>
                 <img src={message.imageUrl} alt="Message" className="w-full max-w-lg rounded object-cover" />
               </div>
             )}
-            {message.mediatype === 'video' && message.videoUrl && (
+            {message.mediaType === 'video' && message.videoUrl && (
               <div className="mb-6">
                 <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Video</h2>
                 <video src={message.videoUrl} controls poster={message.thumbnailUrl} className="w-full max-w-lg" />
