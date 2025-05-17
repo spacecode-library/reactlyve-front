@@ -134,12 +134,12 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       </div>
 
       {/* Media */}
-      {message.mediatype === 'image' && message.imageUrl && (
+      {message.mediaType === 'image' && message.imageUrl && (
         <div className="mt-4 overflow-hidden rounded-lg">
           <img src={message.imageUrl} alt="Message attachment" className="w-full object-cover" />
         </div>
       )}
-      {message.mediatype === 'video' && message.videoUrl && (
+      {message.mediaType === 'video' && message.videoUrl && (
         <div className="mt-4 overflow-hidden rounded-lg">
           <video src={message.videoUrl} controls className="w-full object-cover" />
         </div>
