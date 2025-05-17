@@ -25,6 +25,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   onSkipReaction,
   onSubmitPasscode,
   onSendTextReply,
+  onInitReactionId,
 }) => {
   const normalizedMessage = normalizeMessage(message);
   const [reactionId, setReactionId] = useState<string | null>(null);
