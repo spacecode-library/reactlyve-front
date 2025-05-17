@@ -33,7 +33,6 @@ export interface Message {
 
 export interface Reply {
   id: string;
-  reactionId: string;
   text: string;
   createdAt: string;
 }
