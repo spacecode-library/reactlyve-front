@@ -28,6 +28,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   onPermissionDenied,
   onCountdownComplete,
   isReplyMode = false,
+  hidePreviewAfterCountdown = true,
 }) => {
   const [showCountdown, setShowCountdown] = useState<boolean>(false);
   const [isRecording, setIsRecording] = useState<boolean>(false);
