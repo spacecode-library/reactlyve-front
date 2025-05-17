@@ -15,6 +15,7 @@ interface WebcamRecorderProps {
   onPermissionDenied?: (error: string) => void;
   onCountdownComplete?: () => void;
   isReplyMode?: boolean;
+  hidePreviewAfterCountdown?: boolean;
 }
 
 const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
@@ -37,9 +38,9 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   const [retryMessage, setRetryMessage] = useState<string>('');
   const [countdownValue, setCountdownValue] = useState<number>(countdownDuration);
   const [recordingCountdown, setRecordingCountdown] = useState<number | null>(null);
-
   const MAX_RETRY_ATTEMPTS = 3;
   const RETRY_DELAY = 2000;
+  const [showPreview, setShowPreview] = useState(true);
 
   const {
     stream,
@@ -113,11 +114,15 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
             clearInterval(countdownInterval);
             setShowCountdown(false);
             if (stream) {
-              startRecording();
-              setIsRecording(true);
-              setRecordingCountdown(maxDuration / 1000);
-              onCountdownComplete?.();
-            } else {
+                startRecording();
+                setIsRecording(true);
+                setRecordingCountdown(maxDuration / 1000);
+                onCountdownComplete?.();
+              
+                if (hidePreviewAfterCountdown) {
+                  setShowPreview(false);
+                }
+              } else {
               const err = 'Camera stream not available after countdown.';
               setPermissionError(err);
               onPermissionDenied?.(err);
@@ -189,7 +194,17 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   return (
     <div className={classNames('flex flex-col items-center', className || '')}>
       <h2 className="text-xl font-semibold mb-2">Record Your Reaction</h2>
-      <video ref={videoRef} autoPlay muted playsInline className="rounded shadow-md w-full max-w-md mb-4" />
+      {showPreview ? (
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          className="rounded shadow-md w-full max-w-md mb-4"
+        />
+      ) : (
+        <div className="w-full max-w-md mb-4 h-[240px] bg-neutral-100 dark:bg-neutral-800 rounded" />
+      )}
       {retryMessage && <p className="text-sm text-gray-500">{retryMessage}</p>}
       {showCountdown && (
         <div className="text-4xl font-bold text-blue-500 mt-2">
