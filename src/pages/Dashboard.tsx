@@ -32,35 +32,37 @@ const Dashboard: React.FC = () => {
   
   // Fetch messages
   useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get( `${MESSAGE_ROUTES.GET_ALL}?page=${currentPage}&limit=${limit}`);
-        setMessages(response.data.messages);
+  const fetchMessages = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get(`${MESSAGE_ROUTES.GET_ALL}?page=${currentPage}&limit=${limit}`);
+      setMessages(response.data.messages);
 
-        // Calculate stats
-        const totalMessages = response.data.stats.totalMessages;
-        const messagesWithViews = response.data.stats.viewedMessages
-        const messagesWithReactions = response.data.stats.reactionRate
-        const totalReactions = response.data.stats.totalReactions
-        console.log('messages data',messages)
-        setStats({
-          totalMessages,
-          totalReactions,
-          viewRate: messagesWithViews,
-          reactionRate:messagesWithReactions,
-        });
+      const {
+        totalMessages,
+        totalReactions,
+        viewRate,
+        reactionRate,
+        viewedMessages,
+      } = response.data.stats;
 
-      } catch (error) {
-        console.error('Error fetching messages:', error);
-        toast.error('Failed to load your messages. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchMessages();
-  }, [currentPage,messageToDelete]);
+      setStats({
+        totalMessages,
+        totalReactions,
+        viewRate: parseFloat(viewRate),           // convert "85.23%" => 85.23
+        reactionRate: parseFloat(reactionRate),   // same here
+      });
+
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      toast.error('Failed to load your messages. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchMessages();
+}, [currentPage, messageToDelete]);
 
   // handle page change
   const handlepagechange = (page:number)=>{
@@ -77,13 +79,14 @@ const Dashboard: React.FC = () => {
   // Confirm message deletion
   const confirmDeleteMessage = async () => {
     if (!messageToDelete) return;
-    
+  
     try {
-      await axios.delete(MESSAGE_ROUTES.DELETE(messageToDelete));
-      
-      // Update messages state
-      setMessages(prevMessages => prevMessages.filter(msg => msg.id !== messageToDelete));
-      
+      await api.delete(MESSAGE_ROUTES.DELETE(messageToDelete)); // <- ✅ Use your configured `api`
+  
+      setMessages(prevMessages =>
+        prevMessages.filter(msg => msg.id !== messageToDelete)
+      );
+  
       toast.success('Message deleted successfully.');
     } catch (error) {
       console.error('Error deleting message:', error);
@@ -93,7 +96,7 @@ const Dashboard: React.FC = () => {
       setDeleteModalOpen(false);
     }
   };
-  
+
   // Handle viewing a reaction
   const handleViewReaction = (reactionId: string) => {
      navigate(`/message/${reactionId}`);
