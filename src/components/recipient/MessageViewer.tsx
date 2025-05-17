@@ -229,6 +229,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           onPermissionDenied={handlePermissionDenied}
           autoStart={true}
           onCountdownComplete={handleCountdownComplete}
+          hidePreviewAfterCountdown={true}
         />
       )}
       {countdownComplete && renderMessageContent()}
