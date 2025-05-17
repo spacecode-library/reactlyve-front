@@ -34,13 +34,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const [isSendingReply, setIsSendingReply] = useState<boolean>(false);
   const [replyError, setReplyError] = useState<string | null>(null);
   const navigate = useNavigate();
-
-  console.log('🔍 Incoming message object:', message);
-  console.log('🔍 Incoming message object:', normalizedMessage);
-  console.log('📸 mediaType:', normalizedMessage.mediaType);
-  console.log('🖼️ imageUrl:', normalizedMessage.imageUrl);
-
-
   const formattedDate = message.createdAt
     ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
     : '';
