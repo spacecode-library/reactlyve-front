@@ -78,9 +78,9 @@ export const messagesApi = {
 
 // ------------------ REACTIONS API ------------------
 export const reactionsApi = {
-  init: (messageId: string, sessionId: string) => 
-    api.post(`/reactions/init/${messageId}`, { sessionId }),
-
+  init: (messageId: string, sessionId: string) => {
+    return api.post(`/reactions/init/${messageId}`, { sessionId }),
+    },
   uploadVideoToReaction: (reactionId: string, video: Blob) => {
     const formData = new FormData();
     formData.append('video', video, 'reaction.webm');
