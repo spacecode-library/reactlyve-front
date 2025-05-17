@@ -105,7 +105,7 @@ const View: React.FC = () => {
   // Handle text reply
   const handleSendTextReply = async (messageId: string, text: string): Promise<void> => {
     try {
-      await api.post(`/replies/${messageId}`, { text });
+      await api.post(`/reactions/${reactionId}/reply`, { text });
       toast.success('Your reply has been sent!');
     } catch (error) {
       console.error('Error uploading reply:', error);
