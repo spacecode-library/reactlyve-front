@@ -97,15 +97,8 @@ const View: React.FC = () => {
   // 💬 Handle text reply
   const handleSendTextReply = async (messageId: string, text: string): Promise<void> => {
     try {
-      // Wait up to ~3 seconds for lastRecordedReactionId to be available
-      let retries = 0;
-      while (!lastRecordedReactionId.current && retries < 10) {
-        await new Promise((res) => setTimeout(res, 300));
-        retries++;
-      }
-  
       if (!lastRecordedReactionId.current) {
-        toast.error('Reaction not fully saved yet. Please wait a moment and try again.');
+        toast.error('Reaction not initialized yet. Please wait a moment.');
         return;
       }
   
@@ -117,6 +110,7 @@ const View: React.FC = () => {
       throw error;
     }
   };
+
 
   // ⏭️ Skip reaction
   const handleSkipReaction = async () => {
@@ -196,6 +190,9 @@ const View: React.FC = () => {
           onSkipReaction={handleSkipReaction}
           onSubmitPasscode={handleSubmitPasscode}
           onSendTextReply={handleSendTextReply}
+          onInitReactionId={(id) => {
+            lastRecordedReactionId.current = id; // ✅ now we have it immediately
+          }}
         />
       </div>
     );
