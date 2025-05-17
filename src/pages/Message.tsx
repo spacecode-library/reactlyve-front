@@ -99,9 +99,7 @@ const Message: React.FC = () => {
   }
 
   const { formattedDate, timeAgo } = formatDate(message.createdAt);
-
   const hasReactions = message.reactions && message.reactions.length > 0;
-  const hasReplies = message.replies && message.replies.length > 0;
 
   return (
     <MainLayout>
@@ -116,7 +114,7 @@ const Message: React.FC = () => {
               </p>
             </div>
 
-            {/* Content */}
+            {/* Message content */}
             <div className="mb-6">
               <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Message Content</h2>
               <div className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
@@ -131,7 +129,6 @@ const Message: React.FC = () => {
                 <img src={message.imageUrl} alt="Message" className="w-full max-w-lg rounded object-cover" />
               </div>
             )}
-
             {message.mediatype === 'video' && message.videoUrl && (
               <div className="mb-6">
                 <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Video</h2>
@@ -146,17 +143,16 @@ const Message: React.FC = () => {
                   </button>
                   {message.duration && (
                     <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-                      Duration: {Math.floor(message.duration / 60)}:
-                      {(message.duration % 60).toString().padStart(2, '0')}
+                      Duration: {Math.floor(message.duration / 60)}:{(message.duration % 60).toString().padStart(2, '0')}
                     </p>
                   )}
                 </div>
               </div>
             )}
 
-            {/* Shareable Link & Passcode */}
+            {/* Shareable link and passcode */}
             <div className="mb-6 grid gap-4 md:grid-cols-2">
-              {message.shareableLink && hasReactions && (
+              {message.shareableLink && (
                 <div>
                   <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Shareable Link</h2>
                   <div className="flex items-center gap-2 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
@@ -194,39 +190,43 @@ const Message: React.FC = () => {
               )}
             </div>
 
-            {/* Reactions */}
-            {hasReactions && (
+            {/* Reactions and Replies */}
+            {hasReactions ? (
               <div className="mb-6">
                 <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Reactions</h2>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {message.reactions.map(reaction => (
+                <div className="grid gap-6 sm:grid-cols-2">
+                  {message.reactions.map((reaction: Reaction & { replies?: { id: string; text: string; createdAt: string }[] }) => (
                     <div key={reaction.id} className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
                       <p className="mb-2 text-sm text-neutral-700 dark:text-neutral-300">
                         Received on {new Date(reaction.createdAt).toLocaleString()}
                       </p>
-                      <video
-                        src={reaction.videoUrl}
-                        controls
-                        poster={reaction.thumbnailUrl || undefined}
-                        className="w-full rounded"
-                      />
+                      <video src={reaction.videoUrl} controls poster={reaction.thumbnailUrl || undefined} className="w-full rounded" />
                       <button
-                        onClick={() =>
-                          downloadVideo(reaction.videoUrl, `reaction-${reaction.id}.mp4`)
-                        }
+                        onClick={() => downloadVideo(reaction.videoUrl, `reaction-${reaction.id}.mp4`)}
                         className="mt-3 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                       >
                         <DownloadIcon size={16} />
                         Download Reaction
                       </button>
+
+                      {/* Replies */}
+                      {reaction.replies && reaction.replies.length > 0 && (
+                        <div className="mt-4 border-t pt-3 border-neutral-300 dark:border-neutral-600">
+                          <h4 className="mb-1 text-sm font-semibold text-neutral-900 dark:text-white">Replies:</h4>
+                          <ul className="space-y-1 text-sm text-neutral-700 dark:text-neutral-300">
+                            {reaction.replies.map(reply => (
+                              <li key={reply.id} className="border-b pb-1 border-neutral-200 dark:border-neutral-600">
+                                “{reply.text}” <span className="text-xs text-neutral-500">({new Date(reply.createdAt).toLocaleString()})</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
               </div>
-            )}
-
-            {/* Replies Fallback */}
-            {!hasReactions && (
+            ) : (
               <div className="mb-6 rounded-md bg-neutral-100 p-5 text-center dark:bg-neutral-700">
                 <p className="mb-3 text-neutral-700 dark:text-neutral-300">
                   Share this link with your friend to capture their reaction!
