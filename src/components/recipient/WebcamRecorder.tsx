@@ -194,7 +194,8 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   return (
     <div className={classNames('flex flex-col items-center', className || '')}>
       <h2 className="text-xl font-semibold mb-2">Record Your Reaction</h2>
-      {showPreview ? (
+  
+      {(showCountdown || showPreview) ? (
         <video
           ref={videoRef}
           autoPlay
@@ -205,19 +206,31 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       ) : (
         <div className="w-full max-w-md mb-4 h-[240px] bg-neutral-100 dark:bg-neutral-800 rounded" />
       )}
+  
       {retryMessage && <p className="text-sm text-gray-500">{retryMessage}</p>}
+  
       {showCountdown && (
         <div className="text-4xl font-bold text-blue-500 mt-2">
           {countdownValue}
         </div>
       )}
+  
       {isRecording && (
         <p className="text-red-500 mt-2 text-sm font-medium">
           Recording... {recordingCountdown !== null ? `${recordingCountdown}s left` : ''}
         </p>
       )}
+  
       {recordingCompleted && (
         <p className="text-green-600 mt-2">Recording complete!</p>
+      )}
+      {!showPreview && isRecording && (
+        <button
+          className="text-sm text-primary-600 underline mt-2"
+          onClick={() => setShowPreview(true)}
+        >
+          Show Preview
+        </button>
       )}
     </div>
   );
