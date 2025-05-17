@@ -24,11 +24,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   onSendTextReply,
 }) => {
   
-  console.log('🔍 Incoming message object:', message);
-  console.log('🔍 Incoming message object:', normalizedMessage);
-  console.log('📸 mediaType:', normalizedMessage.mediaType);
-  console.log('🖼️ imageUrl:', normalizedMessage.imageUrl);
-
   const [showRecorder, setShowRecorder] = useState<boolean>(!normalizedMessage.videoUrl);
   const [isReactionRecorded, setIsReactionRecorded] = useState<boolean>(!!normalizedMessage.videoUrl);
   const [permissionError, setPermissionError] = useState<string | null>(null);
@@ -39,6 +34,12 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const [replyError, setReplyError] = useState<string | null>(null);
   const navigate = useNavigate();
   const normalizedMessage = normalizeMessage(message);
+
+  console.log('🔍 Incoming message object:', message);
+  console.log('🔍 Incoming message object:', normalizedMessage);
+  console.log('📸 mediaType:', normalizedMessage.mediaType);
+  console.log('🖼️ imageUrl:', normalizedMessage.imageUrl);
+
 
   const formattedDate = message.createdAt
     ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
