@@ -135,7 +135,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         const res = await reactionsApi.init(message.id, sessionId);
         activeReactionId = res.data.reactionId;
         setReactionId(activeReactionId);
-        onInitReactionId?.(activeReactionId as string, text);
+        onInitReactionId?.(activeReactionId);
       }
   
       // ✅ activeReactionId is now guaranteed to be string
