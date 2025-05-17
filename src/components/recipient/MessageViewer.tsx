@@ -5,6 +5,7 @@ import PasscodeEntry from './PasscodeEntry';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { Message } from '../../types/message';
+import { normalizeMessage } from '../../utils/normalizeKeys';
 
 interface MessageViewerProps {
   message: Message;
@@ -24,30 +25,32 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 }) => {
   
   console.log('🔍 Incoming message object:', message);
-  console.log('📸 mediaType:', message.mediaType);
-  console.log('🖼️ imageUrl:', message.imageUrl);
+  console.log('🔍 Incoming message object:', normalizedMessage);
+  console.log('📸 mediaType:', normalizedMessage.mediaType);
+  console.log('🖼️ imageUrl:', normalizedMessage.imageUrl);
 
-  const [showRecorder, setShowRecorder] = useState<boolean>(!message.videoUrl);
-  const [isReactionRecorded, setIsReactionRecorded] = useState<boolean>(!!message.videoUrl);
+  const [showRecorder, setShowRecorder] = useState<boolean>(!normalizedMessage.videoUrl);
+  const [isReactionRecorded, setIsReactionRecorded] = useState<boolean>(!!normalizedMessage.videoUrl);
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [passcodeVerified, setPasscodeVerified] = useState<boolean>(message.passcodeVerified || !message.hasPasscode);
-  const [countdownComplete, setCountdownComplete] = useState<boolean>(!!message.videoUrl);
+  const [countdownComplete, setCountdownComplete] = useState<boolean>(!!normalizedMessage.videoUrl);
   const [replyText, setReplyText] = useState<string>('');
   const [isSendingReply, setIsSendingReply] = useState<boolean>(false);
   const [replyError, setReplyError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const normalizedMessage = normalizeMessage(message);
 
   const formattedDate = message.createdAt
     ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
     : '';
 
   useEffect(() => {
-    if (message.videoUrl) {
+    if (normalizedMessage.videoUrl) {
       setIsReactionRecorded(true);
       setShowRecorder(false);
       setCountdownComplete(true);
     }
-  }, [message.videoUrl]);
+  }, [normalizedMessage.videoUrl]);
 
   const handleReactionComplete = async (blob: Blob) => {
     try {
@@ -139,25 +142,25 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       </div>
 
       {/* Media */}
-      {message.mediaType === 'image' && message.imageUrl && (
+      {normalizedMessage.mediaType === 'image' && normalizedMessage.imageUrl && (
         <div className="mt-4 overflow-hidden rounded-lg">
-          <img src={message.imageUrl} alt="Message attachment" className="w-full object-cover" />
+          <img src={normalizedMessage.imageUrl} alt="Message attachment" className="w-full object-cover" />
         </div>
       )}
-      {message.mediaType === 'video' && message.videoUrl && (
+      {normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl && (
         <div className="mt-4 overflow-hidden rounded-lg">
-          <video src={message.videoUrl} controls className="w-full object-cover" />
+          <video src={normalizedMessage.videoUrl} controls className="w-full object-cover" />
         </div>
       )}
 
       {/* Reaction video preview */}
-      {message.videoUrl && (
+      {normalizedMessage.videoUrl && (
         <div className="mt-6">
           <h3 className="text-lg font-semibold text-neutral-800 dark:text-white mb-2">Reaction</h3>
-          <video controls src={message.videoUrl} className="w-full rounded-lg" />
+          <video controls src={normalizedMessage.videoUrl} className="w-full rounded-lg" />
           <div className="mt-2 text-right">
             <a
-              href={message.videoUrl}
+              href={normalizedMessage.videoUrl}
               download={`reaction-${message.id}.mp4`}
               className="text-primary-600 hover:underline dark:text-primary-400"
             >
@@ -198,7 +201,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           {replyText.length}/500 characters
         </p>
 
-        {isReactionRecorded && !message.videoUrl && (
+        {isReactionRecorded && !normalizedMessage.videoUrl && (
           <div className="mt-6">
             <h3 className="mb-2 text-xl font-semibold text-green-600 dark:text-green-400">
               Thank You!
