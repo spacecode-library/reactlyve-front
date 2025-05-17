@@ -47,7 +47,10 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       reactionsApi
         .init(message.id)
         .then((res) => setReactionId(res.data.reactionId))
-        .catch((err) => console.error('Failed to initialize reaction:', err));
+        .catch((err) => {
+          console.error('Failed to initialize reaction:', err);
+          setPermissionError('Unable to prepare for recording. This message might no longer exist.');
+        });
     }
   }, [message.id, normalizedMessage.videoUrl]);
 
