@@ -6,7 +6,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { Message } from '../../types/message';
 import { normalizeMessage } from '../../utils/normalizeKeys';
-import { reactionsApi, repliesApi } from '../../api/api';
+import { reactionsApi, repliesApi } from '../../services/api';
 
 interface MessageViewerProps {
   message: Message;
