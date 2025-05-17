@@ -43,19 +43,21 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   // Init reaction ID early
   useEffect(() => {
-    reactionsApi.getByMessageId(message.id)
+    reactionsApi
+      .getByMessageId(message.id)
       .then((res) => {
         const allReactions = res.data;
         if (allReactions.length > 0) {
           const latest = allReactions[allReactions.length - 1];
           setReactionId(latest.id);
         } else {
+          // Init if no reaction exists yet
           return reactionsApi.init(message.id).then((res) => {
             setReactionId(res.data.reactionId);
           });
         }
       })
-      .catch((err) => console.error('Failed to load or init reaction:', err));
+      .catch((err) => console.error('❌ Failed to load or init reaction:', err));
   }, [message.id]);
 
   useEffect(() => {
@@ -206,13 +208,20 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
             disabled={isSendingReply}
           />
           <button
-            onClick={handleSendReply}
-            disabled={!replyText.trim() || isSendingReply}
-            className={`btn btn-primary flex items-center space-x-2 ${!replyText.trim() || isSendingReply ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <span>{isSendingReply ? 'Sending...' : 'Send Reply'}</span>
-          </button>
+          onClick={handleSendReply}
+          disabled={!replyText.trim() || isSendingReply || !reactionId}
+          className={`btn btn-primary flex items-center space-x-2 ${
+            (!replyText.trim() || isSendingReply || !reactionId) ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+        >
+          <span>{isSendingReply ? 'Sending...' : 'Send Reply'}</span>
+        </button>
         </div>
+        {!reactionId && (
+          <p className="text-sm text-yellow-600 mt-2">
+            Preparing reply channel... please wait a moment.
+          </p>
+        )}
         {replyError && <p className="text-sm text-red-600 mt-2">{replyError}</p>}
         <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
           {replyText.length}/500 characters
