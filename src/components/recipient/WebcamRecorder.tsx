@@ -63,6 +63,9 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     clearRecording,
   } = useMediaRecorder({ stream, maxDuration });
 
+  const MAX_RETRY_ATTEMPTS = 3;
+  const RETRY_DELAY = 2000;
+  
   useEffect(() => {
     setIsBrowserSupported(supportsMediaRecording());
   }, []);
@@ -97,12 +100,12 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   }, [isBrowserSupported, webcamInitialized, autoStart]);
 
   useEffect(() => {
-    if (recordingStatus === 'stopped' && recordedBlob && !recordingCompleted) {
+    if (recordingStatus === 'stopped' && recordedBlob && !recordingCompleted && !isRecording) {
       setRecordingCompleted(true);
       setIsRecording(false);
       onRecordingComplete(recordedBlob);
     }
-  }, [recordingStatus, recordedBlob, recordingCompleted]);
+  }, [recordingStatus, recordedBlob, recordingCompleted, isRecording]);
 
 
   // Countdown logic
@@ -135,7 +138,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       }, 1000);
     }
     return () => clearInterval(countdownInterval);
-  }, [showCountdown, countdownValue]);
+  }, [showCountdown, countdownValue, stream, maxDuration, onCountdownComplete, onPermissionDenied, hidePreviewAfterCountdown]);
 
   useEffect(() => {
     if (showCountdown) setCountdownValue(countdownDuration);
@@ -174,7 +177,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   if (!isBrowserSupported) {
     return (
       <div className="text-center text-red-600">
-        <p>Your browser does not support webcam recording.</p>
+        <p>Your browser does not support webcam recording. Please try on another device or browser</p>
         <button onClick={onCancel} className="btn btn-outline mt-2">Go Back</button>
       </div>
     );
