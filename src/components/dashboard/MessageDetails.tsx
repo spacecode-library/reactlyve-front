@@ -3,7 +3,7 @@ import { Message } from '../../types/message';
 import ReactionViewer from './ReactionViewer';
 import { formatDate } from '../../utils/formatters';
 import Button from '../common/Button';
-import { normalizeMessage } from '../utils/normalizeKeys';
+import { normalizeMessage } from '../../utils/normalizeKeys';
 
 interface MessageDetailsProps {
   message: Message;
