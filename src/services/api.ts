@@ -78,6 +78,21 @@ export const messagesApi = {
 
 // ------------------ REACTIONS API ------------------
 export const reactionsApi = {
+    init: (messageId: string) => {
+      return api.post(`/reactions/init/${messageId}`);
+    },
+  
+    uploadVideoToReaction: (reactionId: string, video: Blob) => {
+      const formData = new FormData();
+      formData.append('video', video, 'reaction.webm');
+  
+      return api.put(`/reactions/${reactionId}/video`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    },
+  
   upload: (messageId: string, video: Blob) => {
     const formData = new FormData();
     formData.append('video', video, 'reaction.webm');
@@ -88,6 +103,7 @@ export const reactionsApi = {
       },
     });
   },
+
   getByMessageId: (messageId: string) => api.get(`/reactions/message/${messageId}`),
   getById: (id: string) => api.get(`/reactions/${id}`),
   delete: (id: string) => api.delete(`/messages/${id}/delete`),
