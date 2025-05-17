@@ -127,14 +127,14 @@ export const reactionsApi = {
 
 // Replies API
 export const repliesApi = {
-  sendText: (messageId: string, text: string) => {
+  sendText: (reactionId: string, text: string) => {
     const publicApi = axios.create({
       baseURL: API_BASE_URL,
       headers: {
         'Content-Type': 'application/json',
       },
     });
-    return publicApi.post(REPLY_ROUTES.UPLOAD(messageId), { text });
+    return publicApi.post(REPLY_ROUTES.UPLOAD(reactionId), { text });
   },
 };
 
