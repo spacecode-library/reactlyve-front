@@ -130,7 +130,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     try {
       let activeReactionId = reactionId;
   
-      // ✅ Ensure reaction exists before sending reply
+      // Ensure a reaction exists
       if (!activeReactionId) {
         const res = await reactionsApi.init(message.id, sessionId);
         activeReactionId = res.data.reactionId;
@@ -138,7 +138,8 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         onInitReactionId?.(activeReactionId);
       }
   
-      await repliesApi.sendText(activeReactionId, text);
+      // ✅ activeReactionId is now guaranteed to be string
+      await repliesApi.sendText(activeReactionId as string, text);
       setReplyText('');
     } catch (error) {
       console.error('Reply error:', error);
@@ -148,7 +149,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     }
   };
   
-
   if (!passcodeVerified && message.hasPasscode) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
