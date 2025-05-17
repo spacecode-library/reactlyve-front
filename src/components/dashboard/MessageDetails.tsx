@@ -28,11 +28,11 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
       </div>
 
       {/* Media Preview */}
-      {normalizeMessage.imageUrl && normalizeMessage.mediaType === 'image' && (
-        <img src={normalizeMessage.imageUrl} alt="Message media" className="rounded-md mb-4 w-full" />
+      {normalizedMessage.imageUrl && nnormalizedMessage.mediaType === 'image' && (
+        <img src={normalizedMessage.imageUrl} alt="Message media" className="rounded-md mb-4 w-full" />
       )}
-      {normalizeMessage.imageUrl && normalizeMessage.mediaType === 'video' && (
-        <video src={normalizeMessage.imageUrl} controls className="rounded-md mb-4 w-full" />
+      {normalizedMessage.imageUrl && normalizedMessage.mediaType === 'video' && (
+        <video src={normalizedMessage.imageUrl} controls className="rounded-md mb-4 w-full" />
       )}
 
       {/* Shareable Link */}
@@ -40,14 +40,14 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
         <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-2">Shareable Link</p>
         <div className="flex items-center space-x-2">
           <input
-            value={normalizeMessage.shareableLink}
+            value={normalizedMessage.shareableLink}
             readOnly
             className="flex-1 rounded border border-neutral-300 dark:border-neutral-600 p-2 text-sm dark:bg-neutral-800 dark:text-white"
           />
           <Button
             size="sm"
             onClick={() => {
-              navigator.clipboard.writeText(normalizeMessage.shareableLink);
+              navigator.clipboard.writeText(normalizedMessage.shareableLink);
               alert('Link copied!');
             }}
           >
