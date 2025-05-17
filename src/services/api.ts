@@ -78,21 +78,20 @@ export const messagesApi = {
 
 // ------------------ REACTIONS API ------------------
 export const reactionsApi = {
-    init: (messageId: string, sessionId: string) =>
-      return api.post(`/reactions/init/${messageId}`, { sessionId });
-    },
-  
-    uploadVideoToReaction: (reactionId: string, video: Blob) => {
-      const formData = new FormData();
-      formData.append('video', video, 'reaction.webm');
-  
-      return api.put(`/reactions/${reactionId}/video`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-    },
-  
+  init: (messageId: string, sessionId: string) => 
+    api.post(`/reactions/init/${messageId}`, { sessionId }),
+
+  uploadVideoToReaction: (reactionId: string, video: Blob) => {
+    const formData = new FormData();
+    formData.append('video', video, 'reaction.webm');
+
+    return api.put(`/reactions/${reactionId}/video`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
   upload: (messageId: string, video: Blob) => {
     const formData = new FormData();
     formData.append('video', video, 'reaction.webm');
