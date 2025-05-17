@@ -6,6 +6,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { Message } from '../../types/message';
 import { normalizeMessage } from '../../utils/normalizeKeys';
+import { reactionsApi, repliesApi } from '../../api/api';
 
 interface MessageViewerProps {
   message: Message;
@@ -19,12 +20,13 @@ interface MessageViewerProps {
 const MessageViewer: React.FC<MessageViewerProps> = ({
   message,
   onRecordReaction,
+  onRecordReply,
   onSkipReaction,
   onSubmitPasscode,
   onSendTextReply,
 }) => {
- 
   const normalizedMessage = normalizeMessage(message);
+  const [reactionId, setReactionId] = useState<string | null>(null);
   const [showRecorder, setShowRecorder] = useState<boolean>(!normalizedMessage.videoUrl);
   const [isReactionRecorded, setIsReactionRecorded] = useState<boolean>(!!normalizedMessage.videoUrl);
   const [permissionError, setPermissionError] = useState<string | null>(null);
@@ -34,9 +36,20 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const [isSendingReply, setIsSendingReply] = useState<boolean>(false);
   const [replyError, setReplyError] = useState<string | null>(null);
   const navigate = useNavigate();
+
   const formattedDate = message.createdAt
     ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
     : '';
+
+  // Init reaction ID early
+  useEffect(() => {
+    if (!normalizedMessage.videoUrl) {
+      reactionsApi
+        .init(message.id)
+        .then((res) => setReactionId(res.data.reactionId))
+        .catch((err) => console.error('Failed to initialize reaction:', err));
+    }
+  }, [message.id, normalizedMessage.videoUrl]);
 
   useEffect(() => {
     if (normalizedMessage.videoUrl) {
@@ -48,11 +61,13 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   const handleReactionComplete = async (blob: Blob) => {
     try {
-      await onRecordReaction(message.id, blob);
+      if (!reactionId) throw new Error('Missing reaction ID');
+      await reactionsApi.uploadVideoToReaction(reactionId, blob);
+      await onRecordReaction(message.id, blob); // still call external handler
       setIsReactionRecorded(true);
       setShowRecorder(false);
     } catch (error) {
-      console.error('Error saving reaction:', error);
+      console.error('Reaction save error:', error);
       setPermissionError('Failed to save reaction. Please try again.');
     }
   };
@@ -74,13 +89,14 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   };
 
   const handleSendReply = async () => {
-    if (!replyText.trim() || !onSendTextReply) return;
+    if (!replyText.trim() || !reactionId || !onSendTextReply) return;
     setIsSendingReply(true);
     setReplyError(null);
     try {
-      await onSendTextReply(message.id, replyText.trim());
+      await onSendTextReply(reactionId, replyText.trim());
       setReplyText('');
     } catch (error) {
+      console.error('Reply error:', error);
       setReplyError('Failed to send reply. Please check your connection and try again.');
     } finally {
       setIsSendingReply(false);
@@ -147,7 +163,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         </div>
       )}
 
-      {/* Reaction video preview */}
+      {/* Reaction Preview */}
       {normalizedMessage.videoUrl && (
         <div className="mt-6">
           <h3 className="text-lg font-semibold text-neutral-800 dark:text-white mb-2">Reaction</h3>
@@ -212,11 +228,10 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
               Done
             </button>
           </div>
-        )}        
+        )}
       </div>
     </div>
   );
-  
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900">
