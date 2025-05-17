@@ -1,24 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { MESSAGE_ERRORS } from '../components/constants/errorMessages';
 import PasscodeEntry from '../components/recipient/PasscodeEntry';
 import MessageViewer from '../components/recipient/MessageViewer';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import api from '../services/api';
+import api, { reactionsApi, repliesApi } from '../services/api';
 import { Message as MessageData } from '../types/message';
 
 const View: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+
   const [message, setMessage] = useState<MessageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [needsPasscode, setNeedsPasscode] = useState(false);
   const [passcodeVerified, setPasscodeVerified] = useState(false);
 
-  // Fetch message data
+  // 🔐 Store last recorded reactionId in ref (does not reset across re-renders)
+  const lastRecordedReactionId = useRef<string | null>(null);
+
+  // 🔄 Fetch message data
   useEffect(() => {
     const fetchMessage = async () => {
       if (!id) {
@@ -53,23 +56,21 @@ const View: React.FC = () => {
     fetchMessage();
   }, [id]);
 
-  // Handle passcode submission
+  // ✅ Handle passcode entry
   const handleSubmitPasscode = async (passcode: string): Promise<boolean> => {
     if (!id || !message) return false;
 
     try {
       const response = await api.post(`/messages/${id}/verify-passcode`, { passcode });
 
-      const responseview = await api.get(`/messages/view/${id}`);
-      const responsebyid = await api.get(`/messages/${responseview.data.id}`);
+      const responseView = await api.get(`/messages/view/${id}`);
+      const responseById = await api.get(`/messages/${responseView.data.id}`);
 
       if (response.data && (response.data.verified || response.status === 200)) {
         setPasscodeVerified(true);
-
-        if (responsebyid.data) {
-          setMessage(responsebyid.data);
+        if (responseById.data) {
+          setMessage(responseById.data);
         }
-
         return true;
       }
 
@@ -80,13 +81,11 @@ const View: React.FC = () => {
     }
   };
 
-  // Store this at top level
-  let lastRecordedReactionId: string | null = null;
-  
+  // 📹 Handle video reaction
   const handleRecordReaction = async (messageId: string, videoBlob: Blob): Promise<void> => {
     try {
       const res = await reactionsApi.upload(messageId, videoBlob);
-      lastRecordedReactionId = res.data.reactionId;
+      lastRecordedReactionId.current = res.data.reactionId;
       toast.success('Your reaction has been recorded!');
     } catch (error) {
       console.error('Error uploading reaction:', error);
@@ -94,14 +93,15 @@ const View: React.FC = () => {
       throw error;
     }
   };
-  
+
+  // 💬 Handle text reply
   const handleSendTextReply = async (messageId: string, text: string): Promise<void> => {
     try {
-      if (!lastRecordedReactionId) {
+      if (!lastRecordedReactionId.current) {
         toast.error('Reaction must be recorded before replying.');
         return;
       }
-      await repliesApi.sendText(lastRecordedReactionId, text);
+      await repliesApi.sendText(lastRecordedReactionId.current, text);
       toast.success('Your reply has been sent!');
     } catch (error) {
       console.error('Error uploading reply:', error);
@@ -110,10 +110,9 @@ const View: React.FC = () => {
     }
   };
 
-  // Handle skip reaction
+  // ⏭️ Skip reaction
   const handleSkipReaction = async () => {
     if (!id || !message) return;
-
     try {
       await api.post(`/reactions/${id}/skip`);
       toast.success('You have chosen to skip recording a reaction.');
@@ -123,21 +122,19 @@ const View: React.FC = () => {
     }
   };
 
-  // Loading state
+  // ⏳ Loading UI
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">
         <div className="text-center">
           <LoadingSpinner size="lg" />
-          <p className="mt-4 text-neutral-600 dark:text-neutral-300">
-            Loading message...
-          </p>
+          <p className="mt-4 text-neutral-600 dark:text-neutral-300">Loading message...</p>
         </div>
       </div>
     );
   }
 
-  // Error state
+  // ❌ Error UI
   if (error) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
@@ -150,11 +147,7 @@ const View: React.FC = () => {
             stroke="currentColor"
             strokeWidth={2}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <h2 className="mt-2 text-2xl font-bold text-neutral-900 dark:text-white">
             {error === MESSAGE_ERRORS.NOT_FOUND
@@ -167,7 +160,7 @@ const View: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="mt-4 inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:bg-primary-700 dark:hover:bg-primary-600"
+            className="mt-4 inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 dark:bg-primary-700"
           >
             Return Home
           </button>
@@ -176,7 +169,7 @@ const View: React.FC = () => {
     );
   }
 
-  // Passcode entry state
+  // 🔐 Show passcode entry if needed
   if (needsPasscode && !passcodeVerified) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
@@ -185,7 +178,7 @@ const View: React.FC = () => {
     );
   }
 
-  // Message viewer state
+  // ✅ Show message content
   if (message && (passcodeVerified || !needsPasscode)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900">
@@ -200,7 +193,7 @@ const View: React.FC = () => {
     );
   }
 
-  // Fallback
+  // 🚨 Fallback error
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">
       <div className="text-center">
@@ -210,7 +203,7 @@ const View: React.FC = () => {
         <button
           type="button"
           onClick={() => navigate('/')}
-          className="mt-4 inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:bg-primary-700 dark:hover:bg-primary-600"
+          className="mt-4 inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 dark:bg-primary-700"
         >
           Return Home
         </button>
