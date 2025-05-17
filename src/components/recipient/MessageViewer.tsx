@@ -45,22 +45,23 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   // Init reaction ID early
   useEffect(() => {
-    reactionsApi
-      .getByMessageId(message.id)
-      .then((res) => {
+    reactionsApi.getByMessageId(message.id)
+      .then(async (res) => {
         const allReactions = res.data;
-        if (allReactions.length > 0) {
-          const latest = allReactions[allReactions.length - 1];
-          setReactionId(latest.id);
-          onInitReactionId?.(latest.id); // ✅ pass it up
+  
+        // ✅ Look for an unfinished reaction (no videoUrl)
+        const unfinished = allReactions.find((r: any) => !r.videoUrl);
+  
+        if (unfinished) {
+          setReactionId(unfinished.id);
+          onInitReactionId?.(unfinished.id);
         } else {
-          return reactionsApi.init(message.id).then((res) => {
-            setReactionId(res.data.reactionId);
-            onInitReactionId?.(res.data.reactionId); // ✅ pass it up
-          });
+          const res = await reactionsApi.init(message.id);
+          setReactionId(res.data.reactionId);
+          onInitReactionId?.(res.data.reactionId);
         }
       })
-      .catch((err) => console.error('❌ Failed to load or init reaction:', err));
+      .catch((err) => console.error('❌ Failed to load/init reaction:', err));
   }, [message.id]);
 
   useEffect(() => {
