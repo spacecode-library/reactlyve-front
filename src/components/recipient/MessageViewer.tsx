@@ -68,7 +68,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       setShowRecorder(false);
     } catch (error) {
       console.error('Reaction save error:', error);
-      setPermissionError('Failed to save reaction. Please try again.');
+      setPermissionError('An error occurred while saving your reaction. Please check your connection and try again.');
     }
   };
 
