@@ -44,44 +44,32 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
     : '';
 
-    // Always reset session when the component mounts
-  useEffect(() => {
-      localStorage.removeItem(`reaction-session-${message.id}`);
-    }, [message.id]);
-  
   const [sessionId] = useState(() => {
-    // Reuse if already stored for this message in localStorage
     const key = `reaction-session-${message.id}`;
     const stored = localStorage.getItem(key);
     if (stored) return stored;
-  
-    // Otherwise generate and save
+
     const newSession = uuidv4();
     localStorage.setItem(key, newSession);
     return newSession;
   });
 
-  console.log("Sending sessionId:", sessionId, "for message:", message.id);
-  
-  // Init reaction ID early
+  console.log('Session ID:', sessionId, 'for message:', message.id);
+
+  // Always create a new reaction on mount
   useEffect(() => {
-    reactionsApi
-      .getByMessageId(message.id)
-      .then((res) => {
-        const allReactions = res.data;
-        if (allReactions.length > 0) {
-          const latest = allReactions[allReactions.length - 1];
-          setReactionId(latest.id);
-          onInitReactionId?.(latest.id); // ✅ callback
-        } else {
-          return reactionsApi.init(message.id, sessionId).then((res) => {
-            setReactionId(res.data.reactionId);
-            onInitReactionId?.(res.data.reactionId); // ✅ callback
-          });
-        }
-      })
-      .catch((err) => console.error('❌ Failed to load or init reaction:', err));
-  }, [message.id]);
+    const createReaction = async () => {
+      try {
+        const res = await reactionsApi.init(message.id, sessionId);
+        setReactionId(res.data.reactionId);
+        onInitReactionId?.(res.data.reactionId);
+      } catch (error) {
+        console.error('❌ Failed to create reaction:', error);
+        setPermissionError('Unable to create a reaction session. Please refresh and try again.');
+      }
+    };
+    createReaction();
+  }, [message.id, sessionId]);
 
   useEffect(() => {
     if (normalizedMessage.videoUrl) {
@@ -95,12 +83,12 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     try {
       if (!reactionId) throw new Error('Missing reaction ID');
       await reactionsApi.uploadVideoToReaction(reactionId, blob);
-      await onRecordReaction(message.id, blob); // still call external handler
+      await onRecordReaction(message.id, blob);
       setIsReactionRecorded(true);
       setShowRecorder(false);
     } catch (error) {
       console.error('Reaction save error:', error);
-      setPermissionError('An error occurred while saving your reaction. Please check your connection and try again.');
+      setPermissionError('An error occurred while saving your reaction. Please try again.');
     }
   };
 
@@ -122,34 +110,22 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   const handleSendReply = async () => {
     const text = replyText.trim();
-    if (!text) return;
-  
+    if (!text || !reactionId) return;
+
     setIsSendingReply(true);
     setReplyError(null);
-  
+
     try {
-      let activeReactionId = reactionId;
-  
-      // Ensure a reaction exists
-      if (!activeReactionId) {
-        const res = await reactionsApi.init(message.id, sessionId);
-        activeReactionId = res.data.reactionId;
-        setReactionId(activeReactionId);
-        onInitReactionId?.(activeReactionId as string);
-      }
-  
-      // ✅ activeReactionId is now guaranteed to be string
-      if (!activeReactionId) throw new Error("Missing reaction ID after init");
-        await repliesApi.sendText(activeReactionId, text);
+      await repliesApi.sendText(reactionId, text);
       setReplyText('');
     } catch (error) {
       console.error('Reply error:', error);
-      setReplyError('Failed to send reply. Please check your connection and try again.');
+      setReplyError('Failed to send reply. Please try again.');
     } finally {
       setIsSendingReply(false);
     }
   };
-  
+
   if (!passcodeVerified && message.hasPasscode) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
@@ -210,24 +186,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         </div>
       )}
 
-      {/* Reaction Preview */}
-      {normalizedMessage.videoUrl && (
-        <div className="mt-6">
-          <h3 className="text-lg font-semibold text-neutral-800 dark:text-white mb-2">Reaction</h3>
-          <video controls src={normalizedMessage.videoUrl} className="w-full rounded-lg" />
-          <div className="mt-2 text-right">
-            <a
-              href={normalizedMessage.videoUrl}
-              download={`reaction-${message.id}.mp4`}
-              className="text-primary-600 hover:underline dark:text-primary-400"
-            >
-              Download Reaction
-            </a>
-          </div>
-        </div>
-      )}
-
-      {/* Reply */}
+      {/* Reply Section */}
       <div className="mt-6">
         <h3 className="mb-2 text-xl font-semibold text-neutral-900 dark:text-white">
           Reply to {message.sender?.name || 'the sender'}
@@ -240,49 +199,23 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
             placeholder={`Let ${message.sender?.name || 'them'} know what you think!`}
-            className="flex-1 p-3 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 placeholder-neutral-500 dark:placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+            className="flex-1 p-3 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
             rows={3}
             maxLength={500}
             disabled={isSendingReply}
           />
           <button
-          onClick={handleSendReply}
-          disabled={!replyText.trim() || isSendingReply || !reactionId}
-          className={`btn btn-primary flex items-center space-x-2 ${
-            (!replyText.trim() || isSendingReply || !reactionId) ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-        >
-          <span>{isSendingReply ? 'Sending...' : 'Send Reply'}</span>
-        </button>
+            onClick={handleSendReply}
+            disabled={!replyText.trim() || isSendingReply || !reactionId}
+            className={`btn btn-primary ${(!replyText.trim() || isSendingReply || !reactionId) ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {isSendingReply ? 'Sending...' : 'Send Reply'}
+          </button>
         </div>
-        {!reactionId && (
-          <p className="text-sm text-yellow-600 mt-2">
-            Preparing reply channel... please wait a moment.
-          </p>
-        )}
         {replyError && <p className="text-sm text-red-600 mt-2">{replyError}</p>}
         <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
           {replyText.length}/500 characters
         </p>
-
-        {isReactionRecorded && !normalizedMessage.videoUrl && (
-          <div className="mt-6">
-            <h3 className="mb-2 text-xl font-semibold text-green-600 dark:text-green-400">
-              Thank You!
-            </h3>
-            <p className="mb-4 text-neutral-600 dark:text-neutral-300">
-              Your reaction video has been successfully uploaded.
-            </p>
-            <button
-              onClick={() => {
-                navigate('/');
-              }}
-              className="btn btn-outline"
-            >
-              Done
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
