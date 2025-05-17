@@ -7,6 +7,7 @@ import api from '@/services/api';
 import { MESSAGE_ROUTES } from '@/components/constants/apiRoutes';
 import type { MessageWithReactions } from '../types/message';
 import type { Reaction } from '../types/reaction';
+import { normalizeMessage } from '../utils/normalizeKeys';
 
 const Message: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,7 +34,9 @@ const Message: React.FC = () => {
 
     if (id) fetchMessageDetails();
   }, [id]);
-
+  
+  const normalizedMessage = normalizeMessage(message);
+  
   const copyToClipboard = (text: string | undefined, type: 'passcode' | 'link') => {
     if (!text) return;
     navigator.clipboard.writeText(text);
@@ -123,19 +126,19 @@ const Message: React.FC = () => {
             </div>
 
             {/* Media */}
-            {message.mediaType === 'image' && message.imageUrl && (
+            {normalizedMessage.mediaType === 'image' && normalizedMessage.imageUrl && (
               <div className="mb-6">
                 <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Image</h2>
-                <img src={message.imageUrl} alt="Message" className="w-full max-w-lg rounded object-cover" />
+                <img src={normalizedMessage.imageUrl} alt="Message" className="w-full max-w-lg rounded object-cover" />
               </div>
             )}
-            {message.mediaType === 'video' && message.videoUrl && (
+            {normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl && (
               <div className="mb-6">
                 <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Video</h2>
-                <video src={message.videoUrl} controls poster={message.thumbnailUrl} className="w-full max-w-lg" />
+                <video src={normalizedMessage.videoUrl} controls poster={normalizedMessage.thumbnailUrl} className="w-full max-w-lg" />
                 <div className="mt-3">
                   <button
-                    onClick={() => downloadVideo(message.videoUrl!, 'message-video.mp4')}
+                    onClick={() => downloadVideo(normalizedMessage.videoUrl!, 'message-video.mp4')}
                     className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                   >
                     <DownloadIcon size={16} />
@@ -152,15 +155,15 @@ const Message: React.FC = () => {
 
             {/* Shareable link and passcode */}
             <div className="mb-6 grid gap-4 md:grid-cols-2">
-              {message.shareableLink && (
+              {normalizedMessage.shareableLink && (
                 <div>
                   <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Shareable Link</h2>
                   <div className="flex items-center gap-2 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
                     <p className="flex-1 truncate text-sm text-neutral-700 dark:text-neutral-300">
-                      {message.shareableLink}
+                      {normalizedMessage.shareableLink}
                     </p>
                     <button
-                      onClick={() => copyToClipboard(message.shareableLink, 'link')}
+                      onClick={() => copyToClipboard(normalizedMessage.shareableLink, 'link')}
                       className="rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700"
                     >
                       {copied.link ? <ClipboardIcon size={16} /> : <CopyIcon size={16} />}
@@ -231,9 +234,9 @@ const Message: React.FC = () => {
                 <p className="mb-3 text-neutral-700 dark:text-neutral-300">
                   Share this link with your friend to capture their reaction!
                 </p>
-                {message.shareableLink && (
+                {normalizedMessage.shareableLink && (
                   <button
-                    onClick={() => copyToClipboard(message.shareableLink, 'link')}
+                    onClick={() => copyToClipboard(normalizedMessage.shareableLink, 'link')}
                     className="mx-auto flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                   >
                     <LinkIcon size={16} />
