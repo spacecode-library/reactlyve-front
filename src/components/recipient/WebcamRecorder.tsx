@@ -108,12 +108,13 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   }, []);
 
   useEffect(() => {
-    if (recordingStatus === 'stopped' && recordedBlob && !recordingCompleted && !isRecording) {
+    if (recordingStatus === 'stopped' && recordedBlob && !recordingCompleted) {
+      console.log('✅ Recording complete - triggering handler');
       setRecordingCompleted(true);
+      setIsRecording(false);
       onRecordingComplete(recordedBlob);
     }
-  }, [recordingStatus, recordedBlob, recordingCompleted, isRecording]);
-
+  }, [recordingStatus, recordedBlob, recordingCompleted]);
 
   // Countdown logic
   useEffect(() => {
