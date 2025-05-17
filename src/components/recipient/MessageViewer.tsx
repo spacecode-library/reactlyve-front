@@ -22,6 +22,11 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   onSubmitPasscode,
   onSendTextReply,
 }) => {
+  
+  console.log('🔍 Incoming message object:', message);
+  console.log('📸 mediaType:', message.mediaType);
+  console.log('🖼️ imageUrl:', message.imageUrl);
+
   const [showRecorder, setShowRecorder] = useState<boolean>(!message.videoUrl);
   const [isReactionRecorded, setIsReactionRecorded] = useState<boolean>(!!message.videoUrl);
   const [permissionError, setPermissionError] = useState<string | null>(null);
