@@ -44,6 +44,11 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
     : '';
 
+    // Always reset session when the component mounts
+  useEffect(() => {
+      localStorage.removeItem(`reaction-session-${message.id}`);
+    }, [message.id]);
+  
   const [sessionId] = useState(() => {
     // Reuse if already stored for this message in localStorage
     const key = `reaction-session-${message.id}`;
@@ -55,6 +60,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     localStorage.setItem(key, newSession);
     return newSession;
   });
+
   // Init reaction ID early
   useEffect(() => {
     reactionsApi
