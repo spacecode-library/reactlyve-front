@@ -15,6 +15,7 @@ interface MessageViewerProps {
   onSkipReaction?: () => void;
   onSubmitPasscode: (passcode: string) => Promise<boolean>;
   onSendTextReply?: (messageId: string, text: string) => Promise<void>;
+  onInitReactionId?: (id: string) => void;
 }
 
 const MessageViewer: React.FC<MessageViewerProps> = ({
@@ -50,10 +51,11 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         if (allReactions.length > 0) {
           const latest = allReactions[allReactions.length - 1];
           setReactionId(latest.id);
+          onInitReactionId?.(latest.id); // ✅ pass it up
         } else {
-          // Init if no reaction exists yet
           return reactionsApi.init(message.id).then((res) => {
             setReactionId(res.data.reactionId);
+            onInitReactionId?.(res.data.reactionId); // ✅ pass it up
           });
         }
       })
