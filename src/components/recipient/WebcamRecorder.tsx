@@ -97,9 +97,19 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   }, [isBrowserSupported, webcamInitialized, autoStart]);
 
   useEffect(() => {
+    return () => {
+      if (videoRef.current?.srcObject) {
+        (videoRef.current.srcObject as MediaStream)
+          .getTracks()
+          .forEach((track) => track.stop());
+        videoRef.current.srcObject = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (recordingStatus === 'stopped' && recordedBlob && !recordingCompleted && !isRecording) {
       setRecordingCompleted(true);
-      setIsRecording(false);
       onRecordingComplete(recordedBlob);
     }
   }, [recordingStatus, recordedBlob, recordingCompleted, isRecording]);
@@ -114,7 +124,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
           if (prev <= 1) {
             clearInterval(countdownInterval);
             setShowCountdown(false);
-            if (stream) {
+            if (webcamInitialized && stream) {
                 startRecording();
                 setIsRecording(true);
                 setRecordingCountdown(maxDuration / 1000);
