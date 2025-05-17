@@ -62,9 +62,6 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     stopRecording,
     clearRecording,
   } = useMediaRecorder({ stream, maxDuration });
-
-  const MAX_RETRY_ATTEMPTS = 3;
-  const RETRY_DELAY = 2000;
   
   useEffect(() => {
     setIsBrowserSupported(supportsMediaRecording());
