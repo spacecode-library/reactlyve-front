@@ -97,10 +97,18 @@ const View: React.FC = () => {
   // 💬 Handle text reply
   const handleSendTextReply = async (messageId: string, text: string): Promise<void> => {
     try {
+      // Wait up to ~3 seconds for lastRecordedReactionId to be available
+      let retries = 0;
+      while (!lastRecordedReactionId.current && retries < 10) {
+        await new Promise((res) => setTimeout(res, 300));
+        retries++;
+      }
+  
       if (!lastRecordedReactionId.current) {
-        toast.error('Reaction must be recorded before replying.');
+        toast.error('Reaction not fully saved yet. Please wait a moment and try again.');
         return;
       }
+  
       await repliesApi.sendText(lastRecordedReactionId.current, text);
       toast.success('Your reply has been sent!');
     } catch (error) {
