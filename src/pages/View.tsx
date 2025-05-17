@@ -80,32 +80,28 @@ const View: React.FC = () => {
     }
   };
 
-  // Handle recording reaction
+  // Store this at top level
+  let lastRecordedReactionId: string | null = null;
+  
   const handleRecordReaction = async (messageId: string, videoBlob: Blob): Promise<void> => {
     try {
-      const formData = new FormData();
-      formData.append('video', videoBlob, 'reaction.webm');
-
-      if (videoBlob.size > 0) {
-        await api.post(`/reactions/${messageId}`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          }
-        });
-
-        toast.success('Your reaction has been recorded!');
-      }
+      const res = await reactionsApi.upload(messageId, videoBlob);
+      lastRecordedReactionId = res.data.reactionId;
+      toast.success('Your reaction has been recorded!');
     } catch (error) {
       console.error('Error uploading reaction:', error);
       toast.error('Failed to upload reaction. Please try again.');
       throw error;
     }
   };
-
-  // Handle text reply
+  
   const handleSendTextReply = async (messageId: string, text: string): Promise<void> => {
     try {
-      await api.post(`/reactions/${reactionId}/reply`, { text });
+      if (!lastRecordedReactionId) {
+        toast.error('Reaction must be recorded before replying.');
+        return;
+      }
+      await repliesApi.sendText(lastRecordedReactionId, text);
       toast.success('Your reply has been sent!');
     } catch (error) {
       console.error('Error uploading reply:', error);
