@@ -26,10 +26,10 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
       </div>
 
       {/* Media Preview */}
-      {message.imageUrl && message.mediatype === 'image' && (
+      {message.imageUrl && message.mediaType === 'image' && (
         <img src={message.imageUrl} alt="Message media" className="rounded-md mb-4 w-full" />
       )}
-      {message.imageUrl && message.mediatype === 'video' && (
+      {message.imageUrl && message.mediaType === 'video' && (
         <video src={message.imageUrl} controls className="rounded-md mb-4 w-full" />
       )}
 
