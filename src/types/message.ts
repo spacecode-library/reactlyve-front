@@ -19,7 +19,7 @@ export interface Message {
   createdAt: string;
   updatedAt?: string;
   videoUrl?: string | null;
-  mediatype?: 'image' | 'video';
+  mediaType?: 'image' | 'video';
   duration?: number;
   isreply?: string;
   sender?: {
