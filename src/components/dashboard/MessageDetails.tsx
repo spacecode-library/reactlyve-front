@@ -10,9 +10,8 @@ interface MessageDetailsProps {
   onDeleteReaction?: (reactionId: string) => void;
 }
 
-const normalizedMessage = normalizeMessage(message);
-
 const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReaction }) => {
+  const normalizedMessage = normalizeMessage(message);
   return (
     <div className="mx-auto w-full max-w-3xl p-6 bg-white dark:bg-neutral-900 rounded-md shadow">
       {/* Message Header */}
