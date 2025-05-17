@@ -28,7 +28,7 @@ export interface Message {
   };
   passcodeVerified?: boolean;
   replies?: Reply[];
-  reactions?: Reaction[]; // Add this here if reactions come in single message payload too
+  reactions?: Reaction[];
 }
 
 export interface Reply {
