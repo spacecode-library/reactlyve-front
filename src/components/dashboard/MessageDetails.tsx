@@ -32,7 +32,7 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
         <img src={normalizedMessage.imageUrl} alt="Message media" className="rounded-md mb-4 w-full" />
       )}
       {normalizedMessage.imageUrl && normalizedMessage.mediaType === 'video' && (
-        <video src={normalizedMessage.imageUrl} controls className="rounded-md mb-4 w-full" />
+        <video src={normalizedMessage.videoUrl} controls className="rounded-md mb-4 w-full" />
       )}
 
       {/* Shareable Link */}
