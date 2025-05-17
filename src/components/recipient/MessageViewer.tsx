@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { Message } from '../../types/message';
 import { normalizeMessage } from '../../utils/normalizeKeys';
 import { reactionsApi, repliesApi } from '../../services/api';
+import { v4 as uuidv4 } from 'uuid';
 
 interface MessageViewerProps {
   message: Message;
@@ -43,6 +44,17 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
     : '';
 
+  const [sessionId] = useState(() => {
+    // Reuse if already stored for this message in localStorage
+    const key = `reaction-session-${message.id}`;
+    const stored = localStorage.getItem(key);
+    if (stored) return stored;
+  
+    // Otherwise generate and save
+    const newSession = uuidv4();
+    localStorage.setItem(key, newSession);
+    return newSession;
+  });
   // Init reaction ID early
   useEffect(() => {
     reactionsApi
