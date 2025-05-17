@@ -10,7 +10,7 @@ export const AUTH_ROUTES = {
 
 // Message Routes
 export const MESSAGE_ROUTES = {
-  CREATE: `${API_BASE_URL}/messages/create`,
+  CREATE: `${API_BASE_URL}/messages/send`,
   GET_ALL: `${API_BASE_URL}/messages`,
   GET_BY_ID: (id: string) => `${API_BASE_URL}/messages/${id}`,
   DELETE: (id: string) => `${API_BASE_URL}/messages/${id}/delete`,
@@ -30,7 +30,7 @@ export const REACTION_ROUTES = {
 
 // Reply Routes
 export const REPLY_ROUTES = {
-  UPLOAD: (messageId: string) => `${API_BASE_URL}/replies/${messageId}`,
+  UPLOAD: (reactionId: string) => `${API_BASE_URL}/reactions/${reactionId}/reply`,
 };
 
 // Admin Routes
