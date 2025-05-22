@@ -114,6 +114,12 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       setRecordingCompleted(true);
       setIsRecording(false);
       onRecordingComplete(recordedBlob);
+      if (videoRef.current?.srcObject) {
+        (videoRef.current.srcObject as MediaStream)
+          .getTracks()
+          .forEach((track) => track.stop());
+        videoRef.current.srcObject = null;
+      }
     }
   }, [recordingStatus, recordedBlob, recordingCompleted]);
 
