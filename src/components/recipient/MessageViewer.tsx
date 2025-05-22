@@ -1,4 +1,3 @@
-// MessageViewer.tsx
 import React, { useState, useEffect } from 'react';
 import WebcamRecorder from './WebcamRecorder';
 import PermissionRequest from './PermissionRequest';
@@ -40,7 +39,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const [replyText, setReplyText] = useState<string>('');
   const [isSendingReply, setIsSendingReply] = useState<boolean>(false);
   const [replyError, setReplyError] = useState<string | null>(null);
-  const [showReactionVideo, setShowReactionVideo] = useState<boolean>(true);
   const navigate = useNavigate();
 
   const formattedDate = message.createdAt
@@ -48,29 +46,27 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     : '';
 
   const [sessionId] = useState(() => {
-      const key = `reaction-session-${message.id}`;
-      const raw = localStorage.getItem(key);
-    
-      const now = Date.now();
-      const SESSION_EXPIRY_MS = 1000 * 60 * 5; // 5 minutes
-    
-      if (raw) {
-        try {
-          const { id, createdAt } = JSON.parse(raw);
-          if (now - createdAt < SESSION_EXPIRY_MS) {
-            return id; // Reuse session if within expiry
-          }
-        } catch {
-          // ignore invalid JSON
-        }
-      }
-    
-      // Create new session
-      const newSession = uuidv4();
-      localStorage.setItem(key, JSON.stringify({ id: newSession, createdAt: now }));
-      return newSession;
-    });
+    const key = `reaction-session-${message.id}`;
+    const raw = sessionStorage.getItem(key); // Changed to sessionStorage
 
+    const now = Date.now();
+    const SESSION_EXPIRY_MS = 1000 * 60 * 5;
+
+    if (raw) {
+      try {
+        const { id, createdAt } = JSON.parse(raw);
+        if (now - createdAt < SESSION_EXPIRY_MS) {
+          return id;
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    const newSession = uuidv4();
+    sessionStorage.setItem(key, JSON.stringify({ id: newSession, createdAt: now }));
+    return newSession;
+  });
 
   useEffect(() => {
     const createReaction = async () => {
