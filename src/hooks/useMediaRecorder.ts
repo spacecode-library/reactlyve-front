@@ -27,31 +27,38 @@ const useMediaRecorder = ({
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
-  const durationInterval = useRef<number>();
-  const startTime = useRef<number>();
+  const durationInterval = useRef<number | null>(null);
+  const startTime = useRef<number | null>(null);
 
   const getSupportedMimeType = useCallback(() => {
     if (MediaRecorder.isTypeSupported(mimeType)) return mimeType;
+
     const fallbacks = ['video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
     return fallbacks.find(type => MediaRecorder.isTypeSupported(type)) || '';
   }, [mimeType]);
 
-  const updateDuration = () => {
+  const updateDuration = useCallback(() => {
     if (!startTime.current) return;
+
     const elapsed = Date.now() - startTime.current;
     setDuration(elapsed);
+
     if (maxDuration && elapsed >= maxDuration) {
       stopRecording();
       setIsDurationLimitReached(true);
     }
-  };
+  }, [maxDuration]);
 
   const stopRecording = useCallback(() => {
     const recorder = mediaRecorderRef.current;
     if (recorder && recorder.state !== 'inactive') {
       recorder.stop();
     }
-    clearInterval(durationInterval.current);
+
+    if (durationInterval.current) {
+      clearInterval(durationInterval.current);
+      durationInterval.current = null;
+    }
   }, []);
 
   const startRecording = useCallback(() => {
@@ -59,49 +66,73 @@ const useMediaRecorder = ({
       setError(new Error('Stream not available'));
       return;
     }
+
     try {
       const type = getSupportedMimeType();
+      if (!type) throw new Error('No supported mime type for recording.');
+
       const recorder = new MediaRecorder(stream, {
         mimeType: type,
         audioBitsPerSecond,
         videoBitsPerSecond,
       });
+
       chunksRef.current = [];
       setRecordedBlob(null);
       setError(null);
       setStatus('recording');
+      setIsDurationLimitReached(false);
       startTime.current = Date.now();
 
       recorder.ondataavailable = (e: BlobEvent) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
+        if (e.data && e.data.size > 0) {
+          chunksRef.current.push(e.data);
+        }
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type });
-        setRecordedBlob(blob);
-        setStatus('stopped');
+        try {
+          const blob = new Blob(chunksRef.current, { type });
+          setRecordedBlob(blob);
+          setStatus('stopped');
+        } catch (err) {
+          setError(new Error('Error creating blob'));
+          setStatus('error');
+        }
       };
 
       recorder.onerror = (e: any) => {
-        setError(new Error(e?.error?.message || 'Recording failed'));
+        setError(new Error(e?.error?.message || 'Recording error'));
         setStatus('error');
       };
 
       mediaRecorderRef.current = recorder;
       recorder.start(timeSlice);
-      durationInterval.current = window.setInterval(updateDuration, 100);
+
+      durationInterval.current = window.setInterval(() => {
+        updateDuration();
+      }, 100);
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Recording error'));
+      setError(err instanceof Error ? err : new Error('Unknown recording error'));
       setStatus('error');
     }
-  }, [stream, getSupportedMimeType]);
+  }, [stream, getSupportedMimeType, timeSlice, updateDuration, audioBitsPerSecond, videoBitsPerSecond]);
 
-  const clearRecording = () => {
+  const clearRecording = useCallback(() => {
     chunksRef.current = [];
     setRecordedBlob(null);
     setDuration(0);
     setIsDurationLimitReached(false);
-  };
+    setStatus('inactive');
+    setError(null);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      stopRecording();
+      clearRecording();
+    };
+  }, [stopRecording, clearRecording]);
 
   return {
     status,
