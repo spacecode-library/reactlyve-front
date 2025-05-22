@@ -56,7 +56,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           return id;
         }
       } catch {
-        // ignore parsing errors
+        // ignore parse errors
       }
     }
 
@@ -219,7 +219,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           onCancel={() => {}}
           maxDuration={15000}
           countdownDuration={5}
-          onPermissionDenied={handlePermissionDenied}
+          onPermissionDenied={(err) => setPermissionError(err)}
           autoStart
           onCountdownComplete={handleCountdownComplete}
           hidePreviewAfterCountdown
