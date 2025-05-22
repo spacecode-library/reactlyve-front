@@ -84,10 +84,18 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
 
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
+
         await new Promise<void>((resolve) => {
-          if (videoRef.current?.readyState >= 1) return resolve();
-          videoRef.current.onloadedmetadata = () => resolve();
+          const ref = videoRef.current;
+          if (!ref) return resolve();
+
+          if (typeof ref.readyState === 'number' && ref.readyState >= 1) {
+            return resolve();
+          }
+
+          ref.onloadedmetadata = () => resolve();
         });
+
         try {
           await videoRef.current?.play().catch(() => {});
         } catch (err) {
@@ -106,10 +114,10 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
       setStream(null);
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
-        videoRef.current.pause();
-      }
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+      videoRef.current.pause();
     }
   }, [stream]);
 
