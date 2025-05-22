@@ -189,17 +189,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         </div>
       )}
 
-      {/* Reaction Video */}
-      {isReactionRecorded && showReactionVideo && (
-        <div className="mt-6">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-neutral-800 dark:text-white">Your Reaction</h3>
-            <button onClick={() => setShowReactionVideo(true)} className="text-sm text-primary-500 hover:underline">Hide</button>
-          </div>
-          <video controls src={normalizedMessage.videoUrl} className="w-full rounded-lg mt-2" />
-        </div>
-      )}
-
       {/* Text Reply */}
       <div className="mt-6">
         <h3 className="mb-2 text-xl font-semibold text-neutral-900 dark:text-white">
