@@ -42,6 +42,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   const MAX_RETRY_ATTEMPTS = 3;
   const RETRY_DELAY = 2000;
   const [showPreview, setShowPreview] = useState(true);
+  const [previewManuallyToggled, setPreviewManuallyToggled] = useState(false);
 
   const {
     stream,
@@ -132,8 +133,9 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
                 onCountdownComplete?.();
               
                 if (hidePreviewAfterCountdown) {
-                  setShowPreview(false);
-                }
+                    setShowPreview(false);
+                    setPreviewManuallyToggled(false);
+                  }
               } else {
               const err = 'Camera stream not available after countdown.';
               setPermissionError(err);
@@ -207,8 +209,9 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     <div className={classNames('flex flex-col items-center', className || '')}>
       <h2 className="text-xl font-semibold mb-2">Record Your Reaction</h2>
   
+     // Preview section
       <div className="w-full max-w-md mb-4">
-        {showCountdown || showPreview ? (
+        {showCountdown || (showPreview && !recordingCompleted) ? (
           <video
             ref={videoRef}
             autoPlay
@@ -220,7 +223,6 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
           <div className="h-[240px] bg-neutral-100 dark:bg-neutral-800 rounded" />
         )}
       </div>
-
   
       {retryMessage && <p className="text-sm text-gray-500">{retryMessage}</p>}
   
@@ -239,14 +241,18 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       {recordingCompleted && (
         <p className="text-green-600 mt-2">Recording complete!</p>
       )}
-      {isRecording && (
-        <button
-          className="text-sm text-primary-600 underline mt-2"
-          onClick={() => setShowPreview(prev => !prev)}
-        >
-          {showPreview ? 'Hide Preview' : 'Show Preview'}
-        </button>
-      )}
+// Toggle button
+      {isRecording && !recordingCompleted && (
+          <button
+            className="text-sm text-primary-600 underline mt-2"
+            onClick={() => {
+              setShowPreview((prev) => !prev);
+              setPreviewManuallyToggled(true);
+            }}
+          >
+            {showPreview ? 'Hide Preview' : 'Show Preview'}
+          </button>
+        )}
     </div>
   );
 };
