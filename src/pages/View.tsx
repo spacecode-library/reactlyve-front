@@ -18,11 +18,14 @@ const View: React.FC = () => {
   const [needsPasscode, setNeedsPasscode] = useState(false);
   const [passcodeVerified, setPasscodeVerified] = useState(false);
 
+  // ⏲️ Track reaction session ID statefully
   const reactionIdRef = useRef<string | null>(null);
+  const sessionStartTimeRef = useRef<number>(Date.now());
 
   const handleInitReactionId = (id: string) => {
     reactionIdRef.current = id;
-    console.log('✅ Reaction ID initialised:', id);
+    sessionStartTimeRef.current = Date.now();
+    console.log('✅ Initialised reactionId:', id);
   };
 
   useEffect(() => {
@@ -36,19 +39,16 @@ const View: React.FC = () => {
       try {
         const response = await api.get(`/messages/view/${id}`);
         const messageId = response.data.id;
-        const responseById = await api.get(`/messages/${messageId}`);
-        const messageData = responseById.data;
+        const messageData = (await api.get(`/messages/${messageId}`)).data;
 
-        if (messageData) {
-          const requiresPasscode = response.data.hasPasscode === true;
-          const isVerified = response.data.passcodeVerified === true || !requiresPasscode;
+        const requiresPasscode = response.data.hasPasscode === true;
+        const isVerified = response.data.passcodeVerified === true || !requiresPasscode;
 
-          setMessage(messageData);
-          setNeedsPasscode(requiresPasscode && !isVerified);
-          setPasscodeVerified(isVerified);
-        }
-      } catch (error) {
-        console.error('Error fetching message:', error);
+        setMessage(messageData);
+        setNeedsPasscode(requiresPasscode && !isVerified);
+        setPasscodeVerified(isVerified);
+      } catch (err) {
+        console.error('Error fetching message:', err);
         setError(MESSAGE_ERRORS.NOT_FOUND);
       } finally {
         setLoading(false);
@@ -62,29 +62,24 @@ const View: React.FC = () => {
     if (!id || !message) return false;
 
     try {
-      const response = await api.post(`/messages/${id}/verify-passcode`, { passcode });
+      const verify = await api.post(`/messages/${id}/verify-passcode`, { passcode });
 
-      const responseView = await api.get(`/messages/view/${id}`);
-      const responseById = await api.get(`/messages/${responseView.data.id}`);
+      const updatedView = await api.get(`/messages/view/${id}`);
+      const updatedMsg = await api.get(`/messages/${updatedView.data.id}`);
 
-      if (response.data && (response.data.verified || response.status === 200)) {
+      if (verify.data?.verified || verify.status === 200) {
         setPasscodeVerified(true);
-        if (responseById.data) {
-          setMessage(responseById.data);
-        }
+        if (updatedMsg.data) setMessage(updatedMsg.data);
         return true;
       }
-
       return false;
-    } catch (error) {
-      console.error('Error verifying passcode:', error);
+    } catch (err) {
+      console.error('Error verifying passcode:', err);
       return false;
     }
   };
 
   const handleRecordReaction = async (_messageId: string, _videoBlob: Blob): Promise<void> => {
-    // Do not re-upload here — the upload is handled inside MessageViewer
-    // This just confirms the callback fired correctly
     toast.success('Your reaction has been recorded!');
   };
 
@@ -131,16 +126,6 @@ const View: React.FC = () => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
         <div className="max-w-md text-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="mx-auto h-12 w-12 text-red-500 dark:text-red-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
           <h2 className="mt-2 text-2xl font-bold text-neutral-900 dark:text-white">
             {error === MESSAGE_ERRORS.NOT_FOUND
               ? 'Message Not Found'
@@ -150,7 +135,6 @@ const View: React.FC = () => {
           </h2>
           <p className="mt-2 text-neutral-600 dark:text-neutral-300">{error}</p>
           <button
-            type="button"
             onClick={() => navigate('/')}
             className="mt-4 inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 dark:bg-primary-700"
           >
@@ -191,7 +175,6 @@ const View: React.FC = () => {
           Something went wrong. Please try again later.
         </p>
         <button
-          type="button"
           onClick={() => navigate('/')}
           className="mt-4 inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 dark:bg-primary-700"
         >
