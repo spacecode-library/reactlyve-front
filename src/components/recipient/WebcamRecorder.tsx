@@ -215,7 +215,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     <div className={classNames('flex flex-col items-center', className || '')}>
       <h2 className="text-xl font-semibold mb-2">Record Your Reaction</h2>
   
-     // Preview section
+     {/* Preview section */}
       <div className="w-full max-w-md mb-4">
         {showCountdown || (showPreview && !recordingCompleted) ? (
           <video
@@ -247,7 +247,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       {recordingCompleted && (
         <p className="text-green-600 mt-2">Recording complete!</p>
       )}
-// Toggle button
+      
       {isRecording && !recordingCompleted && (
           <button
             className="text-sm text-primary-600 underline mt-2"
