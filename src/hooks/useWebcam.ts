@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface UseWebcamOptions {
@@ -31,126 +29,83 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
   const [permissionState, setPermissionState] = useState<PermissionState | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null) as React.RefObject<HTMLVideoElement>;
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const checkPermission = useCallback(async () => {
     try {
       if (navigator.permissions && navigator.permissions.query) {
-        const cameraPermission = await navigator.permissions.query({ name: 'camera' as PermissionName });
-        const micPermission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
-        setPermissionState(cameraPermission.state === 'granted' && micPermission.state === 'granted' ? 'granted' : cameraPermission.state);
-        
-        cameraPermission.addEventListener('change', () => {
-          setPermissionState(cameraPermission.state);
-        });
-        micPermission.addEventListener('change', () => {
-          setPermissionState(micPermission.state);
-        });
+        const cam = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        const mic = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        setPermissionState(cam.state === 'granted' && mic.state === 'granted' ? 'granted' : cam.state);
+
+        cam.addEventListener('change', () => setPermissionState(cam.state));
+        mic.addEventListener('change', () => setPermissionState(mic.state));
       }
     } catch (err) {
-      console.error('Error checking permissions:', err);
+      console.warn('Permission check failed:', err);
     }
   }, []);
 
   useEffect(() => {
     checkPermission();
-    return () => {
-      if (stream) {
-        stopWebcam();
-      }
-    };
-  }, [checkPermission, stream]);
+    return () => stopWebcam();
+  }, [checkPermission]);
 
-  async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  const withTimeout = async <T>(promise: Promise<T>, ms: number): Promise<T> => {
     let timeout: ReturnType<typeof setTimeout>;
-    const timer = new Promise<never>((_, rej) => {
-      timeout = setTimeout(() => rej(new Error('Operation timed out')), ms);
+    const timer = new Promise<never>((_, reject) => {
+      timeout = setTimeout(() => reject(new Error('Operation timed out')), ms);
     });
     const result = await Promise.race([promise, timer]);
     clearTimeout(timeout!);
     return result as T;
-  }
+  };
 
   const startWebcam = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    
-    // Simplified constraints to improve compatibility
+
     const constraints = {
       video: {
-        facingMode: facingMode,
-        // Removed fixed width/height to improve compatibility
+        facingMode,
+        width,
+        height,
       },
-      audio: audio
+      audio,
     };
 
-    let mediaStream: MediaStream;
     try {
-      mediaStream = await withTimeout(
+      const mediaStream = await withTimeout(
         navigator.mediaDevices.getUserMedia(constraints),
         10000
       );
       setStream(mediaStream);
       await checkPermission();
-    } catch (gumErr) {
-      setError(new Error('Could not access camera: ' + gumErr));
-      setIsLoading(false);
-      throw gumErr;
-    }
 
-    if (!videoRef.current) {
-      console.warn('videoRef missing, skipping playback');
-      setIsLoading(false);
-      return;
-    }
-
-    videoRef.current.srcObject = mediaStream;
-
-    try {
-      // Add event listener for when video can play
-      await new Promise<void>((resolve) => {
-        if (!videoRef.current) {
-          resolve();
-          return;
-        }
-        
-        // If metadata is already loaded, we can proceed
-        if (videoRef.current.readyState >= 1) {
-          resolve();
-          return;
-        }
-        
-        // Otherwise wait for metadata to load
-        videoRef.current.onloadedmetadata = () => resolve();
-      });
-      
-      // Only try to play if video element exists and is ready
       if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+        await new Promise<void>((resolve) => {
+          if (videoRef.current?.readyState >= 1) return resolve();
+          videoRef.current.onloadedmetadata = () => resolve();
+        });
         try {
-          // Use a promise to handle play
-          await videoRef.current.play().catch(playErr => {
-            console.warn('Playback failed, likely due to browser autoplay policy:', playErr);
-            // Don't treat this as fatal, the user can start playback manually
-          });
-        } catch (playErr) {
-          console.warn('Play attempt failed:', playErr);
-          // Continue anyway - this is not a fatal error
+          await videoRef.current?.play().catch(() => {});
+        } catch (err) {
+          console.warn('Playback issue:', err);
         }
       }
     } catch (err) {
-      console.warn('Error during video setup:', err);
-      // Continue anyway - the stream is still set up correctly
+      setError(new Error('Could not access webcam: ' + err));
+      throw err;
+    } finally {
+      setIsLoading(false);
     }
-
-    await checkPermission();
-    setIsLoading(false);
-  }, [facingMode, audio, checkPermission]);
+  }, [facingMode, width, height, audio, checkPermission]);
 
   const stopWebcam = useCallback(() => {
     if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach((track) => track.stop());
       setStream(null);
-      
       if (videoRef.current) {
         videoRef.current.srcObject = null;
         videoRef.current.pause();
@@ -170,4 +125,3 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
 };
 
 export default useWebcam;
-
