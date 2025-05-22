@@ -172,6 +172,14 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     return () => clearInterval(interval);
   }, [isRecording, recordingCountdown]);
 
+
+  useEffect(() => {
+    // Attach the stream to video element before and during countdown
+    if ((showCountdown || isRecording) && stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [showCountdown, isRecording, stream]);
+
   const handleRetryWebcam = () => {
     setWebcamInitialized(false);
     setPermissionError(undefined);
