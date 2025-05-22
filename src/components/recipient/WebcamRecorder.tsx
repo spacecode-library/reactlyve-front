@@ -221,17 +221,15 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       <h2 className="text-xl font-semibold mb-2">Record Your Reaction</h2>
 
       <div className="w-full max-w-md mb-4">
-        {showPreview && !recordingCompleted ? (
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            playsInline
-            className="rounded shadow-md w-full"
-          />
-        ) : (
-          <div className="h-[240px] bg-neutral-100 dark:bg-neutral-800 rounded" />
-        )}
+        {(showPreview || showCountdown || isRecording) && !recordingCompleted && (
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              className="rounded shadow-md w-full"
+            />
+          )}
       </div>
 
       {retryMessage && <p className="text-sm text-gray-500">{retryMessage}</p>}
