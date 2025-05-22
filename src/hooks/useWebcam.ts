@@ -9,7 +9,7 @@ interface UseWebcamOptions {
 
 interface UseWebcamReturn {
   stream: MediaStream | null;
-  videoRef: React.RefObject<HTMLVideoElement>;
+  videoRef: React.RefObject<HTMLVideoElement | null>; // ✅ FIXED: Allow null
   isLoading: boolean;
   error: Error | null;
   startWebcam: () => Promise<void>;
@@ -29,7 +29,7 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
   const [permissionState, setPermissionState] = useState<PermissionState | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null); // ✅ FIXED: null allowed
 
   const checkPermission = useCallback(async () => {
     try {
@@ -57,12 +57,12 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
   }, [checkPermission]);
 
   const withTimeout = async <T>(promise: Promise<T>, ms: number): Promise<T> => {
-    let timeout: ReturnType<typeof setTimeout>;
+    let timeout: ReturnType<typeof setTimeout> | undefined; // ✅ FIXED: safely defined
     const timer = new Promise<never>((_, reject) => {
       timeout = setTimeout(() => reject(new Error('Operation timed out')), ms);
     });
     const result = await Promise.race([promise, timer]);
-    clearTimeout(timeout);
+    if (timeout) clearTimeout(timeout);
     return result as T;
   };
 
