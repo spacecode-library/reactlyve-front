@@ -44,7 +44,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     : '';
 
   const [sessionId] = useState(() => {
-    const id = uuidv4(); // Always generate a new session on page load
+    const id = uuidv4();
     sessionStorage.setItem(`reaction-session-${message.id}`, JSON.stringify({ id, createdAt: Date.now() }));
     return id;
   });
