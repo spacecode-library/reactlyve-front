@@ -32,7 +32,6 @@ const useMediaRecorder = ({
 
   const getSupportedMimeType = useCallback(() => {
     if (MediaRecorder.isTypeSupported(mimeType)) return mimeType;
-
     const fallbacks = ['video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
     return fallbacks.find(type => MediaRecorder.isTypeSupported(type)) || '';
   }, [mimeType]);
@@ -55,7 +54,7 @@ const useMediaRecorder = ({
       recorder.stop();
     }
 
-    if (durationInterval.current) {
+    if (durationInterval.current !== null) {
       clearInterval(durationInterval.current);
       durationInterval.current = null;
     }
@@ -101,22 +100,28 @@ const useMediaRecorder = ({
         }
       };
 
-      recorder.onerror = (e: any) => {
-        setError(new Error(e?.error?.message || 'Recording error'));
+      recorder.onerror = (e: unknown) => {
+        const message = (e as any)?.error?.message || 'Recording error';
+        setError(new Error(message));
         setStatus('error');
       };
 
       mediaRecorderRef.current = recorder;
       recorder.start(timeSlice);
 
-      durationInterval.current = window.setInterval(() => {
-        updateDuration();
-      }, 100);
+      durationInterval.current = window.setInterval(updateDuration, 100);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Unknown recording error'));
       setStatus('error');
     }
-  }, [stream, getSupportedMimeType, timeSlice, updateDuration, audioBitsPerSecond, videoBitsPerSecond]);
+  }, [
+    stream,
+    getSupportedMimeType,
+    timeSlice,
+    updateDuration,
+    audioBitsPerSecond,
+    videoBitsPerSecond,
+  ]);
 
   const clearRecording = useCallback(() => {
     chunksRef.current = [];
