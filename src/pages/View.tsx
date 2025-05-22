@@ -1,4 +1,4 @@
-                  import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { MESSAGE_ERRORS } from '../components/constants/errorMessages';
@@ -18,15 +18,13 @@ const View: React.FC = () => {
   const [needsPasscode, setNeedsPasscode] = useState(false);
   const [passcodeVerified, setPasscodeVerified] = useState(false);
 
-  // 🔐 Store last recorded reactionId in ref (does not reset across re-renders)
-  const lastRecordedReactionId = useRef<string | null>(null);
   const reactionIdRef = useRef<string | null>(null);
 
   const handleInitReactionId = (id: string) => {
     reactionIdRef.current = id;
-  };                        
+    console.log('✅ Reaction ID initialised:', id);
+  };
 
-  // 🔄 Fetch message data
   useEffect(() => {
     const fetchMessage = async () => {
       if (!id) {
@@ -38,7 +36,6 @@ const View: React.FC = () => {
       try {
         const response = await api.get(`/messages/view/${id}`);
         const messageId = response.data.id;
-
         const responseById = await api.get(`/messages/${messageId}`);
         const messageData = responseById.data;
 
@@ -49,11 +46,11 @@ const View: React.FC = () => {
           setMessage(messageData);
           setNeedsPasscode(requiresPasscode && !isVerified);
           setPasscodeVerified(isVerified);
-          setLoading(false);
         }
       } catch (error) {
         console.error('Error fetching message:', error);
         setError(MESSAGE_ERRORS.NOT_FOUND);
+      } finally {
         setLoading(false);
       }
     };
@@ -61,7 +58,6 @@ const View: React.FC = () => {
     fetchMessage();
   }, [id]);
 
-  // ✅ Handle passcode entry
   const handleSubmitPasscode = async (passcode: string): Promise<boolean> => {
     if (!id || !message) return false;
 
@@ -86,26 +82,20 @@ const View: React.FC = () => {
     }
   };
 
-  // 📹 Handle video reaction
-  const handleRecordReaction = async (messageId: string, _videoBlob: Blob): Promise<void> => {
-    // Use the existing reactionId if needed
-    lastRecordedReactionId.current = reactionIdRef.current;
-  
-    // Optional: show a toast or log the event
+  const handleRecordReaction = async (_messageId: string, _videoBlob: Blob): Promise<void> => {
+    // Do not re-upload here — the upload is handled inside MessageViewer
+    // This just confirms the callback fired correctly
     toast.success('Your reaction has been recorded!');
-    console.log(`Reaction complete for message ${messageId}, reactionId: ${reactionIdRef.current}`);
   };
 
-
-  // 💬 Handle text reply
   const handleSendTextReply = async (_messageId: string, text: string): Promise<void> => {
     const currentReactionId = reactionIdRef.current;
-  
+
     if (!currentReactionId) {
       toast.error('Reply channel not ready yet. Please wait a moment and try again.');
       return;
     }
-  
+
     try {
       await repliesApi.sendText(currentReactionId, text);
       toast.success('Your reply has been sent!');
@@ -115,7 +105,6 @@ const View: React.FC = () => {
     }
   };
 
-  // ⏭️ Skip reaction
   const handleSkipReaction = async () => {
     if (!id || !message) return;
     try {
@@ -127,7 +116,6 @@ const View: React.FC = () => {
     }
   };
 
-  // ⏳ Loading UI
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">
@@ -139,7 +127,6 @@ const View: React.FC = () => {
     );
   }
 
-  // ❌ Error UI
   if (error) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
@@ -174,7 +161,6 @@ const View: React.FC = () => {
     );
   }
 
-  // 🔐 Show passcode entry if needed
   if (needsPasscode && !passcodeVerified) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
@@ -183,7 +169,6 @@ const View: React.FC = () => {
     );
   }
 
-  // ✅ Show message content
   if (message && (passcodeVerified || !needsPasscode)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900">
@@ -199,7 +184,6 @@ const View: React.FC = () => {
     );
   }
 
-  // 🚨 Fallback error
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">
       <div className="text-center">
