@@ -9,7 +9,7 @@ interface UseWebcamOptions {
 
 interface UseWebcamReturn {
   stream: MediaStream | null;
-  videoRef: React.RefObject<HTMLVideoElement | null>;
+  videoRef: React.RefObject<HTMLVideoElement>;
   isLoading: boolean;
   error: Error | null;
   startWebcam: () => Promise<void>;
@@ -29,14 +29,17 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
   const [permissionState, setPermissionState] = useState<PermissionState | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const checkPermission = useCallback(async () => {
     try {
-      if (navigator.permissions && navigator.permissions.query) {
+      if (navigator.permissions?.query) {
         const cam = await navigator.permissions.query({ name: 'camera' as PermissionName });
         const mic = await navigator.permissions.query({ name: 'microphone' as PermissionName });
-        setPermissionState(cam.state === 'granted' && mic.state === 'granted' ? 'granted' : cam.state);
+
+        setPermissionState(
+          cam.state === 'granted' && mic.state === 'granted' ? 'granted' : cam.state
+        );
 
         cam.addEventListener('change', () => setPermissionState(cam.state));
         mic.addEventListener('change', () => setPermissionState(mic.state));
@@ -48,7 +51,9 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
 
   useEffect(() => {
     checkPermission();
-    return () => stopWebcam();
+    return () => {
+      stopWebcam();
+    };
   }, [checkPermission]);
 
   const withTimeout = async <T>(promise: Promise<T>, ms: number): Promise<T> => {
@@ -57,7 +62,7 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
       timeout = setTimeout(() => reject(new Error('Operation timed out')), ms);
     });
     const result = await Promise.race([promise, timer]);
-    clearTimeout(timeout!);
+    clearTimeout(timeout);
     return result as T;
   };
 
@@ -90,16 +95,18 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
           if (!ref) return resolve();
 
           if (typeof ref.readyState === 'number' && ref.readyState >= 1) {
-            return resolve();
+            resolve();
+          } else {
+            ref.onloadedmetadata = () => resolve();
           }
-
-          ref.onloadedmetadata = () => resolve();
         });
 
         try {
-          await videoRef.current?.play().catch(() => {});
+          await videoRef.current.play().catch((err) => {
+            console.warn('Autoplay blocked or playback failed:', err);
+          });
         } catch (err) {
-          console.warn('Playback issue:', err);
+          console.warn('Video play() failed:', err);
         }
       }
     } catch (err) {
@@ -117,7 +124,11 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
     }
     if (videoRef.current) {
       videoRef.current.srcObject = null;
-      videoRef.current.pause();
+      try {
+        videoRef.current.pause();
+      } catch {
+        // no-op
+      }
     }
   }, [stream]);
 
