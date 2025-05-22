@@ -44,25 +44,9 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     : '';
 
   const [sessionId] = useState(() => {
-    const key = `reaction-session-${message.id}`;
-    const raw = sessionStorage.getItem(key);
-    const now = Date.now();
-    const SESSION_EXPIRY_MS = 5 * 60 * 1000;
-
-    if (raw) {
-      try {
-        const { id, createdAt } = JSON.parse(raw);
-        if (now - createdAt < SESSION_EXPIRY_MS) {
-          return id;
-        }
-      } catch {
-        // ignore parse errors
-      }
-    }
-
-    const newId = uuidv4();
-    sessionStorage.setItem(key, JSON.stringify({ id: newId, createdAt: now }));
-    return newId;
+    const id = uuidv4(); // Always generate a new session on page load
+    sessionStorage.setItem(`reaction-session-${message.id}`, JSON.stringify({ id, createdAt: Date.now() }));
+    return id;
   });
 
   useEffect(() => {
@@ -76,7 +60,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         setPermissionError('Unable to start a reaction session. Please refresh and try again.');
       }
     };
-
     initReaction();
   }, [message.id, sessionId]);
 
@@ -119,7 +102,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   };
 
   const handleCountdownComplete = () => {
-    setTimeout(() => setCountdownComplete(true), 0);
+    setCountdownComplete(true);
   };
 
   if (!passcodeVerified && message.hasPasscode) {
@@ -222,7 +205,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           onPermissionDenied={(err) => setPermissionError(err)}
           autoStart
           onCountdownComplete={handleCountdownComplete}
-          hidePreviewAfterCountdown
+          hidePreviewAfterCountdown={true}
         />
       )}
       {countdownComplete && renderMessageContent()}
