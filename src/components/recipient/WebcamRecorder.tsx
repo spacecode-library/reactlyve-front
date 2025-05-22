@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import useWebcam from '../../hooks/useWebcam';
 import useMediaRecorder from '../../hooks/useMediaRecorder';
-import { formatDuration } from '../../utils/formatters';
 import { supportsMediaRecording } from '../../utils/validators';
 import { classNames } from '../../utils/classNames';
 
@@ -21,7 +20,7 @@ interface WebcamRecorderProps {
 const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   onRecordingComplete,
   onCancel,
-  maxDuration = 15000, // 15 seconds
+  maxDuration = 15000,
   countdownDuration = 5,
   className,
   autoStart = false,
@@ -30,40 +29,36 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   isReplyMode = false,
   hidePreviewAfterCountdown = true,
 }) => {
-  const [showCountdown, setShowCountdown] = useState<boolean>(false);
-  const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [isBrowserSupported, setIsBrowserSupported] = useState<boolean>(true);
-  const [permissionError, setPermissionError] = useState<string | undefined>(undefined);
-  const [webcamInitialized, setWebcamInitialized] = useState<boolean>(false);
-  const [recordingCompleted, setRecordingCompleted] = useState<boolean>(false);
-  const [retryMessage, setRetryMessage] = useState<string>('');
-  const [countdownValue, setCountdownValue] = useState<number>(countdownDuration);
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isBrowserSupported, setIsBrowserSupported] = useState(true);
+  const [permissionError, setPermissionError] = useState<string | undefined>();
+  const [webcamInitialized, setWebcamInitialized] = useState(false);
+  const [recordingCompleted, setRecordingCompleted] = useState(false);
+  const [retryMessage, setRetryMessage] = useState('');
+  const [countdownValue, setCountdownValue] = useState(countdownDuration);
   const [recordingCountdown, setRecordingCountdown] = useState<number | null>(null);
-  const MAX_RETRY_ATTEMPTS = 3;
-  const RETRY_DELAY = 2000;
   const [showPreview, setShowPreview] = useState(true);
   const [previewManuallyToggled, setPreviewManuallyToggled] = useState(false);
+
+  const MAX_RETRY_ATTEMPTS = 3;
+  const RETRY_DELAY = 2000;
 
   const {
     stream,
     videoRef,
-    isLoading: isWebcamLoading,
-    error: webcamError,
     startWebcam,
     stopWebcam,
-    permissionState,
   } = useWebcam({ facingMode: 'user', audio: true });
 
   const {
     status: recordingStatus,
     recordedBlob,
-    duration,
-    error: recordingError,
     startRecording,
     stopRecording,
     clearRecording,
   } = useMediaRecorder({ stream, maxDuration });
-  
+
   useEffect(() => {
     setIsBrowserSupported(supportsMediaRecording());
   }, []);
@@ -97,12 +92,18 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     };
   }, [isBrowserSupported, webcamInitialized, autoStart]);
 
+  // Ensure video stream is reattached when toggling preview on
+  useEffect(() => {
+    if (showPreview && stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [showPreview, stream]);
+
+  // Cleanup video stream on unmount
   useEffect(() => {
     return () => {
       if (videoRef.current?.srcObject) {
-        (videoRef.current.srcObject as MediaStream)
-          .getTracks()
-          .forEach((track) => track.stop());
+        (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
         videoRef.current.srcObject = null;
       }
     };
@@ -110,14 +111,12 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
 
   useEffect(() => {
     if (recordingStatus === 'stopped' && recordedBlob && !recordingCompleted) {
-      console.log('✅ Recording complete - triggering handler');
       setRecordingCompleted(true);
       setIsRecording(false);
       onRecordingComplete(recordedBlob);
+
       if (videoRef.current?.srcObject) {
-        (videoRef.current.srcObject as MediaStream)
-          .getTracks()
-          .forEach((track) => track.stop());
+        (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
         videoRef.current.srcObject = null;
       }
     }
@@ -125,36 +124,38 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
 
   // Countdown logic
   useEffect(() => {
-    let countdownInterval: NodeJS.Timeout;
+    let interval: NodeJS.Timeout;
     if (showCountdown && countdownValue > 0) {
-      countdownInterval = setInterval(() => {
-        setCountdownValue((prev) => {
+      interval = setInterval(() => {
+        setCountdownValue(prev => {
           if (prev <= 1) {
-            clearInterval(countdownInterval);
+            clearInterval(interval);
             setShowCountdown(false);
+
             if (webcamInitialized && stream) {
-                startRecording();
-                setIsRecording(true);
-                setRecordingCountdown(maxDuration / 1000);
-                onCountdownComplete?.();
-              
-                if (hidePreviewAfterCountdown) {
-                    setShowPreview(false);
-                    setPreviewManuallyToggled(false);
-                  }
-              } else {
+              startRecording();
+              setIsRecording(true);
+              setRecordingCountdown(maxDuration / 1000);
+              onCountdownComplete?.();
+              if (hidePreviewAfterCountdown) {
+                setShowPreview(false);
+                setPreviewManuallyToggled(false);
+              }
+            } else {
               const err = 'Camera stream not available after countdown.';
               setPermissionError(err);
               onPermissionDenied?.(err);
             }
+
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
     }
-    return () => clearInterval(countdownInterval);
-  }, [showCountdown, countdownValue, stream, maxDuration, onCountdownComplete, onPermissionDenied, hidePreviewAfterCountdown]);
+
+    return () => clearInterval(interval);
+  }, [showCountdown, countdownValue, stream]);
 
   useEffect(() => {
     if (showCountdown) setCountdownValue(countdownDuration);
@@ -162,7 +163,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
 
   useEffect(() => {
     if (!isRecording || recordingCountdown === null) return;
-  
+
     const interval = setInterval(() => {
       setRecordingCountdown(prev => {
         if (prev && prev > 1) return prev - 1;
@@ -170,10 +171,9 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
         return 0;
       });
     }, 1000);
-  
+
     return () => clearInterval(interval);
   }, [isRecording, recordingCountdown]);
-
 
   const handleRetryWebcam = () => {
     setWebcamInitialized(false);
@@ -193,7 +193,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   if (!isBrowserSupported) {
     return (
       <div className="text-center text-red-600">
-        <p>Your browser does not support webcam recording. Please try on another device or browser</p>
+        <p>Your browser does not support webcam recording. Please try on another device or browser.</p>
         <button onClick={onCancel} className="btn btn-outline mt-2">Go Back</button>
       </div>
     );
@@ -214,8 +214,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   return (
     <div className={classNames('flex flex-col items-center', className || '')}>
       <h2 className="text-xl font-semibold mb-2">Record Your Reaction</h2>
-  
-     {/* Preview section */}
+
       <div className="w-full max-w-md mb-4">
         {showCountdown || (showPreview && !recordingCompleted) ? (
           <video
@@ -229,36 +228,28 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
           <div className="h-[240px] bg-neutral-100 dark:bg-neutral-800 rounded" />
         )}
       </div>
-  
+
       {retryMessage && <p className="text-sm text-gray-500">{retryMessage}</p>}
-  
-      {showCountdown && (
-        <div className="text-4xl font-bold text-blue-500 mt-2">
-          {countdownValue}
-        </div>
-      )}
-  
+      {showCountdown && <div className="text-4xl font-bold text-blue-500 mt-2">{countdownValue}</div>}
       {isRecording && (
         <p className="text-red-500 mt-2 text-sm font-medium">
           Recording... {recordingCountdown !== null ? `${recordingCountdown}s left` : ''}
         </p>
       )}
-  
       {recordingCompleted && (
         <p className="text-green-600 mt-2">Recording complete!</p>
       )}
-      
       {isRecording && !recordingCompleted && (
-          <button
-            className="text-sm text-primary-600 underline mt-2"
-            onClick={() => {
-              setShowPreview((prev) => !prev);
-              setPreviewManuallyToggled(true);
-            }}
-          >
-            {showPreview ? 'Hide Preview' : 'Show Preview'}
-          </button>
-        )}
+        <button
+          className="text-sm text-primary-600 underline mt-2"
+          onClick={() => {
+            setShowPreview(prev => !prev);
+            setPreviewManuallyToggled(true);
+          }}
+        >
+          {showPreview ? 'Hide Preview' : 'Show Preview'}
+        </button>
+      )}
     </div>
   );
 };
