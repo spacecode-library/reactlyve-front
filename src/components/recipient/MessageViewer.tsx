@@ -3,7 +3,6 @@ import WebcamRecorder from './WebcamRecorder';
 import PermissionRequest from './PermissionRequest';
 import PasscodeEntry from './PasscodeEntry';
 import { formatDistanceToNow } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
 import { Message } from '../../types/message';
 import { normalizeMessage } from '../../utils/normalizeKeys';
 import { reactionsApi, repliesApi } from '../../services/api';
@@ -31,15 +30,14 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 }) => {
   const normalizedMessage = normalizeMessage(message);
   const [reactionId, setReactionId] = useState<string | null>(null);
-  const [showRecorder, setShowRecorder] = useState<boolean>(true);
-  const [isReactionRecorded, setIsReactionRecorded] = useState<boolean>(false);
+  const [showRecorder, setShowRecorder] = useState(true);
+  const [isReactionRecorded, setIsReactionRecorded] = useState(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
-  const [passcodeVerified, setPasscodeVerified] = useState<boolean>(message.passcodeVerified || !message.hasPasscode);
-  const [countdownComplete, setCountdownComplete] = useState<boolean>(false);
-  const [replyText, setReplyText] = useState<string>('');
-  const [isSendingReply, setIsSendingReply] = useState<boolean>(false);
+  const [passcodeVerified, setPasscodeVerified] = useState(message.passcodeVerified || !message.hasPasscode);
+  const [countdownComplete, setCountdownComplete] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [isSendingReply, setIsSendingReply] = useState(false);
   const [replyError, setReplyError] = useState<string | null>(null);
-  const navigate = useNavigate();
 
   const formattedDate = message.createdAt
     ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
@@ -47,10 +45,9 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   const [sessionId] = useState(() => {
     const key = `reaction-session-${message.id}`;
-    const raw = sessionStorage.getItem(key); // Changed to sessionStorage
-
+    const raw = sessionStorage.getItem(key);
     const now = Date.now();
-    const SESSION_EXPIRY_MS = 1000 * 60 * 5;
+    const SESSION_EXPIRY_MS = 5 * 60 * 1000;
 
     if (raw) {
       try {
@@ -59,27 +56,28 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           return id;
         }
       } catch {
-        // ignore
+        // ignore parsing errors
       }
     }
 
-    const newSession = uuidv4();
-    sessionStorage.setItem(key, JSON.stringify({ id: newSession, createdAt: now }));
-    return newSession;
+    const newId = uuidv4();
+    sessionStorage.setItem(key, JSON.stringify({ id: newId, createdAt: now }));
+    return newId;
   });
 
   useEffect(() => {
-    const createReaction = async () => {
+    const initReaction = async () => {
       try {
         const res = await reactionsApi.init(message.id, sessionId);
         setReactionId(res.data.reactionId);
         onInitReactionId?.(res.data.reactionId);
-      } catch (error) {
-        console.error('❌ Failed to create reaction:', error);
-        setPermissionError('Unable to create a reaction session. Please refresh and try again.');
+      } catch (err) {
+        console.error('❌ Failed to create reaction:', err);
+        setPermissionError('Unable to start a reaction session. Please refresh and try again.');
       }
     };
-    createReaction();
+
+    initReaction();
   }, [message.id, sessionId]);
 
   const handleReactionComplete = async (blob: Blob) => {
@@ -96,27 +94,12 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     }
   };
 
-  const handlePermissionDenied = (error: string) => {
-    setPermissionError(error);
-  };
-
-  const handlePasscodeSubmit = async (passcode: string) => {
-    const isValid = await onSubmitPasscode(passcode);
-    if (isValid) setPasscodeVerified(true);
-    return isValid;
-  };
-
-  const handleCountdownComplete = () => {
-    setTimeout(() => {
-      setCountdownComplete(true);
-    }, 0);
-  };
-
   const handleSendReply = async () => {
     const text = replyText.trim();
     if (!text || !reactionId) return;
     setIsSendingReply(true);
     setReplyError(null);
+
     try {
       await repliesApi.sendText(reactionId, text);
       setReplyText('');
@@ -127,6 +110,16 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     } finally {
       setIsSendingReply(false);
     }
+  };
+
+  const handlePasscodeSubmit = async (passcode: string) => {
+    const valid = await onSubmitPasscode(passcode);
+    if (valid) setPasscodeVerified(true);
+    return valid;
+  };
+
+  const handleCountdownComplete = () => {
+    setTimeout(() => setCountdownComplete(true), 0);
   };
 
   if (!passcodeVerified && message.hasPasscode) {
@@ -185,7 +178,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         </div>
       )}
 
-      {/* Text Reply */}
       <div className="mt-6">
         <h3 className="mb-2 text-xl font-semibold text-neutral-900 dark:text-white">
           Reply to {message.sender?.name || 'the sender'}
@@ -228,9 +220,9 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           maxDuration={15000}
           countdownDuration={5}
           onPermissionDenied={handlePermissionDenied}
-          autoStart={true}
+          autoStart
           onCountdownComplete={handleCountdownComplete}
-          hidePreviewAfterCountdown={true}
+          hidePreviewAfterCountdown
         />
       )}
       {countdownComplete && renderMessageContent()}
