@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import useWebcam from '../../hooks/useWebcam';
 import useMediaRecorder from '../../hooks/useMediaRecorder';
 import { supportsMediaRecording } from '../../utils/validators';
@@ -92,14 +92,12 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     };
   }, [isBrowserSupported, webcamInitialized, autoStart]);
 
-  // Ensure video stream is reattached when toggling preview on
   useEffect(() => {
     if (showPreview && stream && videoRef.current) {
       videoRef.current.srcObject = stream;
     }
   }, [showPreview, stream]);
 
-  // Cleanup video stream on unmount
   useEffect(() => {
     return () => {
       if (videoRef.current?.srcObject) {
@@ -122,7 +120,6 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     }
   }, [recordingStatus, recordedBlob, recordingCompleted]);
 
-  // Countdown logic
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (showCountdown && countdownValue > 0) {
@@ -137,9 +134,9 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
               setIsRecording(true);
               setRecordingCountdown(maxDuration / 1000);
               onCountdownComplete?.();
-              if (hidePreviewAfterCountdown) {
+
+              if (hidePreviewAfterCountdown && !previewManuallyToggled) {
                 setShowPreview(false);
-                setPreviewManuallyToggled(false);
               }
             } else {
               const err = 'Camera stream not available after countdown.';
@@ -216,7 +213,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       <h2 className="text-xl font-semibold mb-2">Record Your Reaction</h2>
 
       <div className="w-full max-w-md mb-4">
-        {showCountdown || (showPreview && !recordingCompleted) ? (
+        {showPreview && !recordingCompleted ? (
           <video
             ref={videoRef}
             autoPlay
