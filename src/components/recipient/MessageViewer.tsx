@@ -48,13 +48,29 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     : '';
 
   const [sessionId] = useState(() => {
-    const key = `reaction-session-${message.id}`;
-    const stored = localStorage.getItem(key);
-    if (stored) return stored;
-    const newSession = uuidv4();
-    localStorage.setItem(key, newSession);
-    return newSession;
-  });
+      const key = `reaction-session-${message.id}`;
+      const raw = localStorage.getItem(key);
+    
+      const now = Date.now();
+      const SESSION_EXPIRY_MS = 1000 * 60 * 5; // 5 minutes
+    
+      if (raw) {
+        try {
+          const { id, createdAt } = JSON.parse(raw);
+          if (now - createdAt < SESSION_EXPIRY_MS) {
+            return id; // Reuse session if within expiry
+          }
+        } catch {
+          // ignore invalid JSON
+        }
+      }
+    
+      // Create new session
+      const newSession = uuidv4();
+      localStorage.setItem(key, JSON.stringify({ id: newSession, createdAt: now }));
+      return newSession;
+    });
+
 
   useEffect(() => {
     const createReaction = async () => {
