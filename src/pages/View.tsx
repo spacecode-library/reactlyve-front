@@ -87,17 +87,15 @@ const View: React.FC = () => {
   };
 
   // 📹 Handle video reaction
-  const handleRecordReaction = async (messageId: string, videoBlob: Blob): Promise<void> => {
-    try {
-      const res = await reactionsApi.upload(messageId, videoBlob);
-      lastRecordedReactionId.current = res.data.reactionId;
-      toast.success('Your reaction has been recorded!');
-    } catch (error) {
-      console.error('Error uploading reaction:', error);
-      toast.error('Failed to upload reaction. Please try again.');
-      throw error;
-    }
+  const handleRecordReaction = async (messageId: string, _videoBlob: Blob): Promise<void> => {
+    // Use the existing reactionId if needed
+    lastRecordedReactionId.current = reactionIdRef.current;
+  
+    // Optional: show a toast or log the event
+    toast.success('Your reaction has been recorded!');
+    console.log(`Reaction complete for message ${messageId}, reactionId: ${reactionIdRef.current}`);
   };
+
 
   // 💬 Handle text reply
   const handleSendTextReply = async (_messageId: string, text: string): Promise<void> => {
