@@ -1,3 +1,4 @@
+// MessageViewer.tsx
 import React, { useState, useEffect } from 'react';
 import WebcamRecorder from './WebcamRecorder';
 import PermissionRequest from './PermissionRequest';
@@ -8,6 +9,7 @@ import { Message } from '../../types/message';
 import { normalizeMessage } from '../../utils/normalizeKeys';
 import { reactionsApi, repliesApi } from '../../services/api';
 import { v4 as uuidv4 } from 'uuid';
+import toast from 'react-hot-toast';
 
 interface MessageViewerProps {
   message: Message;
@@ -30,14 +32,15 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 }) => {
   const normalizedMessage = normalizeMessage(message);
   const [reactionId, setReactionId] = useState<string | null>(null);
-  const [showRecorder, setShowRecorder] = useState<boolean>(!normalizedMessage.videoUrl);
-  const [isReactionRecorded, setIsReactionRecorded] = useState<boolean>(!!normalizedMessage.videoUrl);
+  const [showRecorder, setShowRecorder] = useState<boolean>(true);
+  const [isReactionRecorded, setIsReactionRecorded] = useState<boolean>(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [passcodeVerified, setPasscodeVerified] = useState<boolean>(message.passcodeVerified || !message.hasPasscode);
-  const [countdownComplete, setCountdownComplete] = useState<boolean>(!!normalizedMessage.videoUrl);
+  const [countdownComplete, setCountdownComplete] = useState<boolean>(false);
   const [replyText, setReplyText] = useState<string>('');
   const [isSendingReply, setIsSendingReply] = useState<boolean>(false);
   const [replyError, setReplyError] = useState<string | null>(null);
+  const [showReactionVideo, setShowReactionVideo] = useState<boolean>(true);
   const navigate = useNavigate();
 
   const formattedDate = message.createdAt
@@ -48,15 +51,11 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     const key = `reaction-session-${message.id}`;
     const stored = localStorage.getItem(key);
     if (stored) return stored;
-
     const newSession = uuidv4();
     localStorage.setItem(key, newSession);
     return newSession;
   });
 
-  console.log('Session ID:', sessionId, 'for message:', message.id);
-
-  // Always create a new reaction on mount
   useEffect(() => {
     const createReaction = async () => {
       try {
@@ -71,14 +70,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     createReaction();
   }, [message.id, sessionId]);
 
-  useEffect(() => {
-    if (normalizedMessage.videoUrl) {
-      setIsReactionRecorded(true);
-      setShowRecorder(false);
-      setCountdownComplete(true);
-    }
-  }, [normalizedMessage.videoUrl]);
-
   const handleReactionComplete = async (blob: Blob) => {
     try {
       if (!reactionId) throw new Error('Missing reaction ID');
@@ -86,6 +77,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       await onRecordReaction(message.id, blob);
       setIsReactionRecorded(true);
       setShowRecorder(false);
+      toast.success('Reaction uploaded successfully!');
     } catch (error) {
       console.error('Reaction save error:', error);
       setPermissionError('An error occurred while saving your reaction. Please try again.');
@@ -111,13 +103,12 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const handleSendReply = async () => {
     const text = replyText.trim();
     if (!text || !reactionId) return;
-
     setIsSendingReply(true);
     setReplyError(null);
-
     try {
       await repliesApi.sendText(reactionId, text);
       setReplyText('');
+      toast.success('Reply sent successfully!');
     } catch (error) {
       console.error('Reply error:', error);
       setReplyError('Failed to send reply. Please try again.');
@@ -148,14 +139,13 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   const renderMessageContent = () => (
     <div className="card w-full max-w-2xl mx-auto animate-slide-up">
-      {/* Sender Info */}
       {message.sender && (
         <div className="mb-4 flex items-center">
-          <div className="h-10 w-10 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
+          <div className="h-10 w-10 rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
             {message.sender.picture ? (
               <img src={message.sender.picture} alt={message.sender.name} className="h-full w-full object-cover" />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-primary-600 text-white">
+              <div className="flex items-center justify-center h-full w-full bg-primary-600 text-white">
                 {message.sender.name.charAt(0).toUpperCase()}
               </div>
             )}
@@ -167,26 +157,34 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         </div>
       )}
 
-      {/* Message Content */}
       <div className="prose prose-neutral dark:prose-invert">
-        <p className="whitespace-pre-wrap text-neutral-800 dark:text-neutral-200">
-          {message.content}
-        </p>
+        <p className="whitespace-pre-wrap text-neutral-800 dark:text-neutral-200">{message.content}</p>
       </div>
 
-      {/* Media */}
       {normalizedMessage.mediaType === 'image' && normalizedMessage.imageUrl && (
-        <div className="mt-4 overflow-hidden rounded-lg">
+        <div className="mt-4 rounded-lg overflow-hidden">
           <img src={normalizedMessage.imageUrl} alt="Message attachment" className="w-full object-cover" />
         </div>
       )}
+
       {normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl && (
-        <div className="mt-4 overflow-hidden rounded-lg">
+        <div className="mt-4 rounded-lg overflow-hidden">
           <video src={normalizedMessage.videoUrl} controls className="w-full object-cover" />
         </div>
       )}
 
-      {/* Reply Section */}
+      {/* Reaction Video */}
+      {isReactionRecorded && showReactionVideo && (
+        <div className="mt-6">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-neutral-800 dark:text-white">Your Reaction</h3>
+            <button onClick={() => setShowReactionVideo(false)} className="text-sm text-primary-500 hover:underline">Hide</button>
+          </div>
+          <video controls src={normalizedMessage.videoUrl} className="w-full rounded-lg mt-2" />
+        </div>
+      )}
+
+      {/* Text Reply */}
       <div className="mt-6">
         <h3 className="mb-2 text-xl font-semibold text-neutral-900 dark:text-white">
           Reply to {message.sender?.name || 'the sender'}
