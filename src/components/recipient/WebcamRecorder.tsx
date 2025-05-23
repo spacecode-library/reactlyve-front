@@ -252,7 +252,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       {recordingCompleted && (
         <p className="text-green-600 mt-2">Recording complete!</p>
       )}
-      {webcamInitialized && !permissionError && (
+      {isRecording && (
         <button
           className="text-sm text-primary-600 underline mt-2"
           onClick={() => {
