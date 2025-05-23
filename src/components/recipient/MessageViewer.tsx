@@ -17,6 +17,7 @@ interface MessageViewerProps {
   onSubmitPasscode: (passcode: string) => Promise<boolean>;
   onSendTextReply?: (messageId: string, text: string) => Promise<void>;
   onInitReactionId?: (id: string) => void;
+  onLocalRecordingComplete?: () => void; // Add this line
 }
 
 const MessageViewer: React.FC<MessageViewerProps> = ({
@@ -27,6 +28,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   onSubmitPasscode,
   onSendTextReply,
   onInitReactionId,
+  onLocalRecordingComplete, // Add this
 }) => {
   const normalizedMessage = normalizeMessage(message);
   const [reactionId, setReactionId] = useState<string | null>(null);
@@ -66,11 +68,12 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const handleReactionComplete = async (blob: Blob) => {
     try {
       if (!reactionId) throw new Error('Missing reaction ID');
+      onLocalRecordingComplete?.(); // Call the new prop here
       await reactionsApi.uploadVideoToReaction(reactionId, blob);
       await onRecordReaction(message.id, blob);
       setIsReactionRecorded(true);
       setShowRecorder(false);
-      toast.success('Reaction uploaded successfully!');
+      toast.success('Reaction uploaded successfully!'); // This is MessageViewer's toast
     } catch (error) {
       console.error('Reaction save error:', error);
       setPermissionError('An error occurred while saving your reaction. Please try again.');
@@ -103,7 +106,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   const handleCountdownComplete = () => {
     setCountdownComplete(true);
-  setShowRecorder(false); // Add this line
   };
 
   if (!passcodeVerified && message.hasPasscode) {
