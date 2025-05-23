@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import WebcamRecorder from './WebcamRecorder';
 import PermissionRequest from './PermissionRequest';
 import PasscodeEntry from './PasscodeEntry';
@@ -40,6 +40,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const [replyText, setReplyText] = useState('');
   const [isSendingReply, setIsSendingReply] = useState(false);
   const [replyError, setReplyError] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const formattedDate = message.createdAt
     ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
@@ -63,7 +64,19 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       }
     };
     initReaction();
-  }, [message.id, sessionId]);
+  }, [message.id, sessionId, onInitReactionId]); // Added onInitReactionId to dependency array
+
+  useEffect(() => {
+    // Only attempt to play if the message content (which includes the video) is supposed to be visible.
+    // This depends on the `countdownComplete` state in this specific component.
+    if (videoRef.current && countdownComplete) {
+      videoRef.current.play().catch(error => {
+        console.warn("Unmuted autoplay was prevented by the browser:", error);
+        // Browser prevented unmuted autoplay.
+        // Controls are visible, so user can manually play.
+      });
+    }
+  }, [normalizedMessage.videoUrl, countdownComplete]); // Re-run if videoUrl or countdownComplete changes
 
   const handleReactionComplete = async (blob: Blob) => {
     try {
@@ -160,7 +173,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
       {normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl && (
         <div className="mt-4 rounded-lg overflow-hidden">
-          <video src={normalizedMessage.videoUrl} controls className="w-full object-cover" />
+          <video ref={videoRef} src={normalizedMessage.videoUrl} controls autoPlay playsInline className="w-full object-cover" />
         </div>
       )}
 

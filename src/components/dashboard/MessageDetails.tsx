@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Message } from '../../types/message';
 import ReactionViewer from './ReactionViewer';
 import { formatDate } from '../../utils/formatters';
@@ -12,6 +12,18 @@ interface MessageDetailsProps {
 
 const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReaction }) => {
   const normalizedMessage = normalizeMessage(message);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(error => {
+        console.warn("Unmuted autoplay was prevented by the browser:", error);
+        // Browser prevented unmuted autoplay.
+        // Controls are visible, so user can manually play.
+      });
+    }
+  }, [normalizedMessage.videoUrl]); // Re-run if videoUrl changes
+
   return (
     <div className="mx-auto w-full max-w-3xl p-6 bg-white dark:bg-neutral-900 rounded-md shadow">
       {/* Message Header */}
@@ -31,8 +43,8 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
       {normalizedMessage.imageUrl && normalizedMessage.mediaType === 'image' && (
         <img src={normalizedMessage.imageUrl} alt="Message media" className="rounded-md mb-4 w-full" />
       )}
-      {normalizedMessage.imageUrl && normalizedMessage.mediaType === 'video' && (
-        <video src={normalizedMessage.videoUrl} controls className="rounded-md mb-4 w-full" />
+      {normalizedMessage.videoUrl && normalizedMessage.mediaType === 'video' && (
+        <video ref={videoRef} src={normalizedMessage.videoUrl} controls autoPlay playsInline className="rounded-md mb-4 w-full" />
       )}
 
       {/* Shareable Link */}
