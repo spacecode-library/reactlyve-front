@@ -57,7 +57,24 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     startRecording,
     stopRecording,
     clearRecording,
+    error: mediaRecorderError, // Ensure this is destructured
   } = useMediaRecorder({ stream, maxDuration });
+
+  useEffect(() => {
+    if (mediaRecorderError) {
+      setPermissionError(`Recording error: ${mediaRecorderError.message}`);
+      setIsRecording(false); // Ensure we are not in recording state
+    }
+  }, [mediaRecorderError]);
+
+  useEffect(() => {
+    if (recordingStatus === 'error') {
+      // This case might be redundant if mediaRecorderError useEffect handles it,
+      // but good as a fallback.
+      setPermissionError(mediaRecorderError?.message || 'An unknown recording error occurred.');
+      setIsRecording(false);
+    }
+  }, [recordingStatus, mediaRecorderError]); // Added mediaRecorderError here too
 
   useEffect(() => {
     setIsBrowserSupported(supportsMediaRecording());
@@ -112,13 +129,17 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       setRecordingCompleted(true);
       setIsRecording(false);
       onRecordingComplete(recordedBlob);
+      stopWebcam(); // Add this line to deactivate the webcam
 
+      // The following lines that manually stop tracks on videoRef.current.srcObject
+      // might become redundant if stopWebcam() already handles stream track stopping.
+      // For now, we can leave them, but it's something to note.
       if (videoRef.current?.srcObject) {
         (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
         videoRef.current.srcObject = null;
       }
     }
-  }, [recordingStatus, recordedBlob, recordingCompleted]);
+  }, [recordingStatus, recordedBlob, recordingCompleted, onRecordingComplete, stopWebcam]); // Add onRecordingComplete and stopWebcam
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -151,11 +172,15 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   }, [showCountdown, countdownValue, stream]);
 
   useEffect(() => {
-    // When recording begins, auto-hide preview if requested and not manually toggled
-    if (isRecording && hidePreviewAfterCountdown && !previewManuallyToggled) {
+    // When recording begins or countdown finishes, auto-hide preview if requested and not manually toggled
+    if (
+      (isRecording || !showCountdown) &&
+      hidePreviewAfterCountdown &&
+      !previewManuallyToggled
+    ) {
       setShowPreview(false);
     }
-  }, [isRecording, hidePreviewAfterCountdown, previewManuallyToggled]);
+  }, [isRecording, showCountdown, hidePreviewAfterCountdown, previewManuallyToggled]);
 
   useEffect(() => {
     if (showCountdown) setCountdownValue(countdownDuration);
@@ -222,7 +247,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     <div className={classNames('flex flex-col items-center', className || '')}>
       <h2 className="text-xl font-semibold mb-2">Record Your Reaction</h2>
 
-      {(showPreview || (!previewManuallyToggled && (showCountdown || isRecording))) && (
+      {((showCountdown && !previewManuallyToggled) || showPreview) && (
         <div className="w-full max-w-md my-4">
           <video
             ref={videoRef}
@@ -244,7 +269,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       {recordingCompleted && (
         <p className="text-green-600 mt-2">Recording complete!</p>
       )}
-      {isRecording && !recordingCompleted && (
+      {isRecording && (
         <button
           className="text-sm text-primary-600 underline mt-2"
           onClick={() => {
