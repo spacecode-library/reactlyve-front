@@ -258,7 +258,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           </button>
         </div>
       )}
-      {showRecorder && isNameSubmitted && (
+      {showRecorder && !isReactionRecorded && ( // Condition updated
         <WebcamRecorder
           onRecordingComplete={handleReactionComplete}
           onCancel={() => { /* Consider what cancel means in this new flow */ }}
@@ -267,7 +267,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           onPermissionDenied={(err) => setPermissionError(err)}
           autoStart={false} // Explicitly set to false
           triggerCountdownSignal={triggerCountdown} // New prop
-          // onCountdownComplete={handleCountdownComplete} // This prop might need to change if countdown is managed outside
+          onCountdownComplete={handleCountdownComplete} // This prop might need to change if countdown is managed outside
           hidePreviewAfterCountdown={true}
           // The WebcamRecorder might need a new prop to trigger its countdown if it's not auto-starting
         />
