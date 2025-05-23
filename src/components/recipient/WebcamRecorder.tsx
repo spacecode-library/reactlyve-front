@@ -121,44 +121,40 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   }, [recordingStatus, recordedBlob, recordingCompleted]);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (showCountdown && countdownValue > 0) {
-      interval = setInterval(() => {
-        setCountdownValue(prev => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            setShowCountdown(false);
-
-            if (webcamInitialized && stream) {
-              startRecording();
-              setIsRecording(true);
-              setRecordingCountdown(maxDuration / 1000);
-              onCountdownComplete?.();
-            } else {
-              const err = 'Camera stream not available after countdown.';
-              setPermissionError(err);
-              onPermissionDenied?.(err);
+      let interval: NodeJS.Timeout;
+      if (showCountdown && countdownValue > 0) {
+        interval = setInterval(() => {
+          setCountdownValue(prev => {
+            if (prev <= 1) {
+              clearInterval(interval);
+              setShowCountdown(false);
+    
+              if (webcamInitialized && stream) {
+                startRecording();
+                setIsRecording(true);
+                setRecordingCountdown(maxDuration / 1000);
+                onCountdownComplete?.();
+    
+                // ✅ Move the preview auto-hide here directly:
+                if (hidePreviewAfterCountdown && !previewManuallyToggled) {
+                  setShowPreview(false);
+                }
+              } else {
+                const err = 'Camera stream not available after countdown.';
+                setPermissionError(err);
+                onPermissionDenied?.(err);
+              }
+    
+              return 0;
             }
+            return prev - 1;
+          });
+        }, 1000);
+      }
+    
+      return () => clearInterval(interval);
+    }, [showCountdown, countdownValue, stream, hidePreviewAfterCountdown, previewManuallyToggled]);
 
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-
-    return () => clearInterval(interval);
-  }, [showCountdown, countdownValue, stream]);
-
-  useEffect(() => {
-    if (
-      countdownValue === 0 &&
-      hidePreviewAfterCountdown &&
-      !previewManuallyToggled
-    ) {
-      setShowPreview(false);
-    }
-  }, [countdownValue, hidePreviewAfterCountdown, previewManuallyToggled]);
   
   useEffect(() => {
     if (showCountdown) setCountdownValue(countdownDuration);
