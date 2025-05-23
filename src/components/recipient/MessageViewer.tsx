@@ -45,6 +45,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const [replyText, setReplyText] = useState('');
   const [isSendingReply, setIsSendingReply] = useState(false);
   const [replyError, setReplyError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false); // New state
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const formattedDate = message.createdAt
@@ -70,17 +71,21 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   }, [normalizedMessage.videoUrl, countdownComplete]); // Re-run if videoUrl or countdownComplete changes
 
   const handleReactionComplete = async (blob: Blob) => {
+    setIsUploading(true); // Set true before try
     try {
       if (!reactionId) throw new Error('Missing reaction ID');
-      onLocalRecordingComplete?.(); // Call the new prop here
+      onLocalRecordingComplete?.();
       await reactionsApi.uploadVideoToReaction(reactionId, blob);
       await onRecordReaction(message.id, blob);
       setIsReactionRecorded(true);
       setShowRecorder(false);
-      toast.success('Reaction uploaded successfully!'); // This is MessageViewer's toast
+      toast.success('Reaction uploaded successfully!');
     } catch (error) {
       console.error('Reaction save error:', error);
       setPermissionError('An error occurred while saving your reaction. Please try again.');
+      // Consider if setIsReactionRecorded(false) or other state resets are needed on error
+    } finally {
+      setIsUploading(false); // Set false in finally
     }
   };
 
@@ -250,6 +255,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           hidePreviewAfterCountdown={true}
           onStatusUpdate={setWebcamStatusMessage} // New prop
           onWebcamError={setWebcamInlineError}   // New prop
+          isUploading={isUploading} // Pass the state here
           // The WebcamRecorder might need a new prop to trigger its countdown if it's not auto-starting
         />
       )}
