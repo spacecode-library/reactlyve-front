@@ -49,7 +49,16 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     videoRef,
     startWebcam,
     stopWebcam,
+    error: webcamHookError, // Destructure error as webcamHookError
   } = useWebcam({ facingMode: 'user', audio: true });
+
+  useEffect(() => {
+    if (webcamHookError) {
+      setPermissionError(`Webcam error: ${webcamHookError.message}`);
+      setWebcamInitialized(false);
+      setShowCountdown(false); // Prevent countdown if webcam failed
+    }
+  }, [webcamHookError]);
 
   const {
     status: recordingStatus,
@@ -87,10 +96,17 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       setRetryMessage(`Requesting webcam access... (Attempt ${attempt + 1} of ${MAX_RETRY_ATTEMPTS})`);
       try {
         await startWebcam();
+
+        // New check for stream after startWebcam completes
+        if (!stream) {
+          throw new Error('Webcam stream not available after initialization.');
+        }
+
         setWebcamInitialized(true);
         setRetryMessage('');
         if (autoStart) setShowCountdown(true);
       } catch (err) {
+        // The existing catch block will handle errors from startWebcam() or the explicit throw
         if (attempt + 1 < MAX_RETRY_ATTEMPTS) {
           setTimeout(() => tryInitializeWebcam(attempt + 1), RETRY_DELAY);
         } else {
