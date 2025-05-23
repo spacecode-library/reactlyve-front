@@ -134,10 +134,6 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
               setIsRecording(true);
               setRecordingCountdown(maxDuration / 1000);
               onCountdownComplete?.();
-
-              if (hidePreviewAfterCountdown && !previewManuallyToggled) {
-                setShowPreview(false);
-              }
             } else {
               const err = 'Camera stream not available after countdown.';
               setPermissionError(err);
@@ -154,6 +150,16 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     return () => clearInterval(interval);
   }, [showCountdown, countdownValue, stream]);
 
+  useEffect(() => {
+    if (
+      countdownValue === 0 &&
+      hidePreviewAfterCountdown &&
+      !previewManuallyToggled
+    ) {
+      setShowPreview(false);
+    }
+  }, [countdownValue, hidePreviewAfterCountdown, previewManuallyToggled]);
+  
   useEffect(() => {
     if (showCountdown) setCountdownValue(countdownDuration);
   }, [showCountdown, countdownDuration]);
