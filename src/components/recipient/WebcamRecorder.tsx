@@ -156,10 +156,12 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   }, [stream, webcamInitialized, autoStart, onPermissionDenied, webcamHookError, countdownHasOccurred, isRecording, recordingCompleted]); // Dependencies updated
 
   useEffect(() => {
-    if (showPreview && stream && videoRef.current) {
+    if (showPreview && stream && videoRef.current && webcamInitialized) {
       videoRef.current.srcObject = stream;
+    } else if (!stream && videoRef.current) { // Optional: Clear if stream becomes null
+      videoRef.current.srcObject = null;
     }
-  }, [showPreview, stream]);
+  }, [showPreview, stream, webcamInitialized, videoRef]); // Added webcamInitialized and videoRef to dependencies
 
   useEffect(() => {
     return () => {
