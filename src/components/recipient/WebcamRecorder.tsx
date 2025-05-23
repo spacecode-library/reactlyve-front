@@ -151,11 +151,15 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   }, [showCountdown, countdownValue, stream]);
 
   useEffect(() => {
-    // When recording begins, auto-hide preview if requested and not manually toggled
-    if (isRecording && hidePreviewAfterCountdown && !previewManuallyToggled) {
+    // When recording begins or countdown finishes, auto-hide preview if requested and not manually toggled
+    if (
+      (isRecording || !showCountdown) &&
+      hidePreviewAfterCountdown &&
+      !previewManuallyToggled
+    ) {
       setShowPreview(false);
     }
-  }, [isRecording, hidePreviewAfterCountdown, previewManuallyToggled]);
+  }, [isRecording, showCountdown, hidePreviewAfterCountdown, previewManuallyToggled]);
 
   useEffect(() => {
     if (showCountdown) setCountdownValue(countdownDuration);
@@ -244,7 +248,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       {recordingCompleted && (
         <p className="text-green-600 mt-2">Recording complete!</p>
       )}
-      {isRecording && !recordingCompleted && (
+      {webcamInitialized && !permissionError && (
         <button
           className="text-sm text-primary-600 underline mt-2"
           onClick={() => {
