@@ -212,7 +212,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           Reply to {message.sender?.name || 'the sender'}
         </h3>
         <p className="mb-4 text-neutral-600 dark:text-neutral-300">
-          Share your thoughts or say thanks—your reply means a lot!
+          Share your thoughts or say thanks
         </p>
         <div className="flex items-center space-x-3">
           <textarea
