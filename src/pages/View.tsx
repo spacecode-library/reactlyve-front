@@ -158,7 +158,13 @@ const View: React.FC = () => {
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900">
         <MessageViewer
           message={message}
-          onRecordReaction={handleRecordReaction}
+          onRecordReaction={async () => {}} // Changed to an async no-op function
+          onLocalRecordingComplete={() => {
+            // Create dummy arguments to satisfy the signature of handleRecordReaction
+            const dummyMessageId = message?.id || 'local_recording'; // Use message.id if available, else a placeholder
+            const dummyBlob = new Blob();
+            handleRecordReaction(dummyMessageId, dummyBlob);
+          }}
           onSkipReaction={handleSkipReaction}
           onSubmitPasscode={handleSubmitPasscode}
           onSendTextReply={handleSendTextReply}
