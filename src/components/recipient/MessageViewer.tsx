@@ -35,6 +35,8 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const [recipientName, setRecipientName] = useState<string>('');
   const [isNameSubmitted, setIsNameSubmitted] = useState(false);
   const [triggerCountdown, setTriggerCountdown] = useState(false);
+  const [webcamStatusMessage, setWebcamStatusMessage] = useState<string | null>(null);
+  const [webcamInlineError, setWebcamInlineError] = useState<string | null>(null);
   const [showRecorder, setShowRecorder] = useState(true);
   const [isReactionRecorded, setIsReactionRecorded] = useState(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
@@ -246,13 +248,15 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           triggerCountdownSignal={triggerCountdown} // New prop
           onCountdownComplete={handleCountdownComplete} // This prop might need to change if countdown is managed outside
           hidePreviewAfterCountdown={true}
+          onStatusUpdate={setWebcamStatusMessage} // New prop
+          onWebcamError={setWebcamInlineError}   // New prop
           // The WebcamRecorder might need a new prop to trigger its countdown if it's not auto-starting
         />
       )}
       {showRecorder && !isNameSubmitted && ( // Name Input Section comes after
         <div className="mb-4 w-full max-w-md">
           <label htmlFor="recipientName" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-            Your Name (Optional but Recommended)
+            Say hello with your name
           </label>
           <input
             type="text"
@@ -270,6 +274,12 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           >
             Start Reaction
           </button>
+          {!permissionError && webcamStatusMessage && (
+            <p className="text-sm text-gray-500 mt-2">{webcamStatusMessage}</p>
+          )}
+          {!permissionError && webcamInlineError && (
+            <p className="text-sm text-red-600 mt-2">{webcamInlineError}</p>
+          )}
         </div>
       )}
       {countdownComplete && renderMessageContent()}
