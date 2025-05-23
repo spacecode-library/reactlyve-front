@@ -15,6 +15,7 @@ interface WebcamRecorderProps {
   onCountdownComplete?: () => void;
   isReplyMode?: boolean;
   hidePreviewAfterCountdown?: boolean;
+  triggerCountdownSignal?: boolean;
 }
 
 const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
@@ -41,6 +42,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   const [showPreview, setShowPreview] = useState(true);
   const [previewManuallyToggled, setPreviewManuallyToggled] = useState(false);
   const [countdownHasOccurred, setCountdownHasOccurred] = useState(false); // New state variable
+  // triggerCountdownSignal is a prop, not state here
 
   const MAX_RETRY_ATTEMPTS = 3;
   const RETRY_DELAY = 2000;
@@ -250,6 +252,14 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       videoRef.current.srcObject = stream;
     }
   }, [showCountdown, isRecording, stream]);
+
+  useEffect(() => {
+    if (triggerCountdownSignal && !isRecording && !recordingCompleted && webcamInitialized && stream) {
+      // Check webcamInitialized and stream to ensure webcam is ready
+      // Check !isRecording and !recordingCompleted to prevent re-triggering
+      setShowCountdown(true);
+    }
+  }, [triggerCountdownSignal, webcamInitialized, stream, isRecording, recordingCompleted]);
 
   const handleRetryWebcam = () => {
     setWebcamInitialized(false);

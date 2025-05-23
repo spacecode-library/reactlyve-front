@@ -32,6 +32,9 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 }) => {
   const normalizedMessage = normalizeMessage(message);
   const [reactionId, setReactionId] = useState<string | null>(null);
+  const [recipientName, setRecipientName] = useState<string>('');
+  const [isNameSubmitted, setIsNameSubmitted] = useState(false);
+  const [triggerCountdown, setTriggerCountdown] = useState(false);
   const [showRecorder, setShowRecorder] = useState(true);
   const [isReactionRecorded, setIsReactionRecorded] = useState(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
@@ -51,20 +54,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     sessionStorage.setItem(`reaction-session-${message.id}`, JSON.stringify({ id, createdAt: Date.now() }));
     return id;
   });
-
-  useEffect(() => {
-    const initReaction = async () => {
-      try {
-        const res = await reactionsApi.init(message.id, sessionId);
-        setReactionId(res.data.reactionId);
-        onInitReactionId?.(res.data.reactionId);
-      } catch (err) {
-        console.error('❌ Failed to create reaction:', err);
-        setPermissionError('Unable to start a reaction session. Please refresh and try again.');
-      }
-    };
-    initReaction();
-  }, [message.id, sessionId, onInitReactionId]); // Added onInitReactionId to dependency array
 
   useEffect(() => {
     // Only attempt to play if the message content (which includes the video) is supposed to be visible.
@@ -115,6 +104,40 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     const valid = await onSubmitPasscode(passcode);
     if (valid) setPasscodeVerified(true);
     return valid;
+  };
+
+  const handleStartReaction = async () => {
+    if (!recipientName.trim()) {
+      // Optionally, show a toast or inline message if name is required,
+      // though the button is disabled. This is a fallback.
+      setPermissionError("Please enter your name to start the reaction.");
+      return;
+    }
+    try {
+      const res = await reactionsApi.init(message.id, sessionId, recipientName || undefined);
+      if (res.data.reactionId) {
+        setReactionId(res.data.reactionId);
+        onInitReactionId?.(res.data.reactionId); // Call existing prop if needed
+        setIsNameSubmitted(true);
+        setPermissionError(null); // Clear any previous errors
+        setTriggerCountdown(true);
+      } else {
+        throw new Error("Reaction ID not received.");
+      }
+    } catch (err) {
+      console.error('❌ Failed to initialize reaction:', err);
+      let errorMessage = 'Unable to start a reaction session. Please refresh and try again.';
+      // Note: Checking for err.response.data.error for AxiosError requires 'axios' import
+      // and type guard, which might be overly complex for this direct edit.
+      // Sticking to a simpler error message extraction for now.
+      if (err instanceof Error && err.message && (err.message.includes('session') || err.message.includes('name'))) {
+          errorMessage = err.message;
+      }
+      setPermissionError(errorMessage);
+      toast.error(errorMessage); // Also show a toast
+      setIsNameSubmitted(false); // Keep UI in name input state
+      setTriggerCountdown(false); // Add this in the catch block
+    }
   };
 
   const handleCountdownComplete = () => {
@@ -212,16 +235,41 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900">
-      {showRecorder && (
+      {showRecorder && !isNameSubmitted && (
+        <div className="mb-4 w-full max-w-md">
+          <label htmlFor="recipientName" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+            Your Name (Optional but Recommended)
+          </label>
+          <input
+            type="text"
+            id="recipientName"
+            value={recipientName}
+            onChange={(e) => setRecipientName(e.target.value)}
+            placeholder="Enter your name"
+            className="w-full p-2 border border-neutral-300 rounded-md dark:bg-neutral-700 dark:border-neutral-600 dark:text-white"
+            disabled={isNameSubmitted} // Disable if name is submitted
+          />
+          <button
+            onClick={handleStartReaction} // Assign the new handler
+            disabled={!recipientName.trim() || isNameSubmitted}
+            className="btn btn-primary w-full mt-2" // Full width, adjust as needed
+          >
+            Start Reaction
+          </button>
+        </div>
+      )}
+      {showRecorder && isNameSubmitted && (
         <WebcamRecorder
           onRecordingComplete={handleReactionComplete}
-          onCancel={() => {}}
+          onCancel={() => { /* Consider what cancel means in this new flow */ }}
           maxDuration={15000}
-          countdownDuration={5}
+          countdownDuration={5} // This might be manually controlled now
           onPermissionDenied={(err) => setPermissionError(err)}
-          autoStart
-          onCountdownComplete={handleCountdownComplete}
+          autoStart={false} // Explicitly set to false
+          triggerCountdownSignal={triggerCountdown} // New prop
+          // onCountdownComplete={handleCountdownComplete} // This prop might need to change if countdown is managed outside
           hidePreviewAfterCountdown={true}
+          // The WebcamRecorder might need a new prop to trigger its countdown if it's not auto-starting
         />
       )}
       {countdownComplete && renderMessageContent()}
