@@ -57,7 +57,24 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     startRecording,
     stopRecording,
     clearRecording,
+    error: mediaRecorderError, // Ensure this is destructured
   } = useMediaRecorder({ stream, maxDuration });
+
+  useEffect(() => {
+    if (mediaRecorderError) {
+      setPermissionError(`Recording error: ${mediaRecorderError.message}`);
+      setIsRecording(false); // Ensure we are not in recording state
+    }
+  }, [mediaRecorderError]);
+
+  useEffect(() => {
+    if (recordingStatus === 'error') {
+      // This case might be redundant if mediaRecorderError useEffect handles it,
+      // but good as a fallback.
+      setPermissionError(mediaRecorderError?.message || 'An unknown recording error occurred.');
+      setIsRecording(false);
+    }
+  }, [recordingStatus, mediaRecorderError]); // Added mediaRecorderError here too
 
   useEffect(() => {
     setIsBrowserSupported(supportsMediaRecording());
