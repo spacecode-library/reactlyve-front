@@ -40,6 +40,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   const [recordingCountdown, setRecordingCountdown] = useState<number | null>(null);
   const [showPreview, setShowPreview] = useState(true);
   const [previewManuallyToggled, setPreviewManuallyToggled] = useState(false);
+  const [countdownHasOccurred, setCountdownHasOccurred] = useState(false); // New state variable
 
   const MAX_RETRY_ATTEMPTS = 3;
   const RETRY_DELAY = 2000;
@@ -97,16 +98,17 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       try {
         await startWebcam();
 
-        // New check for stream after startWebcam completes
-        if (!stream) {
-          throw new Error('Webcam stream not available after initialization.');
-        }
+        // stream check removed
+        // setShowCountdown call removed
 
         setWebcamInitialized(true);
         setRetryMessage('');
-        if (autoStart) setShowCountdown(true);
+        // Note: if (autoStart) setShowCountdown(true); was removed from here
       } catch (err) {
         // The existing catch block will handle errors from startWebcam() or the explicit throw
+        // It's important that this catch block does NOT set webcamInitialized to true.
+        // If it's a final error, webcamInitialized should remain false or be set to false.
+        // The current catch block which sets permissionError is fine.
         if (attempt + 1 < MAX_RETRY_ATTEMPTS) {
           setTimeout(() => tryInitializeWebcam(attempt + 1), RETRY_DELAY);
         } else {
@@ -124,6 +126,31 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       stopRecording();
     };
   }, [isBrowserSupported, webcamInitialized, autoStart]);
+
+  useEffect(() => {
+    if (webcamInitialized) { // Only proceed if initialization was attempted and deemed successful by tryInitializeWebcam
+      if (stream) { // If stream is now available
+        if (autoStart && !countdownHasOccurred) { // Modified condition
+          setShowCountdown(true);
+        }
+        // Optional: Clear a permissionError if it was set by a previous failed attempt in this effect
+        // This might need careful consideration if setPermissionError(undefined) is appropriate here or if
+        // the webcamHookError effect already handles clearing it implicitly when webcamHookError becomes null.
+        // For now, let's focus on setShowCountdown.
+        // setPermissionError(undefined); // Potentially clear if stream is now OK.
+      } else if (!webcamHookError && !isRecording && !recordingCompleted) { // Condition updated
+        // Stream is not available, AND useWebcam hook itself hasn't reported an error,
+        // AND we are not currently recording or already completed.
+        // This is the "silent failure" or timing issue for the stream.
+        const errorMsg = 'Webcam stream not available after initialization attempt.';
+        setPermissionError(errorMsg);
+        setShowCountdown(false); // Ensure countdown doesn't start/continue
+        onPermissionDenied?.(errorMsg); // Notify parent if prop provided
+      }
+      // If webcamHookError is present, the other useEffect (dedicated to webcamHookError)
+      // should have already handled setting permissionError and setShowCountdown(false).
+    }
+  }, [stream, webcamInitialized, autoStart, onPermissionDenied, webcamHookError, countdownHasOccurred, isRecording, recordingCompleted]); // Dependencies updated
 
   useEffect(() => {
     if (showPreview && stream && videoRef.current) {
@@ -170,6 +197,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
               startRecording();
               setIsRecording(true);
               setRecordingCountdown(maxDuration / 1000);
+              setCountdownHasOccurred(true); // Set countdownHasOccurred to true
               onCountdownComplete?.();
             } else {
               const err = 'Camera stream not available after countdown.';
