@@ -29,6 +29,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   onCountdownComplete,
   isReplyMode = false,
   hidePreviewAfterCountdown = true,
+  triggerCountdownSignal, // Add triggerCountdownSignal here
 }) => {
   const [showCountdown, setShowCountdown] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
