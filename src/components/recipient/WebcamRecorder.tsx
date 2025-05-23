@@ -121,41 +121,42 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   }, [recordingStatus, recordedBlob, recordingCompleted]);
 
   useEffect(() => {
-      let interval: NodeJS.Timeout;
-      if (showCountdown && countdownValue > 0) {
-        interval = setInterval(() => {
-          setCountdownValue(prev => {
-            if (prev <= 1) {
-              clearInterval(interval);
-              setShowCountdown(false);
-    
-              if (webcamInitialized && stream) {
-                startRecording();
-                setIsRecording(true);
-                setRecordingCountdown(maxDuration / 1000);
-                onCountdownComplete?.();
-    
-                // ✅ Move the preview auto-hide here directly:
-                if (hidePreviewAfterCountdown && !previewManuallyToggled) {
-                  setShowPreview(false);
-                }
-              } else {
-                const err = 'Camera stream not available after countdown.';
-                setPermissionError(err);
-                onPermissionDenied?.(err);
-              }
-    
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-      }
-    
-      return () => clearInterval(interval);
-    }, [showCountdown, countdownValue, stream, hidePreviewAfterCountdown, previewManuallyToggled]);
+    let interval: NodeJS.Timeout;
+    if (showCountdown && countdownValue > 0) {
+      interval = setInterval(() => {
+        setCountdownValue(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            setShowCountdown(false);
 
-  
+            if (webcamInitialized && stream) {
+              startRecording();
+              setIsRecording(true);
+              setRecordingCountdown(maxDuration / 1000);
+              onCountdownComplete?.();
+            } else {
+              const err = 'Camera stream not available after countdown.';
+              setPermissionError(err);
+              onPermissionDenied?.(err);
+            }
+
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [showCountdown, countdownValue, stream]);
+
+  useEffect(() => {
+    // When recording begins, auto-hide preview if requested and not manually toggled
+    if (isRecording && hidePreviewAfterCountdown && !previewManuallyToggled) {
+      setShowPreview(false);
+    }
+  }, [isRecording, hidePreviewAfterCountdown, previewManuallyToggled]);
+
   useEffect(() => {
     if (showCountdown) setCountdownValue(countdownDuration);
   }, [showCountdown, countdownDuration]);
@@ -174,9 +175,8 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     return () => clearInterval(interval);
   }, [isRecording, recordingCountdown]);
 
-
   useEffect(() => {
-    // Attach the stream to video element before and during countdown
+    // Attach stream again during countdown or recording if lost
     if ((showCountdown || isRecording) && stream && videoRef.current) {
       videoRef.current.srcObject = stream;
     }
@@ -233,7 +233,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
           />
         </div>
       )}
-      
+
       {retryMessage && <p className="text-sm text-gray-500">{retryMessage}</p>}
       {showCountdown && <div className="text-4xl font-bold text-blue-500 mt-2">{countdownValue}</div>}
       {isRecording && (
