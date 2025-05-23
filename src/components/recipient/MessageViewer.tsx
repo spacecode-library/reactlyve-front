@@ -103,6 +103,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   const handleCountdownComplete = () => {
     setCountdownComplete(true);
+  setShowRecorder(false); // Add this line
   };
 
   if (!passcodeVerified && message.hasPasscode) {
