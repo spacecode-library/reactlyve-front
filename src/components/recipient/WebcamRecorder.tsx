@@ -18,6 +18,7 @@ interface WebcamRecorderProps {
   triggerCountdownSignal?: boolean;
   onStatusUpdate?: (message: string | null) => void;
   onWebcamError?: (message: string | null) => void;
+  isUploading?: boolean; // New prop
 }
 
 const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
@@ -34,6 +35,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   triggerCountdownSignal,
   onStatusUpdate,
   onWebcamError,
+  isUploading = false, // Destructure the new prop
 }) => {
   const [showCountdown, setShowCountdown] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -277,6 +279,25 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       setShowCountdown(true);
     }
   }, [triggerCountdownSignal, webcamInitialized, stream, isRecording, recordingCompleted]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (isRecording || isUploading) { // Condition updated
+        event.preventDefault();
+        event.returnValue = 'Your video is still being processed. Are you sure you want to leave?';
+      }
+    };
+
+    if (isRecording || isUploading) { // Condition updated
+      window.addEventListener('beforeunload', handleBeforeUnload);
+    } else {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    }
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isRecording, isUploading]); // Dependency array updated
 
   const handleRetryWebcam = () => {
     setWebcamInitialized(false);
