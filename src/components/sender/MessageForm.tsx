@@ -233,6 +233,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { messagesApi } from '../../services/api';
+import { AxiosError } from 'axios'; // Added import
 import { VALIDATION_ERRORS } from '../constants/errorMessages';
 import { classNames } from '../../utils/classNames';
 import Button from '../common/Button';
@@ -358,10 +359,19 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
       });
     } catch (error) {
       console.error('Error creating message:', error);
-      showToast({
-        message: 'Failed to create message. Please try again.',
-        type: 'error',
-      });
+      // Check if the error is an AxiosError and if it has a response
+      // (which implies the global interceptor likely handled the toast)
+      if (error instanceof AxiosError && error.response) {
+        // Assume global interceptor handled the toast, so do nothing here
+        // or just log if needed for debugging.
+      } else {
+        // Show generic toast only for non-Axios errors (e.g., network issues)
+        // or if AxiosError doesn't have a response.
+        showToast({
+          message: 'Failed to create message. Please try again.',
+          type: 'error',
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }

@@ -27,8 +27,14 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const errorMessage = error.response?.data?.message || 'Something went wrong';
-    if (error.response?.status !== 401) {
+    let errorMessage = 'Something went wrong';
+    if (error.response?.data?.error) {
+      errorMessage = error.response.data.error; // Use the 'error' field if present
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message; // Fallback to 'message' field
+    }
+
+    if (error.response?.status !== 401) { // Keep existing 401 behavior
       toast.error(errorMessage);
     }
     return Promise.reject(error);
@@ -78,8 +84,8 @@ export const messagesApi = {
 
 // ------------------ REACTIONS API ------------------
 export const reactionsApi = {
-  init: (messageId: string, sessionId: string) => {
-    return api.post(`/reactions/init/${messageId}`, { sessionId });
+  init: (messageId: string, sessionId: string, name?: string) => {
+    return api.post(`/reactions/init/${messageId}`, { sessionId, name });
   },
 
   uploadVideoToReaction: (reactionId: string, video: Blob) => {
