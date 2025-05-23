@@ -229,7 +229,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   return (
     <div className={classNames('flex flex-col items-center', className || '')}>
       <h2 className="text-xl font-semibold mb-2">Record Your Reaction</h2>
-
+      
       {((showCountdown && !previewManuallyToggled) || showPreview) && (
         <div className="w-full max-w-md my-4">
           <video
