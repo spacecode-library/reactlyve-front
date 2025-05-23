@@ -235,7 +235,21 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900">
-      {showRecorder && !isNameSubmitted && (
+      {showRecorder && !isReactionRecorded && ( // WebcamRecorder comes first
+        <WebcamRecorder
+          onRecordingComplete={handleReactionComplete}
+          onCancel={() => { /* Consider what cancel means in this new flow */ }}
+          maxDuration={15000}
+          countdownDuration={5} // This might be manually controlled now
+          onPermissionDenied={(err) => setPermissionError(err)}
+          autoStart={false} // Explicitly set to false
+          triggerCountdownSignal={triggerCountdown} // New prop
+          onCountdownComplete={handleCountdownComplete} // This prop might need to change if countdown is managed outside
+          hidePreviewAfterCountdown={true}
+          // The WebcamRecorder might need a new prop to trigger its countdown if it's not auto-starting
+        />
+      )}
+      {showRecorder && !isNameSubmitted && ( // Name Input Section comes after
         <div className="mb-4 w-full max-w-md">
           <label htmlFor="recipientName" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
             Your Name (Optional but Recommended)
@@ -257,20 +271,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
             Start Reaction
           </button>
         </div>
-      )}
-      {showRecorder && !isReactionRecorded && ( // Condition updated
-        <WebcamRecorder
-          onRecordingComplete={handleReactionComplete}
-          onCancel={() => { /* Consider what cancel means in this new flow */ }}
-          maxDuration={15000}
-          countdownDuration={5} // This might be manually controlled now
-          onPermissionDenied={(err) => setPermissionError(err)}
-          autoStart={false} // Explicitly set to false
-          triggerCountdownSignal={triggerCountdown} // New prop
-          onCountdownComplete={handleCountdownComplete} // This prop might need to change if countdown is managed outside
-          hidePreviewAfterCountdown={true}
-          // The WebcamRecorder might need a new prop to trigger its countdown if it's not auto-starting
-        />
       )}
       {countdownComplete && renderMessageContent()}
     </div>
