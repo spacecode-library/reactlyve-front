@@ -80,6 +80,7 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
             {showQrCode ? 'Hide QR Code' : 'Show QR Code'}
           </Button>
         </div>
+        <h1 style={{ color: 'red', border: '2px solid orange', padding: '10px' }}>FORCED QR CODE AREA TEST - THIS MUST BE VISIBLE IF THE FILE IS UPDATED</h1>
         {showQrCode && (
           <div className="mt-4 flex flex-col items-center">
             <div className="p-2 bg-white rounded-lg shadow-sm inline-block">
