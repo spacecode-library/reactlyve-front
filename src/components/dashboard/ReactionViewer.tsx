@@ -105,13 +105,16 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
             <h3 className="mb-2 text-sm font-semibold text-neutral-800 dark:text-neutral-200">
               Replies:
             </h3>
-            <ul className="list-disc space-y-1 pl-5">
-              {reaction.replies.map((reply, index) => (
-                <li key={index} className="text-sm text-neutral-700 dark:text-neutral-300">
-                  {reply}
-                </li>
+            <div className="space-y-2">
+              {reaction.replies.map((reply) => (
+                <div key={reply.id} className="rounded-md border border-neutral-200 bg-white p-3 dark:border-neutral-600 dark:bg-neutral-700">
+                  <p className="text-sm text-neutral-800 dark:text-neutral-200">{reply.text}</p>
+                  <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                    Received: {formatDate(reply.createdAt)}
+                  </p>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         )
       )}
