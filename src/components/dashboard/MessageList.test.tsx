@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import * as TestingLibrary from '@testing-library/react'; // Changed import
 import '@testing-library/jest-dom';
 import MessageList from './MessageList';
 import { MessageWithReactions, Reaction } from '../../types'; // Adjust path if necessary
@@ -13,72 +13,77 @@ jest.mock('react-router-dom', () => ({
 const mockMessages: MessageWithReactions[] = [
   {
     id: '1',
-    userId: 'user1',
+    senderId: 'user1', // Renamed userId to senderId
     content: 'Hello World',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    views: 0,
+    shareableLink: 'http://example.com/share/1', // Added shareableLink
     hasPasscode: false,
     reactions: [
-      { id: 'r1', messageId: '1', userId: 'user2', type: 'video', videoUrl: 'http://example.com/video1.mp4', thumbnailUrl: 'http://example.com/thumb1.jpg', createdAt: new Date().toISOString() },
-      { id: 'r2', messageId: '1', userId: 'user3', type: 'like', createdAt: new Date().toISOString() },
+      { id: 'r1', messageId: '1', videoUrl: 'http://example.com/video1.mp4', thumbnailUrl: 'http://example.com/thumb1.jpg', duration: 5000, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+      // This "like" reaction now needs to conform to Reaction type
+      { id: 'r2', messageId: '1', videoUrl: '', duration: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }, 
     ] as Reaction[],
   },
   {
     id: '2',
-    userId: 'user1',
+    senderId: 'user1', // Renamed userId to senderId
     content: 'Second Message',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    views: 0,
+    shareableLink: 'http://example.com/share/2', // Added shareableLink
     hasPasscode: false,
     reactions: [
-      { id: 'r3', messageId: '2', userId: 'user2', type: 'video', videoUrl: 'http://example.com/video2.mp4', createdAt: new Date().toISOString() }, // No thumbnail URL
+      // Reaction with videoUrl but no thumbnailUrl
+      { id: 'r3', messageId: '2', videoUrl: 'http://example.com/video2.mp4', duration: 6000, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
     ] as Reaction[],
   },
   {
     id: '3',
-    userId: 'user1',
-    content: 'Third Message, no video reactions',
+    senderId: 'user1', // Renamed userId to senderId
+    content: 'Third Message, one non-video reaction', // Will have 1 reaction that doesn't display thumbnail
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    views: 0,
+    shareableLink: 'http://example.com/share/3', // Added shareableLink
     hasPasscode: false,
     reactions: [
-      { id: 'r4', messageId: '3', userId: 'user2', type: 'like', createdAt: new Date().toISOString() },
+      { id: 'r4', messageId: '3', videoUrl: '', duration: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
     ] as Reaction[],
   },
   {
     id: '4',
-    userId: 'user1',
+    senderId: 'user1', // Renamed userId to senderId
     content: 'Fourth Message, zero reactions',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    views: 0,
+    shareableLink: 'http://example.com/share/4', // Added shareableLink
     hasPasscode: false,
     reactions: [] as Reaction[],
   },
   {
     id: '5',
-    userId: 'user1',
+    senderId: 'user1', // Renamed userId to senderId
     content: 'Fifth Message, null reactions',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    views: 0,
+    shareableLink: 'http://example.com/share/5', // Added shareableLink
     hasPasscode: false,
     reactions: null as any, // Intentionally null
   },
   {
     id: '6',
-    userId: 'user1',
+    senderId: 'user1', // Renamed userId to senderId
     content: 'Sixth Message, undefined reactions',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    views: 0,
+    shareableLink: 'http://example.com/share/6', // Added shareableLink
     hasPasscode: false,
     reactions: undefined as any, // Intentionally undefined
   },
 ];
+
+// Access screen and render via TestingLibrary.screen and TestingLibrary.render
+const { render, screen } = TestingLibrary;
 
 describe('MessageList Component', () => {
   describe('Reaction Count Display', () => {
@@ -127,10 +132,10 @@ describe('MessageList Component', () => {
   describe('Video Reaction Thumbnail Display', () => {
     it('displays an img thumbnail when a reaction has videoUrl and thumbnailUrl', () => {
       render(<MessageList messages={[mockMessages[0]]} />); // Message 1 has such a reaction
-      const images = screen.getAllByRole('img');
+      const images = screen.getAllByRole('img') as HTMLImageElement[];
       // Find the specific thumbnail by src or alt text. Here, we assume it's the only image in this context for simplicity or add specific alt.
       // Let's assume the alt text for reaction thumbnails is "Reaction thumbnail"
-      const reactionThumbnail = images.find(img => img.getAttribute('alt') === 'Reaction thumbnail');
+      const reactionThumbnail = images.find((img: HTMLImageElement) => img.getAttribute('alt') === 'Reaction thumbnail');
       expect(reactionThumbnail).toBeInTheDocument();
       expect(reactionThumbnail).toHaveAttribute('src', 'http://example.com/thumb1.jpg');
     });
@@ -148,9 +153,9 @@ describe('MessageList Component', () => {
 
       // To check for SVG: The SVG has <path d="M14.752 11.168l-3.197-2.132...
       // This is a bit brittle. A data-testid on the SVG placeholder would be better.
-      const svgs = reactionSection!.querySelectorAll('svg');
+      const svgs = reactionSection!.querySelectorAll('svg') as NodeListOf<SVGSVGElement>;
       let foundPlaceholder = false;
-      svgs.forEach(svg => {
+      svgs.forEach((svg: SVGSVGElement) => {
         if (svg.innerHTML.includes('M14.752')) { // A unique part of the placeholder SVG's path
           foundPlaceholder = true;
         }
