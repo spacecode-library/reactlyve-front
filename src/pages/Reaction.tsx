@@ -84,16 +84,16 @@ const Reaction: React.FC = () => {
             </p>
           )}
 
-          {reaction.videoUrl ? (
+          {reaction.videourl ? (
             <div className="mt-6">
               <video
-                src={reaction.videoUrl}
+                src={reaction.videourl}
                 controls
-                poster={reaction.thumbnailUrl || undefined}
+                poster={reaction.thumbnailurl || undefined}
                 className="w-full rounded"
               />
               <button
-                onClick={() => downloadVideo(reaction.videoUrl, filename)}
+                onClick={() => downloadVideo(reaction.videourl, filename)}
                 className="mt-4 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
               >
                 <DownloadIcon size={16} />
