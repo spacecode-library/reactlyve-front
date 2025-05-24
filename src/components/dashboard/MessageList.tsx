@@ -18,6 +18,7 @@ interface MessageListProps {
 const MessageList: React.FC<MessageListProps> = ({
   messages,
   onDeleteMessage,
+  onViewMessage,
   onViewReaction,
   loading = false,
   className,
@@ -121,7 +122,7 @@ const MessageList: React.FC<MessageListProps> = ({
               <div className="flex space-x-2">
                 {onViewReaction && (
                   <Button
-                    onClick={() => onViewReaction(message.id)}
+                    onClick={() => onViewMessage(message.id)}
                     target="_blank"
                     variant="outline"
                     size="sm"
