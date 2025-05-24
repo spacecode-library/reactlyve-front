@@ -33,45 +33,53 @@ const Dashboard: React.FC = () => {
   // Fetch messages
   useEffect(() => {
   const fetchMessages = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get(`${MESSAGE_ROUTES.GET_ALL}?page=${currentPage}&limit=${limit}`);
-      setMessages(response.data.messages);
-
-      const {
-        totalMessages,
-        totalReactions,
-        viewRate,
-        reactionRate,
-        viewedMessages,
-      } = response.data.stats;
-
-      const messagesWithReactions = Array.isArray(response.data.messages)
-        ? response.data.messages.filter(
-            (msg: MessageWithReactions) => Array.isArray(msg.reactions) && msg.reactions.length > 0
-          ).length
-        : 0;
-      
-      const safeViewedMessages = Number(viewedMessages) || 0;
-      
-      setStats({
-        totalMessages: Number(totalMessages) || 0,
-        totalReactions: Number(totalReactions) || 0,
-        viewRate: isNaN(parseFloat(viewRate)) ? 0 : parseFloat(viewRate),
-        reactionRate:
-          safeViewedMessages > 0
-            ? parseFloat(((messagesWithReactions / safeViewedMessages) * 100).toFixed(2))
-            : 0,
-      });
-
-
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-      toast.error('Failed to load your messages. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+      try {
+        setLoading(true);
+        const response = await api.get(`${MESSAGE_ROUTES.GET_ALL}?page=${currentPage}&limit=${limit}`);
+        setMessages(response.data.messages);
+    
+        const {
+          totalMessages,
+          totalReactions,
+          viewRate,
+          reactionRate,
+          viewedMessages,
+        } = response.data.stats;
+    
+        const safeViewedMessages = Number(viewedMessages) || 0;
+    
+        const messagesWithReactions = Array.isArray(response.data.messages)
+          ? response.data.messages.filter(
+              (msg: MessageWithReactions) => Array.isArray(msg.reactions) && msg.reactions.length > 0
+            ).length
+          : 0;
+    
+        // 🔍 Debug logs
+        console.log('Total Messages:', totalMessages);
+        console.log('Viewed Messages:', safeViewedMessages);
+        console.log('Messages with Reactions:', messagesWithReactions);
+        console.log('Raw Reaction Rate:', (messagesWithReactions / safeViewedMessages) * 100);
+    
+        const parsedViewRate = parseFloat(viewRate);
+        const safeViewRate = isNaN(parsedViewRate) ? 0 : parsedViewRate;
+    
+        setStats({
+          totalMessages: Number(totalMessages) || 0,
+          totalReactions: Number(totalReactions) || 0,
+          viewRate: safeViewRate,
+          reactionRate:
+            safeViewedMessages > 0
+              ? parseFloat(((messagesWithReactions / safeViewedMessages) * 100).toFixed(2))
+              : 0,
+        });
+    
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+        toast.error('Failed to load your messages. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
   fetchMessages();
 }, [currentPage, messageToDelete]);
