@@ -6,6 +6,7 @@ import { classNames } from '../../utils/classNames';
 import Button from '../common/Button';
 import Card from '../common/Card';
 import { normalizeMessage } from '@/utils/normalizeKeys';
+import type { Reaction } from '../../types/reaction';
 
 interface MessageListProps {
   messages: MessageWithReactions[];
@@ -171,7 +172,7 @@ const normalizedMessages = messages.map(normalizeMessage);
             </div>
 
             {/* Reaction thumbnails */}
-            {message.reactions && message.reactions.some(r => r.videoUrl) && (
+            {message.reactions && message.reactions.some((r: Reaction) => r.videoUrl) && (
               <div className="mt-4">
                 <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Reactions</h4>
                 <div className="mt-2 flex space-x-2 overflow-x-auto pb-2">
