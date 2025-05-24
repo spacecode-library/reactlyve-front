@@ -126,6 +126,10 @@ useEffect(() => {
     }
   };
 
+  const handleViewMessage = (messageId: string) => {
+      navigate(`/message/${messageId}`);
+    };
+  
   // Handle viewing a reaction
   const handleViewReaction = (reactionId: string) => {
      navigate(`/reaction/${reactionId}`);
@@ -354,6 +358,7 @@ useEffect(() => {
               <MessageList
                 messages={messages}
                 onDeleteMessage={handleDeleteMessage}
+                onViewMessage={handleViewMessage}
                 onViewReaction={handleViewReaction}
                 loading={loading}
               />
