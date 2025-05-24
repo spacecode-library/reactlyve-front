@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
-import { formatDistance } from 'date-fns';
+import { formatDistance, format } from 'date-fns'; // Added format
 import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon } from 'lucide-react';
 import api from '@/services/api';
 import { MESSAGE_ROUTES } from '@/components/constants/apiRoutes';
@@ -242,20 +242,51 @@ const Message: React.FC = () => {
                           <video src={reaction.videourl} controls poster={reaction.thumbnailurl || undefined} className="w-full rounded" />
                           <button
                             onClick={() => {
-                              let filename = `reaction-${reaction.id}.video`; // Default
-                              if (reaction.videourl) { 
-                                try {
-                                  const urlPath = new URL(reaction.videourl).pathname; 
-                                  const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
-                                  if (lastSegment.includes('.')) {
-                                    const extension = lastSegment.split('.').pop();
-                                    if (extension) filename = `reaction-${reaction.id}.${extension}`;
-                                  }
-                                } catch (e) { console.error("Could not parse video URL for extension:", e); }
-                                downloadVideo(reaction.videourl, filename); 
-                              } else {
+                              if (!reaction.videourl) {
                                 console.error("Download clicked but no videourl present for reaction:", reaction.id);
+                                return;
                               }
+
+                              // 1. Prefix
+                              const prefix = "Reactlyve";
+
+                              // 2. Message Title Part
+                              let titlePart = "video"; // Default if message.content is unavailable
+                              if (message && message.content) {
+                                titlePart = message.content.replace(/\s+/g, '_').substring(0, 5);
+                              }
+                              
+                              // 3. Responder Name Part
+                              const responderNamePart = reaction.name ? reaction.name.replace(/\s+/g, '_') : "UnknownResponder";
+
+                              // 4. Date/Time Part
+                              let dateTimePart = "timestamp"; // Default
+                              if (reaction.createdAt) {
+                                try {
+                                  dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
+                                } catch (e) {
+                                  console.error("Error formatting date for filename:", e);
+                                }
+                              }
+
+                              // 5. File Extension Part
+                              let extension = "video"; // Default extension
+                              try {
+                                const urlPath = new URL(reaction.videourl).pathname;
+                                const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
+                                if (lastSegment.includes('.')) {
+                                  const ext = lastSegment.split('.').pop();
+                                  if (ext) extension = ext;
+                                }
+                              } catch (e) {
+                                console.error("Could not parse video URL for extension:", e);
+                              }
+
+                              const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
+                              const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+                              const finalFilename = `${sanitizedName}.${extension}`;
+
+                              downloadVideo(reaction.videourl, finalFilename);
                             }}
                             className="mt-3 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                           >
