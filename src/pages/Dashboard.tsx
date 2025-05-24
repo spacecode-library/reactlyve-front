@@ -128,7 +128,7 @@ useEffect(() => {
 
   // Handle viewing a reaction
   const handleViewReaction = (reactionId: string) => {
-     navigate(`/message/${message.id}`);
+     navigate(`/reaction/${reaction.id}`);
     };
 
   
