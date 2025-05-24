@@ -15,6 +15,7 @@ const Message: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState({ passcode: false, link: false });
+  const [showQrCode, setShowQrCode] = useState(false);
 
   useEffect(() => {
     const fetchMessageDetails = async () => {
@@ -76,6 +77,12 @@ const Message: React.FC = () => {
     };
   };
 
+  const getQrCodeUrl = () => {
+    if (!normalizedMessage.shareableLink) return '';
+    const encodedUrl = encodeURIComponent(normalizedMessage.shareableLink);
+    return `https://chart.googleapis.com/chart?cht=qr&chl=${encodedUrl}&chs=250x250&choe=UTF-8&chld=L|2`;
+  };
+
   if (loading) {
     return (
       <MainLayout>
@@ -111,7 +118,7 @@ const Message: React.FC = () => {
           <div className="p-6">
             {/* Header */}
             <div className="mb-6 border-b border-neutral-200 pb-4 dark:border-neutral-700">
-              <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Message Details - Test</h1>
+              <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Message Details</h1>
               <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
                 {formattedDate} ({timeAgo})
               </p>
@@ -168,9 +175,27 @@ const Message: React.FC = () => {
                     >
                       {copied.link ? <ClipboardIcon size={16} /> : <CopyIcon size={16} />}
                     </button>
+                    <button
+                      onClick={() => setShowQrCode(!showQrCode)}
+                      className="ml-2 rounded-md bg-green-600 p-2 text-white hover:bg-green-700"
+                    >
+                      {showQrCode ? 'Hide QR' : 'Show QR'}
+                    </button>
                   </div>
                   {copied.link && (
                     <p className="mt-1 text-xs text-green-600 dark:text-green-400">Link copied to clipboard!</p>
+                  )}
+                  {showQrCode && (
+                    <div className="mt-4 text-center">
+                      <h3 className="mb-2 text-md font-semibold text-neutral-900 dark:text-white">Scan QR Code</h3>
+                      <div className="inline-block rounded-lg bg-white p-2 shadow">
+                        <img 
+                          src={getQrCodeUrl()} 
+                          alt="Shareable Link QR Code" 
+                          className="h-48 w-48 md:h-56 md:w-56" 
+                        />
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
@@ -198,19 +223,48 @@ const Message: React.FC = () => {
               <div className="mb-6">
                 <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Reactions</h2>
                 <div className="grid gap-6 sm:grid-cols-2">
-                  {message.reactions.map((reaction: Reaction & { replies?: { id: string; text: string; createdAt: string }[] }) => (
+                  {message.reactions.map((reaction: Reaction & { name?: string; replies?: { id: string; text: string; createdAt: string }[] }) => (
                     <div key={reaction.id} className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
+                      {reaction.name && (
+                        <p className="mb-1 text-md font-semibold text-neutral-800 dark:text-neutral-100">
+                          From: {reaction.name}
+                        </p>
+                      )}
                       <p className="mb-2 text-sm text-neutral-700 dark:text-neutral-300">
                         Received on {new Date(reaction.createdAt).toLocaleString()}
                       </p>
-                      <video src={reaction.videoUrl} controls poster={reaction.thumbnailUrl || undefined} className="w-full rounded" />
-                      <button
-                        onClick={() => downloadVideo(reaction.videoUrl, `reaction-${reaction.id}.mp4`)}
-                        className="mt-3 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                      >
-                        <DownloadIcon size={16} />
-                        Download Reaction
-                      </button>
+
+                      {reaction.videoUrl ? (
+                        <>
+                          <video src={reaction.videoUrl} controls poster={reaction.thumbnailUrl || undefined} className="w-full rounded" />
+                          <button
+                            onClick={() => {
+                              let filename = `reaction-${reaction.id}.video`; // Default if extraction fails
+                              if (reaction.videoUrl) {
+                                try {
+                                  const urlPath = new URL(reaction.videoUrl).pathname;
+                                  const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
+                                  if (lastSegment.includes('.')) {
+                                    const extension = lastSegment.split('.').pop();
+                                    if (extension) filename = `reaction-${reaction.id}.${extension}`;
+                                  }
+                                } catch (e) { console.error("Could not parse video URL for extension:", e); }
+                              }
+                              downloadVideo(reaction.videoUrl, filename);
+                            }}
+                            className="mt-3 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                          >
+                            <DownloadIcon size={16} />
+                            Download Reaction
+                          </button>
+                        </>
+                      ) : (
+                        (!reaction.replies || reaction.replies.length === 0) && (
+                          <p className="my-4 text-sm text-neutral-600 dark:text-neutral-400">
+                            No video submitted for this reaction.
+                          </p>
+                        )
+                      )}
 
                       {/* Replies */}
                       {reaction.replies && reaction.replies.length > 0 && (
