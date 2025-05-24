@@ -170,8 +170,8 @@ useEffect(() => {
     <DashboardLayout>
       <div className="pb-12">
         {/* Page header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
+        <div className="mb-8 flex flex-col items-start sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-4 sm:mb-0">
             <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
               Your Dashboard
             </h1>
@@ -182,7 +182,7 @@ useEffect(() => {
           
           <Link
             to="/create"
-            className="inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:bg-primary-700 dark:hover:bg-primary-600"
+            className="inline-flex items-center self-start rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:bg-primary-700 dark:hover:bg-primary-600 sm:self-auto"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

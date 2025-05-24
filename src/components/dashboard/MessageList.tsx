@@ -91,8 +91,9 @@ const normalizedMessages = messages.map(normalizeMessage);
             className="transition-shadow hover:shadow-md"
             hoverable
           >
-            <div className="flex items-start justify-between">
-              <div className="flex-1 pr-4">
+            {/* Main container for content and buttons: stacks on mobile, row on xs+ */}
+            <div className="flex flex-col items-start xs:flex-row xs:items-start xs:justify-between">
+              <div className="flex-1 pr-0 xs:pr-4 w-full xs:w-auto"> {/* Ensure content takes full width when stacked, allow natural width for buttons */}
                 <div className="flex items-center">
                   <h3 className="text-lg font-medium text-neutral-900 dark:text-white">
                     {truncateString(message.content, 60)}
@@ -123,13 +124,15 @@ const normalizedMessages = messages.map(normalizeMessage);
                 </div>
               </div>
 
-              <div className="flex space-x-2">
+              {/* Container for View/Delete buttons: adds margin when stacked, aligns right when stacked */}
+              <div className="flex space-x-2 mt-3 xs:mt-0 self-end xs:self-auto">
                 {onViewMessage && (
                   <Button
                     onClick={() => onViewMessage(message.id)}
                     target="_blank"
                     variant="outline"
                     size="sm"
+                    className="py-2.5" // Increased vertical padding for better touch target
                     leftIcon={
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -149,6 +152,7 @@ const normalizedMessages = messages.map(normalizeMessage);
                   <Button
                     variant="outline"
                     size="sm"
+                    className="py-2.5" // Increased vertical padding for better touch target
                     onClick={() => onDeleteMessage(message.id)}
                     leftIcon={
                       <svg
@@ -171,69 +175,78 @@ const normalizedMessages = messages.map(normalizeMessage);
               </div>
             </div>
 
-            {/* Reaction thumbnails */}
-            {Array.isArray(message.reactions) && message.reactions.some((r: Reaction) => r.videoUrl) && (
+            {/* Reaction section */}
+            {Array.isArray(message.reactions) && message.reactions.length > 0 && (
               <div className="mt-4">
-                <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Reactions</h4>
-                <div className="mt-2 flex space-x-2 overflow-x-auto pb-2">
-                  {message.reactions
-                    .filter((reaction: Reaction) => !!reaction.videoUrl)
-                    .map((reaction: Reaction) => (
-                      <div key={reaction.id}>
-                        <button
-                          type="button"
-                          onClick={() => onViewReaction?.(reaction.id)}
-                          className="relative flex-shrink-0 overflow-hidden rounded-md bg-neutral-100 shadow-sm dark:bg-neutral-700"
-                        >
-                          {reaction.thumbnailUrl ? (
-                            <img
-                              src={reaction.thumbnailUrl}
-                              alt="Reaction thumbnail"
-                              className="h-16 w-28 object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-16 w-28 items-center justify-center">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-6 w-6 text-neutral-400"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth={2}
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Reactions</h4>
+                  <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                    {message.reactions.length} {message.reactions.length === 1 ? 'reaction' : 'reactions'}
+                  </p>
+                </div>
+
+                {/* Reaction thumbnails (only if some reactions have video) */}
+                {message.reactions.some((r: Reaction) => r.videoUrl) && (
+                  <div className="mt-2 flex space-x-2 overflow-x-auto pb-2">
+                    {message.reactions
+                      .filter((reaction: Reaction) => !!reaction.videoUrl)
+                      .map((reaction: Reaction) => (
+                        <div key={reaction.id}>
+                          <button
+                            type="button"
+                            onClick={() => onViewReaction?.(reaction.id)}
+                            className="relative flex-shrink-0 overflow-hidden rounded-md bg-neutral-100 shadow-sm dark:bg-neutral-700"
+                          >
+                            {reaction.thumbnailUrl ? (
+                              <img
+                                src={reaction.thumbnailUrl}
+                                alt="Reaction thumbnail"
+                                className="h-16 w-28 object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-16 w-28 items-center justify-center">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-6 w-6 text-neutral-400"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth={2}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                              </div>
+                            )}
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity hover:opacity-100">
+                              <span className="text-xs font-medium text-white">View Reaction</span>
+                            </div>
+                          </button>
+                          {reaction.thumbnailUrl && (
+                            <div className="text-right mt-1 pr-1">
+                              <a
+                                href={reaction.thumbnailUrl}
+                                download={`reaction-${reaction.id}.mp4`}
+                                className="text-xs text-primary-600 hover:underline dark:text-primary-400"
                               >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                                />
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                              </svg>
+                                Download
+                              </a>
                             </div>
                           )}
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity hover:opacity-100">
-                            <span className="text-xs font-medium text-white">View Reaction</span>
-                          </div>
-                        </button>
-                        {reaction.thumbnailUrl && (
-                          <div className="text-right mt-1 pr-1">
-                            <a
-                              href={reaction.thumbnailUrl}
-                              download={`reaction-${reaction.id}.mp4`}
-                              className="text-xs text-primary-600 hover:underline dark:text-primary-400"
-                            >
-                              Download
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
               </div>
-            )}            
+            )}
           </Card>
         ))}
       </div>
