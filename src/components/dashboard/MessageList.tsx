@@ -9,6 +9,7 @@ import Card from '../common/Card';
 interface MessageListProps {
   messages: MessageWithReactions[];
   onDeleteMessage?: (messageId: string) => void;
+  onViewMessage?: (id: string) => void;
   onViewReaction?: (reactionId: string) => void;
   loading?: boolean;
   className?: string;
