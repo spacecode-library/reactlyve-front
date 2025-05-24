@@ -172,13 +172,13 @@ const normalizedMessages = messages.map(normalizeMessage);
             </div>
 
             {/* Reaction thumbnails */}
-            {message.reactions && message.reactions.some((r: Reaction) => r.videoUrl) && (
+            {Array.isArray(message.reactions) && message.reactions.some((r: Reaction) => r.videoUrl) && (
               <div className="mt-4">
                 <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Reactions</h4>
                 <div className="mt-2 flex space-x-2 overflow-x-auto pb-2">
                   {message.reactions
-                    .filter(reaction => !!reaction.videoUrl)
-                    .map((reaction) => (
+                    .filter((reaction: Reaction) => !!reaction.videoUrl)
+                    .map((reaction: Reaction) => (
                       <div key={reaction.id}>
                         <button
                           type="button"
@@ -233,7 +233,7 @@ const normalizedMessages = messages.map(normalizeMessage);
                     ))}
                 </div>
               </div>
-            )}
+            )}            
           </Card>
         ))}
       </div>
