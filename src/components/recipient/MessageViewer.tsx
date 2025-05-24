@@ -250,7 +250,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         justify-start sm:justify-center 
         bg-neutral-50 px-4 pb-8 
         dark:bg-neutral-900
-        ${isWebcamFlowActive ? 'pt-8 sm:pt-12' : 'pt-16 sm:pt-16'}
+        ${isWebcamFlowActive ? 'pt-4 sm:pt-8' : 'pt-16 sm:pt-16'}
         sm:pb-8
       `}
     >
