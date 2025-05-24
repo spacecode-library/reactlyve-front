@@ -114,6 +114,7 @@ const Message: React.FC = () => {
   }
 
   const { formattedDate, timeAgo } = formatDate(message.createdAt);
+  
   const hasReactions = message.reactions && message.reactions.length > 0;
 
   return (
@@ -268,11 +269,11 @@ const Message: React.FC = () => {
                       ) : (
                         (!reaction.replies || reaction.replies.length === 0) && (
                           <p className="my-4 text-sm text-neutral-600 dark:text-neutral-400">
-                            No video submitted for this reaction.
+                            No reaction video recorded or replies.
                           </p>
                         )
                       )}
-
+                      
                       {/* Replies */}
                       {reaction.replies && reaction.replies.length > 0 && (
                         <div className="mt-4 border-t pt-3 border-neutral-300 dark:border-neutral-600">
