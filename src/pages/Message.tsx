@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
-import { formatDistance } from 'date-fns';
+import { formatDistance, format } from 'date-fns'; // Added format
 import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon } from 'lucide-react';
 import api from '@/services/api';
 import { MESSAGE_ROUTES } from '@/components/constants/apiRoutes';
 import type { MessageWithReactions } from '../types/message';
 import type { Reaction } from '../types/reaction';
 import { normalizeMessage } from '../utils/normalizeKeys';
+import { QRCodeSVG } from 'qrcode.react';
 
 const Message: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,6 +16,7 @@ const Message: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState({ passcode: false, link: false });
+  const [showQrCode, setShowQrCode] = useState(false);
 
   useEffect(() => {
     const fetchMessageDetails = async () => {
@@ -76,6 +78,8 @@ const Message: React.FC = () => {
     };
   };
 
+  // Removed getQrCodeUrl function
+
   if (loading) {
     return (
       <MainLayout>
@@ -102,6 +106,7 @@ const Message: React.FC = () => {
   }
 
   const { formattedDate, timeAgo } = formatDate(message.createdAt);
+  
   const hasReactions = message.reactions && message.reactions.length > 0;
 
   return (
@@ -168,9 +173,32 @@ const Message: React.FC = () => {
                     >
                       {copied.link ? <ClipboardIcon size={16} /> : <CopyIcon size={16} />}
                     </button>
+                    <button
+                      onClick={() => setShowQrCode(!showQrCode)}
+                      className="ml-2 rounded-md bg-green-600 p-2 text-white hover:bg-green-700"
+                    >
+                      {showQrCode ? 'Hide QR' : 'Show QR'}
+                    </button>
                   </div>
                   {copied.link && (
                     <p className="mt-1 text-xs text-green-600 dark:text-green-400">Link copied to clipboard!</p>
+                  )}
+                  {showQrCode && normalizedMessage.shareableLink && (
+                    <div className="mt-4 text-center">
+                      <h3 className="mb-2 text-md font-semibold text-neutral-900 dark:text-white">Scan QR Code</h3>
+                      <div className="inline-block rounded-lg bg-white p-4 shadow"> {/* Increased padding slightly for aesthetics */}
+                        <QRCodeSVG
+                          value={normalizedMessage.shareableLink}
+                          size={200} // Adjust size as needed
+                          bgColor={"#ffffff"}
+                          fgColor={"#000000"}
+                          level={"L"} // Error correction level
+                        />
+                      </div>
+                      <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                        Scan this QR code to access the shareable link.
+                      </p>
+                    </div>
                   )}
                 </div>
               )}
@@ -198,20 +226,82 @@ const Message: React.FC = () => {
               <div className="mb-6">
                 <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Reactions</h2>
                 <div className="grid gap-6 sm:grid-cols-2">
-                  {message.reactions.map((reaction: Reaction & { replies?: { id: string; text: string; createdAt: string }[] }) => (
+                  {message.reactions.map((reaction: Reaction & { name?: string; videourl?: string; thumbnailurl?: string; replies?: { id: string; text: string; createdAt: string }[] }) => (
                     <div key={reaction.id} className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
+                      {reaction.name && (
+                        <p className="mb-1 text-md font-semibold text-neutral-800 dark:text-neutral-100">
+                          From: {reaction.name}
+                        </p>
+                      )}
                       <p className="mb-2 text-sm text-neutral-700 dark:text-neutral-300">
                         Received on {new Date(reaction.createdAt).toLocaleString()}
                       </p>
-                      <video src={reaction.videoUrl} controls poster={reaction.thumbnailUrl || undefined} className="w-full rounded" />
-                      <button
-                        onClick={() => downloadVideo(reaction.videoUrl, `reaction-${reaction.id}.mp4`)}
-                        className="mt-3 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                      >
-                        <DownloadIcon size={16} />
-                        Download Reaction
-                      </button>
 
+                      {reaction.videourl ? (
+                        <>
+                          <video src={reaction.videourl} controls poster={reaction.thumbnailurl || undefined} className="w-full rounded" />
+                          <button
+                            onClick={() => {
+                              if (!reaction.videourl) {
+                                console.error("Download clicked but no videourl present for reaction:", reaction.id);
+                                return;
+                              }
+
+                              // 1. Prefix
+                              const prefix = "Reactlyve";
+
+                              // 2. Message Title Part
+                              let titlePart = "video"; // Default if message.content is unavailable
+                              if (message && message.content) {
+                                titlePart = message.content.replace(/\s+/g, '_').substring(0, 5);
+                              }
+                              
+                              // 3. Responder Name Part
+                              const responderNamePart = reaction.name ? reaction.name.replace(/\s+/g, '_') : "UnknownResponder";
+
+                              // 4. Date/Time Part
+                              let dateTimePart = "timestamp"; // Default
+                              if (reaction.createdAt) {
+                                try {
+                                  dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
+                                } catch (e) {
+                                  console.error("Error formatting date for filename:", e);
+                                }
+                              }
+
+                              // 5. File Extension Part
+                              let extension = "video"; // Default extension
+                              try {
+                                const urlPath = new URL(reaction.videourl).pathname;
+                                const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
+                                if (lastSegment.includes('.')) {
+                                  const ext = lastSegment.split('.').pop();
+                                  if (ext) extension = ext;
+                                }
+                              } catch (e) {
+                                console.error("Could not parse video URL for extension:", e);
+                              }
+
+                              const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
+                              const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+                              const finalFilename = `${sanitizedName}.${extension}`;
+
+                              downloadVideo(reaction.videourl, finalFilename);
+                            }}
+                            className="mt-3 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                          >
+                            <DownloadIcon size={16} />
+                            Download Reaction
+                          </button>
+                        </>
+                      ) : (
+                        (!reaction.replies || reaction.replies.length === 0) && (
+                          <p className="my-4 text-sm text-neutral-600 dark:text-neutral-400">
+                            No reaction video recorded or replies.
+                          </p>
+                        )
+                      )}
+                      
                       {/* Replies */}
                       {reaction.replies && reaction.replies.length > 0 && (
                         <div className="mt-4 border-t pt-3 border-neutral-300 dark:border-neutral-600">

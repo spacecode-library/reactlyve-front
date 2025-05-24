@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Message } from '../../types/message';
 import ReactionViewer from './ReactionViewer';
 import { formatDate } from '../../utils/formatters';
@@ -13,6 +13,13 @@ interface MessageDetailsProps {
 const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReaction }) => {
   const normalizedMessage = normalizeMessage(message);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [showQrCode, setShowQrCode] = useState(false);
+
+  const getQrCodeUrl = () => {
+    if (!normalizedMessage.shareableLink) return '';
+    const encodedUrl = encodeURIComponent(normalizedMessage.shareableLink);
+    return `https://chart.googleapis.com/chart?cht=qr&chl=${encodedUrl}&chs=250x250&choe=UTF-8&chld=L|2`;
+  };
 
   useEffect(() => {
     if (videoRef.current) {
@@ -65,7 +72,28 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
           >
             Copy
           </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowQrCode(!showQrCode)}
+          >
+            {showQrCode ? 'Hide QR Code' : 'Show QR Code'}
+          </Button>
         </div>
+        {showQrCode && (
+          <div className="mt-4 flex flex-col items-center">
+            <div className="p-2 bg-white rounded-lg shadow-sm inline-block">
+              <img 
+                src={getQrCodeUrl()} 
+                alt="QR Code for shareable link" 
+                className="w-48 h-48 md:w-56 md:h-56" // Responsive size
+              />
+            </div>
+            <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+              Scan this QR code to access the shareable link.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Reactions */}
