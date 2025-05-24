@@ -342,7 +342,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       <h2 className="text-xl font-semibold mb-2">Record Your Lyve Reaction</h2>
 
       {((showCountdown && !previewManuallyToggled) || showPreview) && (
-        <div className="w-full max-w-md my-4">
+        <div className="w-full max-w-md mt-2 mb-4">
           <video
             ref={videoRef}
             autoPlay
