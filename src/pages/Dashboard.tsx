@@ -30,56 +30,65 @@ const Dashboard: React.FC = () => {
     reactionRate: 0,
   });
   
-  // Fetch messages
-  useEffect(() => {
+  interface DashboardApiResponse {
+      messages: MessageWithReactions[];
+      stats: {
+        totalMessages: number;
+        totalReactions: number;
+        viewRate: string;         // e.g. "85.23%"
+        reactionRate: string;     // returned by backend but not used here
+        viewedMessages: number;
+      };
+    }
+
+useEffect(() => {
   const fetchMessages = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get(`${MESSAGE_ROUTES.GET_ALL}?page=${currentPage}&limit=${limit}`);
-        setMessages(response.data.messages);
-    
-        const {
-          totalMessages,
-          totalReactions,
-          viewRate,
-          reactionRate,
-          viewedMessages,
-        } = response.data.stats;
-    
-        const safeViewedMessages = Number(viewedMessages) || 0;
-    
-        const messagesWithReactions = Array.isArray(response.data.messages)
-          ? response.data.messages.filter(
-              (msg: MessageWithReactions) => Array.isArray(msg.reactions) && msg.reactions.length > 0
-            ).length
-          : 0;
-    
-        // 🔍 Debug logs
-        console.log('Total Messages:', totalMessages);
-        console.log('Viewed Messages:', safeViewedMessages);
-        console.log('Messages with Reactions:', messagesWithReactions);
-        console.log('Raw Reaction Rate:', (messagesWithReactions / safeViewedMessages) * 100);
-    
-        const parsedViewRate = parseFloat(viewRate);
-        const safeViewRate = isNaN(parsedViewRate) ? 0 : parsedViewRate;
-    
-        setStats({
-          totalMessages: Number(totalMessages) || 0,
-          totalReactions: Number(totalReactions) || 0,
-          viewRate: safeViewRate,
-          reactionRate:
-            safeViewedMessages > 0
-              ? parseFloat(((messagesWithReactions / safeViewedMessages) * 100).toFixed(2))
-              : 0,
-        });
-    
-      } catch (error) {
-        console.error('Error fetching messages:', error);
-        toast.error('Failed to load your messages. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      setLoading(true);
+
+      const response = await api.get<DashboardApiResponse>(
+        `${MESSAGE_ROUTES.GET_ALL}?page=${currentPage}&limit=${limit}`
+      );
+
+      const { messages: fetchedMessages, stats: fetchedStats } = response.data;
+
+      setMessages(fetchedMessages);
+
+      const {
+        totalMessages,
+        totalReactions,
+        viewRate,
+        viewedMessages,
+      } = fetchedStats;
+
+      const safeViewedMessages = Number(viewedMessages) || 0;
+
+      const messagesWithReactions = Array.isArray(fetchedMessages)
+        ? fetchedMessages.filter(
+            (msg: MessageWithReactions) =>
+              Array.isArray(msg.reactions) && msg.reactions.length > 0
+          ).length
+        : 0;
+
+      const parsedViewRate = parseFloat(viewRate);
+      const safeViewRate = isNaN(parsedViewRate) ? 0 : parsedViewRate;
+
+      setStats({
+        totalMessages: Number(totalMessages) || 0,
+        totalReactions: Number(totalReactions) || 0,
+        viewRate: safeViewRate,
+        reactionRate:
+          safeViewedMessages > 0
+            ? parseFloat(((messagesWithReactions / safeViewedMessages) * 100).toFixed(2))
+            : 0,
+      });
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      toast.error('Failed to load your messages. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   fetchMessages();
 }, [currentPage, messageToDelete]);
