@@ -351,9 +351,6 @@ useEffect(() => {
         {/* Message list */}
         <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-neutral-800">
           <div className="px-4 py-5 sm:p-6">
-            <h2 className="text-lg font-medium text-neutral-900 dark:text-white">
-              Your Messages
-            </h2>
             <div className="mt-4">
               <MessageList
                 messages={messages}

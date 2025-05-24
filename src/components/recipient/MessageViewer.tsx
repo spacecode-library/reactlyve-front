@@ -241,7 +241,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   );
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900">
+    <div className="flex min-h-screen flex-col items-center justify-start sm:justify-center bg-neutral-50 px-4 pt-16 pb-8 sm:py-8 dark:bg-neutral-900">
       {showRecorder && !isReactionRecorded && ( // WebcamRecorder comes first
         <WebcamRecorder
           onRecordingComplete={handleReactionComplete}

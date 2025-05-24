@@ -52,6 +52,7 @@ const View: React.FC = () => {
         setError(MESSAGE_ERRORS.NOT_FOUND);
       } finally {
         setLoading(false);
+        window.scrollTo(0, 0);
       }
     };
 
@@ -155,7 +156,7 @@ const View: React.FC = () => {
 
   if (message && (passcodeVerified || !needsPasscode)) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900">
+      <div className="flex min-h-screen items-center justify-start bg-neutral-50 px-4 pt-16 pb-8 sm:py-12 dark:bg-neutral-900">
         <MessageViewer
           message={message}
           onRecordReaction={async () => {}} // Changed to an async no-op function
