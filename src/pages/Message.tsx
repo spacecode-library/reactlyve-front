@@ -78,9 +78,14 @@ const Message: React.FC = () => {
   };
 
   const getQrCodeUrl = () => {
-    if (!normalizedMessage.shareableLink) return '';
+    if (!normalizedMessage.shareableLink) {
+      console.log('QR GEN: no shareableLink, returning empty.'); // Log this case
+      return '';
+    }
     const encodedUrl = encodeURIComponent(normalizedMessage.shareableLink);
-    return `https://chart.googleapis.com/chart?cht=qr&chl=${encodedUrl}&chs=250x250&choe=UTF-8&chld=L|2`;
+    const finalUrl = `https://chart.googleapis.com/chart?cht=qr&chl=${encodedUrl}&chs=250x250&choe=UTF-8&chld=L|2`;
+    console.log('QR GEN: encodedUrl:', encodedUrl, 'finalUrl:', finalUrl); // Log URLs
+    return finalUrl;
   };
 
   if (loading) {
@@ -185,7 +190,7 @@ const Message: React.FC = () => {
                   {copied.link && (
                     <p className="mt-1 text-xs text-green-600 dark:text-green-400">Link copied to clipboard!</p>
                   )}
-                  {showQrCode && (
+                  {showQrCode && normalizedMessage.shareableLink && (
                     <div className="mt-4 text-center">
                       <h3 className="mb-2 text-md font-semibold text-neutral-900 dark:text-white">Scan QR Code</h3>
                       <div className="inline-block rounded-lg bg-white p-2 shadow">
@@ -223,7 +228,7 @@ const Message: React.FC = () => {
               <div className="mb-6">
                 <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Reactions</h2>
                 <div className="grid gap-6 sm:grid-cols-2">
-                  {message.reactions.map((reaction: Reaction & { name?: string; replies?: { id: string; text: string; createdAt: string }[] }) => (
+                  {message.reactions.map((reaction: Reaction & { name?: string; videourl?: string; thumbnailurl?: string; replies?: { id: string; text: string; createdAt: string }[] }) => (
                     <div key={reaction.id} className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
                       {reaction.name && (
                         <p className="mb-1 text-md font-semibold text-neutral-800 dark:text-neutral-100">
@@ -234,23 +239,25 @@ const Message: React.FC = () => {
                         Received on {new Date(reaction.createdAt).toLocaleString()}
                       </p>
 
-                      {reaction.videoUrl ? (
+                      {reaction.videourl ? (
                         <>
-                          <video src={reaction.videoUrl} controls poster={reaction.thumbnailUrl || undefined} className="w-full rounded" />
+                          <video src={reaction.videourl} controls poster={reaction.thumbnailurl || undefined} className="w-full rounded" />
                           <button
                             onClick={() => {
-                              let filename = `reaction-${reaction.id}.video`; // Default if extraction fails
-                              if (reaction.videoUrl) {
+                              let filename = `reaction-${reaction.id}.video`; // Default
+                              if (reaction.videourl) { 
                                 try {
-                                  const urlPath = new URL(reaction.videoUrl).pathname;
+                                  const urlPath = new URL(reaction.videourl).pathname; 
                                   const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
                                   if (lastSegment.includes('.')) {
                                     const extension = lastSegment.split('.').pop();
                                     if (extension) filename = `reaction-${reaction.id}.${extension}`;
                                   }
                                 } catch (e) { console.error("Could not parse video URL for extension:", e); }
+                                downloadVideo(reaction.videourl, filename); 
+                              } else {
+                                console.error("Download clicked but no videourl present for reaction:", reaction.id);
                               }
-                              downloadVideo(reaction.videoUrl, filename);
                             }}
                             className="mt-3 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                           >
