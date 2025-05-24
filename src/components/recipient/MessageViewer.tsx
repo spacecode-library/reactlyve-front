@@ -240,30 +240,9 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     </div>
   );
 
-  // Determine if the webcam/name input flow is active, to adjust top padding
-  // const isWebcamFlowActive = showRecorder && !countdownComplete; // Old logic
-
-  // New logic for granular top padding based on component state
-  let topPaddingClass;
-  if (showRecorder && isNameSubmitted && !countdownComplete) {
-    // State 2: "Countdown/Preview" Screen Active
-    topPaddingClass = 'pt-0 sm:pt-4';
-  } else {
-    // State 1: "Enter Name" Screen Active (showRecorder && !isNameSubmitted && !countdownComplete)
-    // State 3: Message Display Screen Active / Default Fallback (countdownComplete or !showRecorder)
-    topPaddingClass = 'pt-10 sm:pt-12';
-  }
-
   return (
     <div
-      className={`
-        flex min-h-screen w-full flex-col items-center 
-        justify-start sm:justify-center 
-        bg-neutral-50 px-4 pb-8 
-        dark:bg-neutral-900
-        ${topPaddingClass}
-        sm:pb-8
-      `}
+      className={"flex min-h-screen w-full flex-col items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900 sm:py-12"}
     >
       {showRecorder && !isReactionRecorded && ( // WebcamRecorder comes first
         <div className="w-full max-w-md mx-auto mb-4">
