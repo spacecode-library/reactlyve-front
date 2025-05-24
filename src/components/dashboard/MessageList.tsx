@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { CopyIcon } from 'lucide-react';
 import { MessageWithReactions } from '../../types/message';
 import { formatDate, formatRelativeTime, truncateString } from '../../utils/formatters';
 import { classNames } from '../../utils/classNames';
@@ -25,6 +27,20 @@ const MessageList: React.FC<MessageListProps> = ({
   loading = false,
   className,
 }) => {
+  const handleCopyLink = async (link: string | undefined) => {
+    if (!link) {
+      toast.error('Shareable link is not available.');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success('Link copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+      toast.error('Failed to copy link.');
+    }
+  };
+
   if (!loading && messages.length === 0) {
     return (
       <div className={classNames('text-center', className || '')}>
@@ -146,6 +162,17 @@ const normalizedMessages = messages.map(normalizeMessage);
                     }
                   >
                     View
+                  </Button>
+                )}
+                {message.shareableLink && (
+                  <Button
+                    onClick={() => handleCopyLink(message.shareableLink)}
+                    variant="outline"
+                    size="sm"
+                    className="py-2.5 w-full sm:w-auto"
+                    leftIcon={<CopyIcon className="h-4 w-4" />}
+                  >
+                    Copy Link
                   </Button>
                 )}
                 {onDeleteMessage && (
