@@ -120,7 +120,7 @@ const MessageList: React.FC<MessageListProps> = ({
               </div>
 
               <div className="flex space-x-2">
-                {onViewReaction && (
+                {onViewMessage && (
                   <Button
                     onClick={() => onViewMessage(message.id)}
                     target="_blank"
