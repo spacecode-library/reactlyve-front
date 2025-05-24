@@ -1,17 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import { formatDistance, format } from 'date-fns'; // Added format
-import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon } from 'lucide-react';
-import api from '@/services/api';
+import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon, Trash2Icon } from 'lucide-react';
+import api, { messagesApi, reactionsApi } from '@/services/api';
 import { MESSAGE_ROUTES } from '@/components/constants/apiRoutes';
 import type { MessageWithReactions } from '../types/message';
+import Modal from '@/components/common/Modal';
+import Button from '@/components/common/Button';
+import toast from 'react-hot-toast';
 import type { Reaction } from '../types/reaction';
 import { normalizeMessage } from '../utils/normalizeKeys';
 import { QRCodeSVG } from 'qrcode.react';
 
 const Message: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteReactionModal, setShowDeleteReactionModal] = useState(false);
+  const [reactionToDeleteId, setReactionToDeleteId] = useState<string | null>(null);
+  const [isDeletingReaction, setIsDeletingReaction] = useState(false);
+  const [showDeleteAllReactionsModal, setShowDeleteAllReactionsModal] = useState(false);
+  const [isDeletingAllReactions, setIsDeletingAllReactions] = useState(false);
   const [message, setMessage] = useState<MessageWithReactions | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +47,72 @@ const Message: React.FC = () => {
 
     if (id) fetchMessageDetails();
   }, [id]);
+
+  const handleDeleteMessage = async () => {
+    if (!id) return;
+    setIsDeleting(true);
+    try {
+      await messagesApi.delete(id);
+      toast.success('Message deleted successfully!');
+      navigate('/dashboard');
+    } catch (err) {
+      toast.error('Failed to delete message. Please try again.');
+      console.error('Error deleting message:', err);
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirmModal(false);
+    }
+  };
+
+  const handleDeleteSingleReaction = async () => {
+    if (!reactionToDeleteId) return;
+    setIsDeletingReaction(true);
+    try {
+      await reactionsApi.deleteReactionById(reactionToDeleteId);
+      setMessage(prevMessage => {
+        if (!prevMessage || !prevMessage.reactions) return prevMessage;
+        return {
+          ...prevMessage,
+          reactions: prevMessage.reactions.filter(reaction => reaction.id !== reactionToDeleteId),
+        };
+      });
+      toast.success('Reaction deleted successfully!');
+    } catch (err) {
+      toast.error('Failed to delete reaction. Please try again.');
+      console.error('Error deleting reaction:', err);
+    } finally {
+      setIsDeletingReaction(false);
+      setShowDeleteReactionModal(false);
+      setReactionToDeleteId(null);
+    }
+  };
+
+  const openDeleteReactionModal = (rId: string) => {
+    setReactionToDeleteId(rId);
+    setShowDeleteReactionModal(true);
+  };
+
+  const handleDeleteAllReactions = async () => {
+    if (!id) return; // id is the messageId from useParams
+    setIsDeletingAllReactions(true);
+    try {
+      await reactionsApi.deleteAllForMessage(id);
+      setMessage(prevMessage => {
+        if (!prevMessage) return null;
+        return {
+          ...prevMessage,
+          reactions: [], // Set reactions to an empty array
+        };
+      });
+      toast.success('All reactions for this message deleted successfully!');
+    } catch (err) {
+      toast.error('Failed to delete all reactions. Please try again.');
+      console.error('Error deleting all reactions:', err);
+    } finally {
+      setIsDeletingAllReactions(false);
+      setShowDeleteAllReactionsModal(false);
+    }
+  };
   
   const normalizedMessage = normalizeMessage(message);
   
@@ -115,11 +192,24 @@ const Message: React.FC = () => {
         <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-neutral-800">
           <div className="p-6">
             {/* Header */}
-            <div className="mb-6 border-b border-neutral-200 pb-4 dark:border-neutral-700">
-              <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Message Details</h1>
-              <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                {formattedDate} ({timeAgo})
-              </p>
+            <div className="flex items-center justify-between mb-6 border-b border-neutral-200 pb-4 dark:border-neutral-700">
+              <div>
+                <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Message Details</h1>
+                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                  {formattedDate} ({timeAgo})
+                </p>
+              </div>
+              {message && !loading && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowDeleteConfirmModal(true)}
+                  disabled={isDeleting}
+                  leftIcon={<Trash2Icon size={16} />}
+                >
+                  Delete Message
+                </Button>
+              )}
             </div>
 
             {/* Message content */}
@@ -224,18 +314,46 @@ const Message: React.FC = () => {
             {/* Reactions and Replies */}
             {hasReactions ? (
               <div className="mb-6">
-                <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Reactions</h2>
+                <div className="flex justify-between items-center mb-2">
+                  <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Reactions</h2>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowDeleteAllReactionsModal(true)}
+                    disabled={isDeletingAllReactions || !message?.reactions?.length}
+                    isLoading={isDeletingAllReactions}
+                    className="text-red-600 border-red-600 hover:bg-red-50 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-900/30"
+                  >
+                    <Trash2Icon size={16} className="mr-1" />
+                    Clear All Reactions
+                  </Button>
+                </div>
                 <div className="grid gap-6 sm:grid-cols-2">
                   {message.reactions.map((reaction: Reaction & { name?: string; videourl?: string; thumbnailurl?: string; replies?: { id: string; text: string; createdAt: string }[] }) => (
                     <div key={reaction.id} className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
-                      {reaction.name && (
-                        <p className="mb-1 text-md font-semibold text-neutral-800 dark:text-neutral-100">
-                          From: {reaction.name}
-                        </p>
-                      )}
-                      <p className="mb-2 text-sm text-neutral-700 dark:text-neutral-300">
-                        Received on {new Date(reaction.createdAt).toLocaleString()}
-                      </p>
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          {reaction.name && (
+                            <p className="text-md font-semibold text-neutral-800 dark:text-neutral-100">
+                              From: {reaction.name}
+                            </p>
+                          )}
+                          <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                            Received on {new Date(reaction.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openDeleteReactionModal(reaction.id)}
+                          className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 dark:text-neutral-400 dark:hover:text-red-500 dark:hover:bg-red-900/30"
+                          disabled={isDeletingReaction && reactionToDeleteId === reaction.id}
+                          isLoading={isDeletingReaction && reactionToDeleteId === reaction.id}
+                          title="Delete Reaction"
+                        >
+                          <Trash2Icon size={16} />
+                        </Button>
+                      </div>
 
                       {reaction.videourl ? (
                         <>
@@ -337,6 +455,90 @@ const Message: React.FC = () => {
             )}
           </div>
         </div>
+        <Modal
+          isOpen={showDeleteConfirmModal}
+          onClose={() => setShowDeleteConfirmModal(false)}
+          title="Delete Message"
+          size="sm"
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setShowDeleteConfirmModal(false)} disabled={isDeleting}>
+                Cancel
+              </Button>
+              <Button variant="danger" onClick={handleDeleteMessage} disabled={isDeleting} isLoading={isDeleting}>
+                {isDeleting ? 'Deleting...' : 'Delete Message'}
+              </Button>
+            </>
+          }
+        >
+          <p className="text-neutral-600 dark:text-neutral-300">
+            Are you sure you want to delete this message? This action will also delete all associated reactions and cannot be undone.
+          </p>
+        </Modal>
+        <Modal
+          isOpen={showDeleteReactionModal}
+          onClose={() => {
+            setShowDeleteReactionModal(false);
+            setReactionToDeleteId(null); 
+          }}
+          title="Delete Reaction"
+          size="sm"
+          footer={
+            <>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowDeleteReactionModal(false);
+                  setReactionToDeleteId(null);
+                }} 
+                disabled={isDeletingReaction}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="danger" 
+                onClick={handleDeleteSingleReaction} 
+                disabled={isDeletingReaction} 
+                isLoading={isDeletingReaction}
+              >
+                {isDeletingReaction ? 'Deleting...' : 'Delete Reaction'}
+              </Button>
+            </>
+          }
+        >
+          <p className="text-neutral-600 dark:text-neutral-300">
+            Are you sure you want to delete this specific reaction? This action cannot be undone.
+          </p>
+        </Modal>
+        <Modal
+          isOpen={showDeleteAllReactionsModal}
+          onClose={() => setShowDeleteAllReactionsModal(false)}
+          title="Clear All Reactions"
+          size="sm"
+          footer={
+            <>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowDeleteAllReactionsModal(false)} 
+                disabled={isDeletingAllReactions}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="danger" 
+                onClick={handleDeleteAllReactions} 
+                disabled={isDeletingAllReactions} 
+                isLoading={isDeletingAllReactions}
+              >
+                {isDeletingAllReactions ? 'Clearing...' : 'Clear All'}
+              </Button>
+            </>
+          }
+        >
+          <p className="text-neutral-600 dark:text-neutral-300">
+            Are you sure you want to delete ALL reactions for this message? This action cannot be undone.
+          </p>
+        </Modal>
       </div>
     </MainLayout>
   );

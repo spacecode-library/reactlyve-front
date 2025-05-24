@@ -11,7 +11,7 @@ import MessageList from '../components/dashboard/MessageList';
 import ReactionViewer from '../components/dashboard/ReactionViewer';
 import Modal from '../components/common/Modal';
 import Button from '../components/common/Button';
-import api from '@/services/api.ts';
+import api, { messagesApi } from '@/services/api.ts';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -110,7 +110,7 @@ useEffect(() => {
     if (!messageToDelete) return;
   
     try {
-      await api.delete(MESSAGE_ROUTES.DELETE(messageToDelete)); // <- ✅ Use your configured `api`
+      await messagesApi.delete(messageToDelete); 
   
       setMessages(prevMessages =>
         prevMessages.filter(msg => msg.id !== messageToDelete)
