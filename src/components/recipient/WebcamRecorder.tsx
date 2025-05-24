@@ -348,7 +348,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
             autoPlay
             muted
             playsInline
-            className="rounded shadow-md w-full"
+            className="rounded shadow-md w-full aspect-video"
           />
         </div>
       )}

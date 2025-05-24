@@ -283,10 +283,10 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
             Start Reaction
           </button>
           {!permissionError && webcamStatusMessage && (
-            <p className="text-sm text-gray-500 mt-2">{webcamStatusMessage}</p>
+            <p className="text-sm text-gray-500 mt-2 text-center">{webcamStatusMessage}</p>
           )}
           {!permissionError && webcamInlineError && (
-            <p className="text-sm text-red-600 mt-2">{webcamInlineError}</p>
+            <p className="text-sm text-red-600 mt-2 text-center">{webcamInlineError}</p>
           )}
         </div>
       )}

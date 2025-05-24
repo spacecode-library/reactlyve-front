@@ -48,6 +48,13 @@ const Message: React.FC = () => {
     if (id) fetchMessageDetails();
   }, [id]);
 
+  // Scroll to top when message details are loaded
+  useEffect(() => {
+    if (message) {
+      window.scrollTo(0, 0);
+    }
+  }, [message]);
+
   const handleDeleteMessage = async () => {
     if (!id) return;
     setIsDeleting(true);
