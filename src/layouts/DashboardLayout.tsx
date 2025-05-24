@@ -76,10 +76,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       
       <div className="flex flex-1">
         {/* Mobile sidebar toggle */}
-        <div className="fixed inset-0 z-40 flex md:hidden">
+        <div className={classNames(
+          "fixed inset-0 z-40 flex md:hidden",
+          !sidebarOpen ? "pointer-events-none" : "" // Disable pointer events on this container when sidebar is closed
+        )}>
           <button
             type="button"
-            className="fixed right-4 top-4 z-50 rounded-md bg-neutral-800 p-2 text-white md:hidden"
+            // Ensure the toggle button itself is always clickable
+            className="fixed right-4 top-4 z-50 rounded-md bg-neutral-800 p-2 text-white md:hidden pointer-events-auto"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
             {sidebarOpen ? <XMarkIcon /> : <MenuOpenIcon />}
@@ -88,7 +92,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           {/* Mobile sidebar backdrop */}
           {sidebarOpen && (
             <div
-              className="fixed inset-0 bg-neutral-800 bg-opacity-50"
+              // Backdrop should allow clicks (to close) and have pointer events
+              className="fixed inset-0 bg-neutral-800 bg-opacity-50 pointer-events-auto"
               onClick={() => setSidebarOpen(false)}
             ></div>
           )}
@@ -97,7 +102,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <div
             className={classNames(
               'fixed inset-y-0 left-0 flex w-64 flex-col bg-white transition-transform dark:bg-neutral-800',
-              sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+              // Sidebar should have pointer events only when open and on screen
+              sidebarOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none'
             )}
           >
             <div className="flex h-16 flex-shrink-0 items-center border-b border-neutral-200 px-4 dark:border-neutral-700">
