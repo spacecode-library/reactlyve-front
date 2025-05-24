@@ -168,12 +168,12 @@ const MessageList: React.FC<MessageListProps> = ({
             </div>
 
             {/* Reaction thumbnails */}
-            {message.reactions && message.reactions.some(r => r.videourl) && (
+            {message.reactions && message.reactions.some(r => r.videoUrl) && (
               <div className="mt-4">
                 <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Reactions</h4>
                 <div className="mt-2 flex space-x-2 overflow-x-auto pb-2">
                   {message.reactions
-                    .filter(reaction => !!reaction.videourl)
+                    .filter(reaction => !!reaction.videoUrl)
                     .map((reaction) => (
                       <div key={reaction.id}>
                         <button
