@@ -61,7 +61,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: DashboardIcon },
     { name: 'Create Message', href: '/create', icon: PlusIcon },
-    { name: 'My Messages', href: '/messages', icon: MessagesIcon },
+    // { name: 'My Messages', href: '/messages', icon: MessagesIcon }, // Removed as per request
     { name: 'My Profile', href: '/profile', icon: UserIcon },
   ];
 
@@ -74,7 +74,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     <div className="flex min-h-screen flex-col bg-neutral-50 dark:bg-neutral-900">
       <Navbar />
       
-      <div className="flex flex-1">
+      <div className="flex flex-1 max-w-screen-xl mx-auto w-full">
         {/* Mobile sidebar toggle */}
         <div className={classNames(
           "fixed inset-0 z-40 flex md:hidden",

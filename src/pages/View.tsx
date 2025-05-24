@@ -52,12 +52,19 @@ const View: React.FC = () => {
         setError(MESSAGE_ERRORS.NOT_FOUND);
       } finally {
         setLoading(false);
-        window.scrollTo(0, 0);
+        // window.scrollTo(0, 0); // Removed as per new strategy
       }
     };
 
     fetchMessage();
   }, [id]);
+
+  // Scroll to top when message is loaded
+  useEffect(() => {
+    if (message) {
+      window.scrollTo(0, 0);
+    }
+  }, [message]);
 
   const handleSubmitPasscode = async (passcode: string): Promise<boolean> => {
     if (!id || !message) return false;

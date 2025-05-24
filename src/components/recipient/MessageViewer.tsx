@@ -186,7 +186,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           </div>
           <div className="ml-3">
             <p className="font-medium text-neutral-900 dark:text-white">{message.sender.name}</p>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">{formattedDate}</p>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">{formattedDate}</p>
           </div>
         </div>
       )}
@@ -243,9 +243,10 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   return (
     <div className="flex min-h-screen flex-col items-center justify-start sm:justify-center bg-neutral-50 px-4 pt-16 pb-8 sm:py-8 dark:bg-neutral-900">
       {showRecorder && !isReactionRecorded && ( // WebcamRecorder comes first
-        <WebcamRecorder
-          onRecordingComplete={handleReactionComplete}
-          onCancel={() => { /* Consider what cancel means in this new flow */ }}
+        <div className="w-full max-w-md mx-auto mb-4">
+          <WebcamRecorder
+            onRecordingComplete={handleReactionComplete}
+            onCancel={() => { /* Consider what cancel means in this new flow */ }}
           maxDuration={15000}
           countdownDuration={5} // This might be manually controlled now
           onPermissionDenied={(err) => setPermissionError(err)}
@@ -258,9 +259,10 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           isUploading={isUploading} // Pass the state here
           // The WebcamRecorder might need a new prop to trigger its countdown if it's not auto-starting
         />
+        </div>
       )}
       {showRecorder && !isNameSubmitted && ( // Name Input Section comes after
-        <div className="mb-4 w-full max-w-md">
+        <div className="mb-4 w-full max-w-md mx-auto">
           <label htmlFor="recipientName" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
             Say hello with your name
           </label>
