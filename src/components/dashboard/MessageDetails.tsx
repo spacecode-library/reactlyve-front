@@ -35,7 +35,7 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
     <div className="mx-auto w-full max-w-3xl p-6 bg-white dark:bg-neutral-900 rounded-md shadow">
       {/* Message Header */}
       <div className="mb-4">
-        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">Message Details - Test</h2>
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">Message Details</h2>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
           Created on {formatDate(message.createdAt)}
         </p>
@@ -72,21 +72,13 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
           >
             Copy
           </Button>
-          <button
-            type="button"
+          <Button
+            size="sm"
+            variant="outline"
             onClick={() => setShowQrCode(!showQrCode)}
-            style={{
-              padding: '0.25rem 0.5rem', // Equivalent to size="sm" roughly
-              border: '1px solid #6b7280', // A basic outline style
-              borderRadius: '0.25rem',
-              backgroundColor: 'transparent',
-              color: 'inherit', // Inherit text color from parent
-              cursor: 'pointer',
-              marginLeft: '0.5rem' // Keep spacing similar to space-x-2
-            }}
           >
             {showQrCode ? 'Hide QR Code' : 'Show QR Code'}
-          </button>
+          </Button>
         </div>
         {showQrCode && (
           <div className="mt-4 flex flex-col items-center">
