@@ -91,9 +91,9 @@ const normalizedMessages = messages.map(normalizeMessage);
             className="transition-shadow hover:shadow-md"
             hoverable
           >
-            {/* Main container for content and buttons: stacks on mobile, row on xs+ */}
-            <div className="flex flex-col items-start xs:flex-row xs:items-start xs:justify-between">
-              <div className="flex-1 pr-0 xs:pr-4 w-full xs:w-auto"> {/* Ensure content takes full width when stacked, allow natural width for buttons */}
+            {/* Main container for content and buttons: stacks on mobile (default), row on sm+ */}
+            <div className="flex flex-col items-start sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex-1 pr-0 w-full sm:pr-4 sm:w-auto"> {/* Content: full width on mobile, auto on sm+ */}
                 <div className="flex items-center">
                   <h3 className="text-lg font-medium text-neutral-900 dark:text-white">
                     {truncateString(message.content, 60)}
@@ -124,15 +124,15 @@ const normalizedMessages = messages.map(normalizeMessage);
                 </div>
               </div>
 
-              {/* Container for View/Delete buttons: adds margin when stacked, aligns right when stacked */}
-              <div className="flex space-x-2 mt-3 xs:mt-0 self-end xs:self-auto">
+              {/* Container for View/Delete buttons: vertical column on mobile, row on sm+ */}
+              <div className="flex flex-col space-y-2 mt-3 w-full sm:flex-row sm:space-y-0 sm:space-x-2 sm:mt-0 sm:w-auto">
                 {onViewMessage && (
                   <Button
                     onClick={() => onViewMessage(message.id)}
                     target="_blank"
                     variant="outline"
                     size="sm"
-                    className="py-2.5" // Increased vertical padding for better touch target
+                    className="py-2.5 w-full sm:w-auto" // Full width on mobile, auto on sm+
                     leftIcon={
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -152,7 +152,7 @@ const normalizedMessages = messages.map(normalizeMessage);
                   <Button
                     variant="outline"
                     size="sm"
-                    className="py-2.5" // Increased vertical padding for better touch target
+                    className="py-2.5 w-full sm:w-auto" // Full width on mobile, auto on sm+
                     onClick={() => onDeleteMessage(message.id)}
                     leftIcon={
                       <svg
