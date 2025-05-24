@@ -72,13 +72,21 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
           >
             Copy
           </Button>
-          <Button
-            size="sm"
-            variant="outline"
+          <button
+            type="button"
             onClick={() => setShowQrCode(!showQrCode)}
+            style={{
+              padding: '0.25rem 0.5rem', // Equivalent to size="sm" roughly
+              border: '1px solid #6b7280', // A basic outline style
+              borderRadius: '0.25rem',
+              backgroundColor: 'transparent',
+              color: 'inherit', // Inherit text color from parent
+              cursor: 'pointer',
+              marginLeft: '0.5rem' // Keep spacing similar to space-x-2
+            }}
           >
             {showQrCode ? 'Hide QR Code' : 'Show QR Code'}
-          </Button>
+          </button>
         </div>
         {showQrCode && (
           <div className="mt-4 flex flex-col items-center">
