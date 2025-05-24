@@ -5,6 +5,7 @@ import { formatDate, formatRelativeTime, truncateString } from '../../utils/form
 import { classNames } from '../../utils/classNames';
 import Button from '../common/Button';
 import Card from '../common/Card';
+import { normalizeMessage } from '@/utils/normalizeKeys';
 
 interface MessageListProps {
   messages: MessageWithReactions[];
@@ -78,10 +79,12 @@ const MessageList: React.FC<MessageListProps> = ({
     );
   }
 
+const normalizedMessages = messages.map(normalizeMessage);
+
   return (
     <div className={className}>
       <div className="space-y-4">
-        {messages.map((message) => (
+        {normalizedMessages.map((message) => (
           <Card
             key={message.id}
             className="transition-shadow hover:shadow-md"
