@@ -46,22 +46,27 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
             Reaction Video
           </h2>
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            {reaction.name && <span className="font-semibold">{reaction.name} • </span>}
             {formatDate(reaction.createdAt)} • {formatDuration(reaction.duration)}
           </p>
         </div>
 
         <div className="flex space-x-2">
-          <Button size="sm" variant="outline" onClick={handlePlayToggle}>
-            {isPlaying ? 'Pause' : 'Play'}
-          </Button>
+          {reaction.videoUrl && (
+            <>
+              <Button size="sm" variant="outline" onClick={handlePlayToggle}>
+                {isPlaying ? 'Pause' : 'Play'}
+              </Button>
 
-          <a
-            href={reaction.videoUrl}
-            download={`reaction-${reaction.id}.webm`}
-            className="btn btn-outline btn-sm"
-          >
-            Download
-          </a>
+              <a
+                href={reaction.videoUrl}
+                download={`reaction-${reaction.id}.${reaction.videoUrl.split('.').pop() || 'webm'}`}
+                className="btn btn-outline btn-sm"
+              >
+                Download
+              </a>
+            </>
+          )}
 
           {onDeleteReaction && (
             <Button
@@ -85,14 +90,31 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
       )}
 
       {/* Video */}
-      <div className="overflow-hidden rounded-md">
-        <VideoPlayer
-          src={reaction.videoUrl}
-          poster={reaction.thumbnailUrl}
-          autoPlay={isPlaying}
-          onError={(err) => console.error('Video error:', err)}
-        />
-      </div>
+      {reaction.videoUrl ? (
+        <div className="overflow-hidden rounded-md">
+          <VideoPlayer
+            src={reaction.videoUrl}
+            poster={reaction.thumbnailUrl}
+            autoPlay={isPlaying}
+            onError={(err) => console.error('Video error:', err)}
+          />
+        </div>
+      ) : (
+        reaction.replies && reaction.replies.length > 0 && (
+          <div className="mt-4 rounded-md border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-700 dark:bg-neutral-700">
+            <h3 className="mb-2 text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+              Replies:
+            </h3>
+            <ul className="list-disc space-y-1 pl-5">
+              {reaction.replies.map((reply, index) => (
+                <li key={index} className="text-sm text-neutral-700 dark:text-neutral-300">
+                  {reply}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      )}
 
       {/* Delete Confirmation Modal */}
       <Modal
