@@ -8,6 +8,7 @@ import { MESSAGE_ROUTES } from '@/components/constants/apiRoutes';
 import type { MessageWithReactions } from '../types/message';
 import type { Reaction } from '../types/reaction';
 import { normalizeMessage } from '../utils/normalizeKeys';
+import { QRCodeSVG } from 'qrcode.react';
 
 const Message: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -77,16 +78,7 @@ const Message: React.FC = () => {
     };
   };
 
-  const getQrCodeUrl = () => {
-    if (!normalizedMessage.shareableLink) {
-      console.log('QR GEN: no shareableLink, returning empty.'); // Log this case
-      return '';
-    }
-    const encodedUrl = encodeURIComponent(normalizedMessage.shareableLink);
-    const finalUrl = `https://chart.googleapis.com/chart?cht=qr&chl=${encodedUrl}&chs=250x250&choe=UTF-8&chld=L|2`;
-    console.log('QR GEN: encodedUrl:', encodedUrl, 'finalUrl:', finalUrl); // Log URLs
-    return finalUrl;
-  };
+  // Removed getQrCodeUrl function
 
   if (loading) {
     return (
@@ -194,13 +186,18 @@ const Message: React.FC = () => {
                   {showQrCode && normalizedMessage.shareableLink && (
                     <div className="mt-4 text-center">
                       <h3 className="mb-2 text-md font-semibold text-neutral-900 dark:text-white">Scan QR Code</h3>
-                      <div className="inline-block rounded-lg bg-white p-2 shadow">
-                        <img 
-                          src={getQrCodeUrl()} 
-                          alt="Shareable Link QR Code" 
-                          className="h-48 w-48 md:h-56 md:w-56" 
+                      <div className="inline-block rounded-lg bg-white p-4 shadow"> {/* Increased padding slightly for aesthetics */}
+                        <QRCodeSVG
+                          value={normalizedMessage.shareableLink}
+                          size={200} // Adjust size as needed
+                          bgColor={"#ffffff"}
+                          fgColor={"#000000"}
+                          level={"L"} // Error correction level
                         />
                       </div>
+                      <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                        Scan this QR code to access the shareable link.
+                      </p>
                     </div>
                   )}
                 </div>

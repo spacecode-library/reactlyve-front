@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { classNames } from '../../utils/classNames';
 import Button from '../common/Button';
 import { showToast } from '../common/ErrorToast';
@@ -20,13 +21,7 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({
   const [copied, setCopied] = useState(false);
   const passcodeInputRef = useRef<HTMLInputElement>(null);
 
-  // Function to generate QR code URL
-  const getQrCodeUrl = () => {
-    if (!shareableLink) return '';
-    // Using Google Charts API to generate QR code
-    const encodedUrl = encodeURIComponent(shareableLink);
-    return `https://chart.googleapis.com/chart?cht=qr&chl=${encodedUrl}&chs=250x250&choe=UTF-8&chld=L|2`;
-  };
+  // Removed getQrCodeUrl function
 
   // Copy link to clipboard
   const handleCopyLink = async () => {
@@ -225,8 +220,14 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({
       {/* QR Code display */}
       {showQrCode && (
         <div className="mt-5 flex flex-col items-center">
-          <div className="p-4 bg-white rounded-lg shadow-sm">
-            <img src={getQrCodeUrl()} alt="QR Code for your message" className="w-full max-w-xs" />
+          <div className="p-4 bg-white rounded-lg shadow-sm inline-block"> {/* Added inline-block for tighter fit if needed */}
+            <QRCodeSVG
+              value={shareableLink} // Use the component prop
+              size={250} // Adjust size as needed, e.g., to fit within max-w-xs
+              bgColor={"#ffffff"}
+              fgColor={"#000000"}
+              level={"L"}
+            />
           </div>
           <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
             Scan this QR code to access your message directly
