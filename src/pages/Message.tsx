@@ -111,7 +111,7 @@ const Message: React.FC = () => {
           <div className="p-6">
             {/* Header */}
             <div className="mb-6 border-b border-neutral-200 pb-4 dark:border-neutral-700">
-              <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Message Details</h1>
+              <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Message Details - Test</h1>
               <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
                 {formattedDate} ({timeAgo})
               </p>
