@@ -321,7 +321,7 @@ const Message: React.FC = () => {
                     size="sm"
                     onClick={() => setShowDeleteAllReactionsModal(true)}
                     disabled={isDeletingAllReactions || !message?.reactions?.length}
-                    loading={isDeletingAllReactions}
+                    isLoading={isDeletingAllReactions}
                     className="text-red-600 border-red-600 hover:bg-red-50 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-900/30"
                   >
                     <Trash2Icon size={16} className="mr-1" />
@@ -348,7 +348,7 @@ const Message: React.FC = () => {
                           onClick={() => openDeleteReactionModal(reaction.id)}
                           className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 dark:text-neutral-400 dark:hover:text-red-500 dark:hover:bg-red-900/30"
                           disabled={isDeletingReaction && reactionToDeleteId === reaction.id}
-                          loading={isDeletingReaction && reactionToDeleteId === reaction.id}
+                          isLoading={isDeletingReaction && reactionToDeleteId === reaction.id}
                           title="Delete Reaction"
                         >
                           <Trash2Icon size={16} />
@@ -465,7 +465,7 @@ const Message: React.FC = () => {
               <Button variant="outline" onClick={() => setShowDeleteConfirmModal(false)} disabled={isDeleting}>
                 Cancel
               </Button>
-              <Button variant="danger" onClick={handleDeleteMessage} disabled={isDeleting} loading={isDeleting}>
+              <Button variant="danger" onClick={handleDeleteMessage} disabled={isDeleting} isLoading={isDeleting}>
                 {isDeleting ? 'Deleting...' : 'Delete Message'}
               </Button>
             </>
@@ -499,7 +499,7 @@ const Message: React.FC = () => {
                 variant="danger" 
                 onClick={handleDeleteSingleReaction} 
                 disabled={isDeletingReaction} 
-                loading={isDeletingReaction}
+                isLoading={isDeletingReaction}
               >
                 {isDeletingReaction ? 'Deleting...' : 'Delete Reaction'}
               </Button>
@@ -528,7 +528,7 @@ const Message: React.FC = () => {
                 variant="danger" 
                 onClick={handleDeleteAllReactions} 
                 disabled={isDeletingAllReactions} 
-                loading={isDeletingAllReactions}
+                isLoading={isDeletingAllReactions}
               >
                 {isDeletingAllReactions ? 'Clearing...' : 'Clear All'}
               </Button>
