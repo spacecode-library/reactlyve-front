@@ -263,7 +263,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       )}
       {showRecorder && !isNameSubmitted && ( // Name Input Section comes after
         <div className="mb-4 w-full max-w-md mx-auto">
-          <label htmlFor="recipientName" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+          <label htmlFor="recipientName" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1 text-center">
             Say hello with your name
           </label>
           <input

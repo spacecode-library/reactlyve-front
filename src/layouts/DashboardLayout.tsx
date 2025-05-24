@@ -83,7 +83,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <button
             type="button"
             // Ensure the toggle button itself is always clickable
-            className="fixed right-4 top-4 z-50 rounded-md bg-neutral-800 p-2 text-white md:hidden pointer-events-auto"
+            className="fixed right-6 top-4 z-50 rounded-md bg-neutral-800 p-2 text-white md:hidden pointer-events-auto"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
             {sidebarOpen ? <XMarkIcon /> : <MenuOpenIcon />}
