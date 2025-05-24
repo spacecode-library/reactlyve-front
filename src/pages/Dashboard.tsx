@@ -46,12 +46,24 @@ const Dashboard: React.FC = () => {
         viewedMessages,
       } = response.data.stats;
 
+      const messagesWithReactions = Array.isArray(response.data.messages)
+        ? response.data.messages.filter(
+            (msg: MessageWithReactions) => Array.isArray(msg.reactions) && msg.reactions.length > 0
+          ).length
+        : 0;
+      
+      const safeViewedMessages = Number(viewedMessages) || 0;
+      
       setStats({
-        totalMessages,
-        totalReactions,
-        viewRate: parseFloat(viewRate),           // convert "85.23%" => 85.23
-        reactionRate: parseFloat(reactionRate),   // same here
+        totalMessages: Number(totalMessages) || 0,
+        totalReactions: Number(totalReactions) || 0,
+        viewRate: isNaN(parseFloat(viewRate)) ? 0 : parseFloat(viewRate),
+        reactionRate:
+          safeViewedMessages > 0
+            ? parseFloat(((messagesWithReactions / safeViewedMessages) * 100).toFixed(2))
+            : 0,
       });
+
 
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -301,11 +313,11 @@ const Dashboard: React.FC = () => {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="truncate text-sm font-medium text-neutral-500 dark:text-neutral-400">
-                      Reaction Rate
+                      Reaction Rate (Viewed Messages)
                     </dt>
                     <dd>
                       <div className="text-lg font-medium text-neutral-900 dark:text-white">
-                        {stats.reactionRate}
+                        {stats.reactionRate.toFixed(0)}%
                       </div>
                     </dd>
                   </dl>
