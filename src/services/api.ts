@@ -58,7 +58,7 @@ export const messagesApi = {
   },
   getAll: () => api.get('/messages'),
   getById: (id: string) => api.get(`/messages/${id}`),
-  delete: (id: string) => api.delete(`/messages/${id}`),
+  delete: (id: string) => api.delete(`/messages/${id}/delete`),
   getByShareableLink: (linkId: string) => {
     const publicApi = axios.create({
       baseURL: API_BASE_URL,
@@ -112,7 +112,8 @@ export const reactionsApi = {
 
   getByMessageId: (messageId: string) => api.get(`/reactions/message/${messageId}`),
   getById: (id: string) => api.get(`/reactions/${id}`),
-  delete: (id: string) => api.delete(`/messages/${id}/delete`),
+  deleteReactionById: (reactionId: string) => api.delete(`/reactions/${reactionId}/delete`),
+  deleteAllForMessage: (messageId: string) => api.delete(`/messages/${messageId}/reactions/delete`),
 };
 
 // ------------------ REPLIES API ------------------
