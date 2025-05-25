@@ -4,6 +4,7 @@ import MainLayout from '../layouts/MainLayout';
 import { format } from 'date-fns';
 import { DownloadIcon } from 'lucide-react';
 import { reactionsApi, messagesApi } from '@/services/api';
+import VideoPlayer from '../components/dashboard/VideoPlayer';
 import type { MessageWithReactions } from '@/types/message';
 import type { Reaction } from '@/types/reaction';
 
@@ -58,38 +59,27 @@ const ReactionPage: React.FC = () => {
   };
 
   const getDownloadFilename = () => {
-    const prefix = 'Reactlyve';
-
-    let titlePart = 'video';
-    if (parentMessage?.content) {
-      titlePart = parentMessage.content.replace(/\s+/g, '_').substring(0, 5);
-    }
-
-    const responderName = reaction?.name ? reaction.name.replace(/\s+/g, '_') : 'UnknownResponder';
-
-    let dateTimePart = 'timestamp';
-    if (reaction?.createdAt) {
-      try {
-        dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
-      } catch (e) {
-        console.error('Error formatting date:', e);
-      }
-    }
-
     let extension = 'mp4';
     try {
-      const urlPath = new URL(reaction?.videoUrl || '').pathname;
-      const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
-      if (lastSegment.includes('.')) {
-        const ext = lastSegment.split('.').pop();
-        if (ext) extension = ext;
+      if (reaction?.videoUrl) {
+        const urlPath = new URL(reaction.videoUrl).pathname;
+        const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
+        if (lastSegment.includes('.')) {
+          const ext = lastSegment.split('.').pop();
+          if (ext) {
+            extension = ext;
+          }
+        }
       }
     } catch (e) {
       console.error('Could not parse video URL for extension:', e);
+      // Default to 'mp4' if parsing fails
     }
 
-    const baseName = `${prefix}-${titlePart}-${responderName}-${dateTimePart}`;
-    return `${baseName.replace(/[^a-zA-Z0-9_\-\.]/g, '_')}.${extension}`;
+    if (reaction?.id) {
+      return `reaction-${reaction.id}.${extension}`;
+    }
+    return `reaction_video.${extension}`;
   };
 
   if (loading) {
@@ -136,9 +126,8 @@ const ReactionPage: React.FC = () => {
 
       {reaction.videoUrl ? (
         <div className="mx-auto max-w-5xl px-4 py-8">
-          <video
+          <VideoPlayer
             src={reaction.videoUrl}
-            controls
             poster={reaction.thumbnailUrl || undefined}
             className="w-full aspect-video rounded-lg object-contain"
           />
