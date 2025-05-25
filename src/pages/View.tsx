@@ -121,13 +121,11 @@ const View: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">
-        <div className="text-center">
-          <LoadingSpinner size="lg" />
-          <p className="mt-4 text-neutral-600 dark:text-neutral-300">Loading message...</p>
-        </div>
-      </div>
-    );
+     <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 dark:bg-neutral-900">
+       <LoadingSpinner size="lg" />
+       <p className="mt-4 text-neutral-600 dark:text-neutral-300">Loading message...</p>
+     </div>
+   );
   }
 
   if (error) {
