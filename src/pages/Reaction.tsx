@@ -69,7 +69,8 @@ const Reaction: React.FC = () => {
   }
 
   const formattedDate = format(new Date(reaction.createdAt), 'dd MMM yyyy, HH:mm');
-  const filename = `reaction-${reaction.name || 'anonymous'}-${reaction.id}.mp4`;
+  const safeName = (reaction.name || 'anonymous').replace(/[^a-zA-Z0-9-_]/g, '_');
+const filename = `reaction-${safeName}-${reaction.id}.mp4`;
 
   return (
   <MainLayout>
@@ -89,11 +90,11 @@ const Reaction: React.FC = () => {
     {reaction.videourl ? (
       <div className="mx-auto max-w-5xl px-4 py-8">
         <video
-          src={reaction.videourl}
-          controls
-          poster={reaction.thumbnailurl || undefined}
-          className="w-full rounded-lg"
-        />
+  src={reaction.videourl}
+  controls
+  poster={reaction.thumbnailurl || undefined}
+  className="w-full aspect-video rounded-lg object-contain"
+/>
         <button
           onClick={() => downloadVideo(reaction.videourl, filename)}
           className="mt-4 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
