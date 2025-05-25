@@ -61,7 +61,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: DashboardIcon },
     { name: 'Create Message', href: '/create', icon: PlusIcon },
-    { name: 'My Messages', href: '/messages', icon: MessagesIcon },
+    // { name: 'My Messages', href: '/messages', icon: MessagesIcon }, // Removed as per request
     { name: 'My Profile', href: '/profile', icon: UserIcon },
   ];
 
@@ -74,7 +74,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     <div className="flex min-h-screen flex-col bg-neutral-50 dark:bg-neutral-900">
       <Navbar />
       
-      <div className="flex flex-1">
+      <div className="flex flex-1 max-w-screen-xl mx-auto w-full">
         {/* Mobile sidebar toggle */}
         <div className={classNames(
           "fixed inset-0 z-40 flex md:hidden",
@@ -83,7 +83,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           <button
             type="button"
             // Ensure the toggle button itself is always clickable
-            className="fixed right-4 top-4 z-50 rounded-md bg-neutral-800 p-2 text-white md:hidden pointer-events-auto"
+            className="fixed right-3 top-16 z-50 rounded-md bg-neutral-800 p-2 text-white md:hidden pointer-events-auto"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
             {sidebarOpen ? <XMarkIcon /> : <MenuOpenIcon />}
@@ -160,7 +160,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         
         {/* Main content */}
         <div className="flex flex-1 flex-col overflow-y-auto">
-          <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+          <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
             {children}
           </main>
         </div>

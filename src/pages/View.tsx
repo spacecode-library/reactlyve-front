@@ -52,11 +52,19 @@ const View: React.FC = () => {
         setError(MESSAGE_ERRORS.NOT_FOUND);
       } finally {
         setLoading(false);
+        // window.scrollTo(0, 0); // Removed as per new strategy
       }
     };
 
     fetchMessage();
   }, [id]);
+
+  // Scroll to top when message is loaded
+  useEffect(() => {
+    if (message) {
+      window.scrollTo(0, 0);
+    }
+  }, [message]);
 
   const handleSubmitPasscode = async (passcode: string): Promise<boolean> => {
     if (!id || !message) return false;
@@ -113,13 +121,11 @@ const View: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">
-        <div className="text-center">
-          <LoadingSpinner size="lg" />
-          <p className="mt-4 text-neutral-600 dark:text-neutral-300">Loading message...</p>
-        </div>
-      </div>
-    );
+     <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 dark:bg-neutral-900">
+       <LoadingSpinner size="lg" />
+       <p className="mt-4 text-neutral-600 dark:text-neutral-300">Loading message...</p>
+     </div>
+   );
   }
 
   if (error) {
@@ -155,7 +161,7 @@ const View: React.FC = () => {
 
   if (message && (passcodeVerified || !needsPasscode)) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900">
+      <div className="flex min-h-screen items-center justify-start bg-neutral-50 px-4 pt-16 pb-8 sm:py-12 dark:bg-neutral-900">
         <MessageViewer
           message={message}
           onRecordReaction={async () => {}} // Changed to an async no-op function

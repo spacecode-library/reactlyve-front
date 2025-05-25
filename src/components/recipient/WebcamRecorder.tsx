@@ -18,7 +18,7 @@ interface WebcamRecorderProps {
   triggerCountdownSignal?: boolean;
   onStatusUpdate?: (message: string | null) => void;
   onWebcamError?: (message: string | null) => void;
-  isUploading?: boolean; // New prop
+  isUploading?: boolean;
 }
 
 const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
@@ -35,7 +35,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   triggerCountdownSignal,
   onStatusUpdate,
   onWebcamError,
-  isUploading = false, // Destructure the new prop
+  isUploading = false,
 }) => {
   const [showCountdown, setShowCountdown] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -48,8 +48,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   const [recordingCountdown, setRecordingCountdown] = useState<number | null>(null);
   const [showPreview, setShowPreview] = useState(true);
   const [previewManuallyToggled, setPreviewManuallyToggled] = useState(false);
-  const [countdownHasOccurred, setCountdownHasOccurred] = useState(false); // New state variable
-  // triggerCountdownSignal is a prop, not state here
+  const [countdownHasOccurred, setCountdownHasOccurred] = useState(false);
 
   const MAX_RETRY_ATTEMPTS = 3;
   const RETRY_DELAY = 2000;
@@ -59,18 +58,8 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     videoRef,
     startWebcam,
     stopWebcam,
-    error: webcamHookError, // Destructure error as webcamHookError
+    error: webcamHookError,
   } = useWebcam({ facingMode: 'user', audio: true });
-
-  useEffect(() => {
-    if (webcamHookError) {
-      const errorMsg = `Webcam error: ${webcamHookError.message}`;
-      setPermissionError(errorMsg);
-      onWebcamError?.(errorMsg);
-      setWebcamInitialized(false);
-      setShowCountdown(false); // Prevent countdown if webcam failed
-    }
-  }, [webcamHookError, onWebcamError]);
 
   const {
     status: recordingStatus,
@@ -78,7 +67,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     startRecording,
     stopRecording,
     clearRecording,
-    error: mediaRecorderError, // Ensure this is destructured
+    error: mediaRecorderError,
   } = useMediaRecorder({ stream, maxDuration });
 
   useEffect(() => {
@@ -86,22 +75,17 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       const errorMsg = `Recording error: ${mediaRecorderError.message}`;
       setPermissionError(errorMsg);
       onWebcamError?.(errorMsg);
-      setIsRecording(false); // Ensure we are not in recording state
+      setIsRecording(false);
     }
   }, [mediaRecorderError, onWebcamError]);
 
-  useEffect(() => {
-    if (recordingStatus === 'error') {
-      const errorMsg = mediaRecorderError?.message || 'An unknown recording error occurred.';
-      setPermissionError(errorMsg);
-      onWebcamError?.(errorMsg);
-      setIsRecording(false);
-    }
-  }, [recordingStatus, mediaRecorderError, onWebcamError]); // Added mediaRecorderError here too
+
 
   useEffect(() => {
     setIsBrowserSupported(supportsMediaRecording());
   }, []);
+
+
 
   useEffect(() => {
     if (!isBrowserSupported || webcamInitialized) return;
@@ -112,19 +96,10 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       onStatusUpdate?.(statusMsg);
       try {
         await startWebcam();
-
-        // stream check removed
-        // setShowCountdown call removed
-
         setWebcamInitialized(true);
         setRetryMessage('');
         onStatusUpdate?.(null);
-        // Note: if (autoStart) setShowCountdown(true); was removed from here
       } catch (err) {
-        // The existing catch block will handle errors from startWebcam() or the explicit throw
-        // It's important that this catch block does NOT set webcamInitialized to true.
-        // If it's a final error, webcamInitialized should remain false or be set to false.
-        // The current catch block which sets permissionError is fine.
         if (attempt + 1 < MAX_RETRY_ATTEMPTS) {
           setTimeout(() => tryInitializeWebcam(attempt + 1), RETRY_DELAY);
         } else {
@@ -144,39 +119,47 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     };
   }, [isBrowserSupported, webcamInitialized, autoStart, onStatusUpdate, onWebcamError, onPermissionDenied]);
 
+
+
   useEffect(() => {
-    if (webcamInitialized) { // Only proceed if initialization was attempted and deemed successful by tryInitializeWebcam
-      if (stream) { // If stream is now available
-        if (autoStart && !countdownHasOccurred) { // Modified condition
+    if (webcamHookError) {
+      const errorMsg = `Webcam error: ${webcamHookError.message}`;
+      setPermissionError(errorMsg);
+      onWebcamError?.(errorMsg);
+      setWebcamInitialized(false);
+      setShowCountdown(false);
+    }
+  }, [webcamHookError, onWebcamError]);
+
+
+
+  useEffect(() => {
+    if (webcamInitialized) {
+      if (stream) {
+        if (autoStart && !countdownHasOccurred) {
           setShowCountdown(true);
         }
-        // Optional: Clear a permissionError if it was set by a previous failed attempt in this effect
-        // This might need careful consideration if setPermissionError(undefined) is appropriate here or if
-        // the webcamHookError effect already handles clearing it implicitly when webcamHookError becomes null.
-        // For now, let's focus on setShowCountdown.
-        // setPermissionError(undefined); // Potentially clear if stream is now OK.
-      } else if (!webcamHookError && !isRecording && !recordingCompleted) { // Condition updated
-        // Stream is not available, AND useWebcam hook itself hasn't reported an error,
-        // AND we are not currently recording or already completed.
-        // This is the "silent failure" or timing issue for the stream.
+      } else if (!webcamHookError && !isRecording && !recordingCompleted) {
         const errorMsg = 'Webcam stream not available after initialization attempt.';
         setPermissionError(errorMsg);
         onWebcamError?.(errorMsg);
-        setShowCountdown(false); // Ensure countdown doesn't start/continue
-        onPermissionDenied?.(errorMsg); // Notify parent if prop provided
+        setShowCountdown(false);
+        onPermissionDenied?.(errorMsg);
       }
-      // If webcamHookError is present, the other useEffect (dedicated to webcamHookError)
-      // should have already handled setting permissionError and setShowCountdown(false).
     }
-  }, [stream, webcamInitialized, autoStart, onPermissionDenied, webcamHookError, countdownHasOccurred, isRecording, recordingCompleted]); // Dependencies updated
+  }, [stream, webcamInitialized, autoStart, onPermissionDenied, webcamHookError, countdownHasOccurred, isRecording, recordingCompleted]);
+
+
 
   useEffect(() => {
     if (showPreview && stream && videoRef.current && webcamInitialized) {
       videoRef.current.srcObject = stream;
-    } else if (!stream && videoRef.current) { // Optional: Clear if stream becomes null
+    } else if (!stream && videoRef.current) {
       videoRef.current.srcObject = null;
     }
-  }, [showPreview, stream, webcamInitialized, videoRef, triggerCountdownSignal]); // Added triggerCountdownSignal
+  }, [showPreview, stream, webcamInitialized, videoRef, triggerCountdownSignal]);
+
+
 
   useEffect(() => {
     return () => {
@@ -187,22 +170,22 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     };
   }, []);
 
+
+
   useEffect(() => {
     if (recordingStatus === 'stopped' && recordedBlob && !recordingCompleted) {
       setRecordingCompleted(true);
       setIsRecording(false);
       onRecordingComplete(recordedBlob);
-      stopWebcam(); // Add this line to deactivate the webcam
-
-      // The following lines that manually stop tracks on videoRef.current.srcObject
-      // might become redundant if stopWebcam() already handles stream track stopping.
-      // For now, we can leave them, but it's something to note.
+      stopWebcam();
       if (videoRef.current?.srcObject) {
         (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
         videoRef.current.srcObject = null;
       }
     }
-  }, [recordingStatus, recordedBlob, recordingCompleted, onRecordingComplete, stopWebcam]); // Add onRecordingComplete and stopWebcam
+  }, [recordingStatus, recordedBlob, recordingCompleted, onRecordingComplete, stopWebcam]);
+
+
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -212,12 +195,11 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
           if (prev <= 1) {
             clearInterval(interval);
             setShowCountdown(false);
-
             if (webcamInitialized && stream) {
               startRecording();
               setIsRecording(true);
               setRecordingCountdown(maxDuration / 1000);
-              setCountdownHasOccurred(true); // Set countdownHasOccurred to true
+              setCountdownHasOccurred(true);
               onCountdownComplete?.();
             } else {
               const err = 'Camera stream not available after countdown.';
@@ -225,7 +207,6 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
               onWebcamError?.(err);
               onPermissionDenied?.(err);
             }
-
             return 0;
           }
           return prev - 1;
@@ -236,8 +217,9 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     return () => clearInterval(interval);
   }, [showCountdown, countdownValue, stream]);
 
+
+
   useEffect(() => {
-    // When recording begins or countdown finishes, auto-hide preview if requested and not manually toggled
     if (
       (isRecording || !showCountdown) &&
       hidePreviewAfterCountdown &&
@@ -247,9 +229,13 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     }
   }, [isRecording, showCountdown, hidePreviewAfterCountdown, previewManuallyToggled]);
 
+
+
   useEffect(() => {
     if (showCountdown) setCountdownValue(countdownDuration);
   }, [showCountdown, countdownDuration]);
+
+
 
   useEffect(() => {
     if (!isRecording || recordingCountdown === null) return;
@@ -265,30 +251,33 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     return () => clearInterval(interval);
   }, [isRecording, recordingCountdown]);
 
+
+
   useEffect(() => {
-    // Attach stream again during countdown or recording if lost
     if ((showCountdown || isRecording) && stream && videoRef.current) {
       videoRef.current.srcObject = stream;
     }
   }, [showCountdown, isRecording, stream]);
 
+
+
   useEffect(() => {
     if (triggerCountdownSignal && !isRecording && !recordingCompleted && webcamInitialized && stream) {
-      // Check webcamInitialized and stream to ensure webcam is ready
-      // Check !isRecording and !recordingCompleted to prevent re-triggering
       setShowCountdown(true);
     }
   }, [triggerCountdownSignal, webcamInitialized, stream, isRecording, recordingCompleted]);
 
+
+
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (isRecording || isUploading) { // Condition updated
+      if (isRecording || isUploading) {
         event.preventDefault();
         event.returnValue = 'Your video is still being processed. Are you sure you want to leave?';
       }
     };
 
-    if (isRecording || isUploading) { // Condition updated
+    if (isRecording || isUploading) {
       window.addEventListener('beforeunload', handleBeforeUnload);
     } else {
       window.removeEventListener('beforeunload', handleBeforeUnload);
@@ -297,7 +286,9 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [isRecording, isUploading]); // Dependency array updated
+  }, [isRecording, isUploading]);
+
+
 
   const handleRetryWebcam = () => {
     setWebcamInitialized(false);
@@ -306,6 +297,8 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     setRetryMessage('');
     onStatusUpdate?.(null);
   };
+
+
 
   const handleCancel = () => {
     stopRecording();
@@ -316,6 +309,8 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     onCancel();
   };
 
+
+
   if (!isBrowserSupported) {
     return (
       <div className="text-center text-red-600">
@@ -324,6 +319,8 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       </div>
     );
   }
+
+
 
   if (permissionError) {
     return (
@@ -337,31 +334,42 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     );
   }
 
+
+
   return (
-    <div className={classNames('flex flex-col items-center', className || '')}>
-      <h2 className="text-xl font-semibold mb-4">Record Your Lyve Reaction</h2>
+    <div className={classNames('relative flex flex-col items-center justify-center text-center', className || '')}>
+
+      <h2 className="text-xl font-semibold mb-2">Record Your Lyve Reaction</h2>
 
       {((showCountdown && !previewManuallyToggled) || showPreview) && (
-        <div className="w-full max-w-md my-4">
+        <div className="relative w-full max-w-md mt-2 mb-4 aspect-video">
+
           <video
             ref={videoRef}
             autoPlay
             muted
             playsInline
-            className="rounded shadow-md w-full"
+            className="rounded shadow-md w-full h-full object-cover"
           />
+
+          {showCountdown && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-6xl font-bold text-white drop-shadow-md">{countdownValue}</div>
+            </div>
+          )}
         </div>
       )}
 
-      {showCountdown && <div className="text-4xl font-bold text-blue-500 mt-2">{countdownValue}</div>}
       {isRecording && (
         <p className="text-red-500 mt-2 text-sm font-medium">
           Recording... {recordingCountdown !== null ? `${recordingCountdown}s left` : ''}
         </p>
       )}
+
       {recordingCompleted && (
         <p className="text-green-600 mt-2">Recording complete!</p>
       )}
+
       {isRecording && (
         <button
           className="text-sm text-primary-600 underline mt-2"
@@ -373,6 +381,13 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
           {showPreview ? 'Hide Preview' : 'Show Preview'}
         </button>
       )}
+
+      {isUploading && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
+
     </div>
   );
 };
