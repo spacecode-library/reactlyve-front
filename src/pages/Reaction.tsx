@@ -21,7 +21,9 @@ const ReactionPage: React.FC = () => {
         if (!reactionId) return;
 
         const reactionRes = await reactionsApi.getById(reactionId);
+        console.log('[ReactionPage] Raw API Response for reactionRes.data:', JSON.stringify(reactionRes.data, null, 2));
         setReaction(reactionRes.data);
+        console.log('[ReactionPage] reactionRes.data after setReaction call:', JSON.stringify(reactionRes.data, null, 2));
 
         // Fetch the parent message if available
         if (reactionRes.data.messageId) {
@@ -126,6 +128,8 @@ const ReactionPage: React.FC = () => {
 
       {reaction.videoUrl ? (
         <div className="mx-auto max-w-5xl px-4 py-8">
+          {console.log('[ReactionPage] Before VideoPlayer - reaction.videoUrl:', reaction?.videoUrl)}
+          {console.log('[ReactionPage] Before VideoPlayer - reaction.thumbnailUrl:', reaction?.thumbnailUrl)}
           <VideoPlayer
             src={reaction.videoUrl}
             poster={reaction.thumbnailUrl || undefined}
@@ -144,6 +148,7 @@ const ReactionPage: React.FC = () => {
       )}
 
       {/* Replies */}
+      {console.log('[ReactionPage] Before Replies - reaction.replies:', JSON.stringify(reaction?.replies, null, 2))}
       {reaction.replies && reaction.replies.length > 0 && (
         <div className="mx-auto max-w-3xl px-4 py-6">
           <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">Replies</h2>
