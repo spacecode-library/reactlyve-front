@@ -7,15 +7,7 @@ import { reactionsApi } from '@/services/api';
 
 const Reaction: React.FC = () => {
   const { reactionId } = useParams<{ reactionId: string }>();
-  const [reaction, setReaction] = useState<{
-    id: string;
-    name?: string;
-    videourl?: string;
-    thumbnailurl?: string;
-    createdAt: string;
-    message?: { content?: string };
-    replies?: { id: string; text: string; createdAt: string }[];
-  } | null>(null);
+  const [reaction, setReaction] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,6 +17,7 @@ const Reaction: React.FC = () => {
     reactionsApi.getById(reactionId)
       .then(res => {
         setReaction(res.data);
+        window.scrollTo(0, 0); // Scroll to top on load
       })
       .catch(() => {
         setError('Failed to load reaction');
@@ -78,32 +71,17 @@ const Reaction: React.FC = () => {
 
   const formattedDate = format(new Date(reaction.createdAt), 'dd MMM yyyy, HH:mm');
 
-  // Build filename
-  const prefix = 'Reactlyve';
-  const titlePart = reaction.message?.content?.replace(/\s+/g, '_').substring(0, 5) || 'video';
-  const responderNamePart = reaction.name ? reaction.name.replace(/\s+/g, '_') : 'UnknownResponder';
-  let dateTimePart = 'timestamp';
-  try {
-    dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
-  } catch (e) {
-    console.error('Error formatting date for filename:', e);
-  }
-
+  // Build consistent filename
+  const prefix = "Reactlyve";
+  const responderNamePart = (reaction.name || 'UnknownResponder').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
+  const dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
   let extension = 'mp4';
   try {
-    const urlPath = new URL(reaction.videourl || '').pathname;
-    const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
-    if (lastSegment.includes('.')) {
-      const ext = lastSegment.split('.').pop();
-      if (ext) extension = ext;
-    }
-  } catch (e) {
-    console.error('Could not parse video URL for extension:', e);
-  }
-
-  const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
-  const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
-  const filename = `${sanitizedName}.${extension}`;
+    const path = new URL(reaction.videourl).pathname;
+    const filePart = path.split('/').pop();
+    if (filePart?.includes('.')) extension = filePart.split('.').pop() || 'mp4';
+  } catch {}
+  const filename = `${prefix}-reaction-${responderNamePart}-${dateTimePart}.${extension}`;
 
   return (
     <MainLayout>
@@ -129,7 +107,7 @@ const Reaction: React.FC = () => {
             className="w-full aspect-video rounded-lg object-contain"
           />
           <button
-            onClick={() => downloadVideo(reaction.videourl!, filename)}
+            onClick={() => downloadVideo(reaction.videourl, filename)}
             className="mt-4 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >
             <DownloadIcon size={16} />
@@ -143,18 +121,20 @@ const Reaction: React.FC = () => {
       )}
 
       {reaction.replies && reaction.replies.length > 0 && (
-        <div className="mx-auto max-w-5xl px-4 py-6 border-t border-neutral-200 dark:border-neutral-600">
-          <h3 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Replies</h3>
-          <ul className="space-y-2 text-sm text-neutral-700 dark:text-neutral-300">
-            {reaction.replies.map(reply => (
-              <li key={reply.id} className="border-b pb-1 border-neutral-200 dark:border-neutral-600">
-                “{reply.text}”{' '}
-                <span className="text-xs text-neutral-500">
-                  ({new Date(reply.createdAt).toLocaleString()})
-                </span>
-              </li>
-            ))}
-          </ul>
+        <div className="mx-auto max-w-2xl px-4 py-6">
+          <div className="rounded-lg bg-white p-4 shadow dark:bg-neutral-800">
+            <h2 className="mb-3 text-lg font-semibold text-neutral-900 dark:text-white">Replies</h2>
+            <ul className="space-y-2 text-sm text-neutral-700 dark:text-neutral-300">
+              {reaction.replies.map((reply: { id: string, text: string, createdAt: string }) => (
+                <li key={reply.id} className="border-b pb-1 border-neutral-200 dark:border-neutral-600">
+                  “{reply.text}”
+                  <span className="ml-2 text-xs text-neutral-500">
+                    ({new Date(reply.createdAt).toLocaleString()})
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       )}
     </MainLayout>
