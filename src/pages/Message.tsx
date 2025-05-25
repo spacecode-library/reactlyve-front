@@ -344,7 +344,7 @@ const Message: React.FC = () => {
                            <p className="text-md font-semibold text-neutral-800 dark:text-neutral-100">
                             From:{' '}
                            <Link
-                             to={`/reactions/${reaction.id}`}
+                             to={`/reaction/${reaction.id}`}
                              className="text-blue-600 hover:underline dark:text-blue-400"
                              title="View Reaction"
                              >
