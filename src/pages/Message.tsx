@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import { formatDistance, format } from 'date-fns'; // Added format
 import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon, Trash2Icon } from 'lucide-react';
@@ -341,9 +341,16 @@ const Message: React.FC = () => {
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           {reaction.name && (
-                            <p className="text-md font-semibold text-neutral-800 dark:text-neutral-100">
-                              From: {reaction.name}
-                            </p>
+                           <p className="text-md font-semibold text-neutral-800 dark:text-neutral-100">
+                            From:{' '}
+                           <Link
+                             to={`/reaction/${reaction.id}`}
+                             className="text-blue-600 hover:underline dark:text-blue-400"
+                             title="View Reaction"
+                             >
+                             {reaction.name}
+                            </Link>
+                           </p>
                           )}
                           <p className="text-sm text-neutral-700 dark:text-neutral-300">
                             Received on {new Date(reaction.createdAt).toLocaleString()}
