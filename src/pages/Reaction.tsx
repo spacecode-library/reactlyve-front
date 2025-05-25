@@ -72,41 +72,41 @@ const Reaction: React.FC = () => {
   const filename = `reaction-${reaction.name || 'anonymous'}-${reaction.id}.mp4`;
 
   return (
-    <MainLayout>
-      <div className="mx-auto max-w-2xl px-4 py-8">
-        <div className="rounded-lg bg-white p-6 shadow dark:bg-neutral-800">
-          <h1 className="mb-4 text-2xl font-bold text-neutral-900 dark:text-white">Reaction Details</h1>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">{formattedDate}</p>
+  <MainLayout>
+    <div className="mx-auto max-w-2xl px-4 py-8">
+      <div className="rounded-lg bg-white p-6 shadow dark:bg-neutral-800">
+        <h1 className="mb-4 text-2xl font-bold text-neutral-900 dark:text-white">Reaction Details</h1>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">{formattedDate}</p>
 
-          {reaction.name && (
-            <p className="mt-2 text-neutral-700 dark:text-neutral-300">
-              <strong>From:</strong> {reaction.name}
-            </p>
-          )}
-
-          {reaction.videourl ? (
-            <div className="mt-6">
-              <video
-                src={reaction.videourl}
-                controls
-                poster={reaction.thumbnailurl || undefined}
-                className="w-full rounded"
-              />
-              <button
-                onClick={() => downloadVideo(reaction.videourl, filename)}
-                className="mt-4 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-              >
-                <DownloadIcon size={16} />
-                Download Video
-              </button>
-            </div>
-          ) : (
-            <p className="mt-4 text-neutral-600 dark:text-neutral-400">No video attached to this reaction.</p>
-          )}
-        </div>
+        {reaction.name && (
+          <p className="mt-2 text-neutral-700 dark:text-neutral-300">
+            <strong>From:</strong> {reaction.name}
+          </p>
+        )}
       </div>
-    </MainLayout>
-  );
+    </div>
+
+    {reaction.videourl ? (
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <video
+          src={reaction.videourl}
+          controls
+          poster={reaction.thumbnailurl || undefined}
+          className="w-full rounded-lg"
+        />
+        <button
+          onClick={() => downloadVideo(reaction.videourl, filename)}
+          className="mt-4 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+        >
+          <DownloadIcon size={16} />
+          Download Video
+        </button>
+      </div>
+    ) : (
+      <p className="mt-4 text-center text-neutral-600 dark:text-neutral-400">No video attached to this reaction.</p>
+    )}
+  </MainLayout>
+);
 };
 
 export default Reaction;
