@@ -14,17 +14,19 @@ const Reaction: React.FC = () => {
   useEffect(() => {
     if (!reactionId) return;
 
-    reactionsApi.getById(reactionId)
-      .then(res => {
+    const fetchData = async () => {
+      try {
+        const res = await reactionsApi.getById(reactionId);
         setReaction(res.data);
-        window.scrollTo(0, 0); // Scroll to top on load
-      })
-      .catch(() => {
+        window.scrollTo(0, 0);
+      } catch {
         setError('Failed to load reaction');
-      })
-      .finally(() => {
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
   }, [reactionId]);
 
   const downloadVideo = async (url: string, filename: string) => {
@@ -71,17 +73,24 @@ const Reaction: React.FC = () => {
 
   const formattedDate = format(new Date(reaction.createdAt), 'dd MMM yyyy, HH:mm');
 
-  // Build consistent filename
-  const prefix = "Reactlyve";
+  // Match filename logic from Message page
+  const prefix = 'Reactlyve';
+  const titlePart = (reaction.messageContent || 'video').replace(/\s+/g, '_').substring(0, 5);
   const responderNamePart = (reaction.name || 'UnknownResponder').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
   const dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
+
   let extension = 'mp4';
   try {
     const path = new URL(reaction.videourl).pathname;
-    const filePart = path.split('/').pop();
-    if (filePart?.includes('.')) extension = filePart.split('.').pop() || 'mp4';
+    const lastSegment = path.split('/').pop();
+    if (lastSegment && lastSegment.includes('.')) {
+      extension = lastSegment.split('.').pop() || 'mp4';
+    }
   } catch {}
-  const filename = `${prefix}-reaction-${responderNamePart}-${dateTimePart}.${extension}`;
+
+  const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
+  const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+  const filename = `${sanitizedName}.${extension}`;
 
   return (
     <MainLayout>
@@ -115,20 +124,19 @@ const Reaction: React.FC = () => {
           </button>
         </div>
       ) : (
-        <p className="mt-4 text-center text-neutral-600 dark:text-neutral-400">
-          No video attached to this reaction.
-        </p>
+        <p className="mt-4 text-center text-neutral-600 dark:text-neutral-400">No video attached to this reaction.</p>
       )}
 
+      {/* Replies */}
       {reaction.replies && reaction.replies.length > 0 && (
-        <div className="mx-auto max-w-2xl px-4 py-6">
-          <div className="rounded-lg bg-white p-4 shadow dark:bg-neutral-800">
-            <h2 className="mb-3 text-lg font-semibold text-neutral-900 dark:text-white">Replies</h2>
+        <div className="mx-auto max-w-2xl px-4 pb-12">
+          <div className="mt-6 rounded-lg bg-white p-6 shadow dark:bg-neutral-800">
+            <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Replies</h2>
             <ul className="space-y-2 text-sm text-neutral-700 dark:text-neutral-300">
-              {reaction.replies.map((reply: { id: string, text: string, createdAt: string }) => (
+              {reaction.replies.map((reply: any) => (
                 <li key={reply.id} className="border-b pb-1 border-neutral-200 dark:border-neutral-600">
-                  “{reply.text}”
-                  <span className="ml-2 text-xs text-neutral-500">
+                  “{reply.text}”{' '}
+                  <span className="text-xs text-neutral-500">
                     ({new Date(reply.createdAt).toLocaleString()})
                   </span>
                 </li>
