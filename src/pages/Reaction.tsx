@@ -28,7 +28,8 @@ const ReactionPage: React.FC = () => {
           fetchedData = {
             ...fetchedData,
             videoUrl: (fetchedData as any).videourl,
-            thumbnailUrl: (fetchedData as any).thumbnailurl
+            thumbnailUrl: (fetchedData as any).thumbnailurl,
+            messageId: (fetchedData as any).messageid // Add messageId mapping
           };
           // Clean up the original lowercase keys if they exist
           if ((fetchedData as any).videourl !== undefined) {
@@ -36,6 +37,9 @@ const ReactionPage: React.FC = () => {
           }
           if ((fetchedData as any).thumbnailurl !== undefined) {
             delete (fetchedData as any).thumbnailurl;
+          }
+          if ((fetchedData as any).messageid !== undefined) { // Delete original messageid
+            delete (fetchedData as any).messageid;
           }
         }
 
