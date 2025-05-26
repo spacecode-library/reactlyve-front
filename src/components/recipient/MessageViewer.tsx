@@ -8,6 +8,7 @@ import { normalizeMessage } from '../../utils/normalizeKeys';
 import { reactionsApi, repliesApi } from '../../services/api';
 import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
+import VideoPlayer from '../dashboard/VideoPlayer'; // Added VideoPlayer import
 
 interface MessageViewerProps {
   message: Message;
@@ -17,7 +18,7 @@ interface MessageViewerProps {
   onSubmitPasscode: (passcode: string) => Promise<boolean>;
   onSendTextReply?: (messageId: string, text: string) => Promise<void>;
   onInitReactionId?: (id: string) => void;
-  onLocalRecordingComplete?: () => void; // Add this line
+  onLocalRecordingComplete?: () => void; 
 }
 
 const MessageViewer: React.FC<MessageViewerProps> = ({
@@ -28,7 +29,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   onSubmitPasscode,
   onSendTextReply,
   onInitReactionId,
-  onLocalRecordingComplete, // Add this
+  onLocalRecordingComplete,
 }) => {
   const normalizedMessage = normalizeMessage(message);
   const [reactionId, setReactionId] = useState<string | null>(null);
@@ -45,8 +46,8 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const [replyText, setReplyText] = useState('');
   const [isSendingReply, setIsSendingReply] = useState(false);
   const [replyError, setReplyError] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false); // New state
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isUploading, setIsUploading] = useState(false); 
+  // Removed: const videoRef = useRef<HTMLVideoElement>(null);
 
   const formattedDate = message.createdAt
     ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
@@ -58,20 +59,10 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     return id;
   });
 
-  useEffect(() => {
-    // Only attempt to play if the message content (which includes the video) is supposed to be visible.
-    // This depends on the `countdownComplete` state in this specific component.
-    if (videoRef.current && countdownComplete) {
-      videoRef.current.play().catch(error => {
-        console.warn("Unmuted autoplay was prevented by the browser:", error);
-        // Browser prevented unmuted autoplay.
-        // Controls are visible, so user can manually play.
-      });
-    }
-  }, [normalizedMessage.videoUrl, countdownComplete]); // Re-run if videoUrl or countdownComplete changes
+  // Removed useEffect for videoRef.current.play()
 
   const handleReactionComplete = async (blob: Blob) => {
-    setIsUploading(true); // Set true before try
+    setIsUploading(true); 
     try {
       if (!reactionId) throw new Error('Missing reaction ID');
       onLocalRecordingComplete?.();
@@ -83,9 +74,8 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     } catch (error) {
       console.error('Reaction save error:', error);
       setPermissionError('An error occurred while saving your reaction. Please try again.');
-      // Consider if setIsReactionRecorded(false) or other state resets are needed on error
     } finally {
-      setIsUploading(false); // Set false in finally
+      setIsUploading(false); 
     }
   };
 
@@ -115,8 +105,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   const handleStartReaction = async () => {
     if (!recipientName.trim()) {
-      // Optionally, show a toast or inline message if name is required,
-      // though the button is disabled. This is a fallback.
       setPermissionError("Please enter your name to start the reaction.");
       return;
     }
@@ -124,9 +112,9 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       const res = await reactionsApi.init(message.id, sessionId, recipientName || undefined);
       if (res.data.reactionId) {
         setReactionId(res.data.reactionId);
-        onInitReactionId?.(res.data.reactionId); // Call existing prop if needed
+        onInitReactionId?.(res.data.reactionId); 
         setIsNameSubmitted(true);
-        setPermissionError(null); // Clear any previous errors
+        setPermissionError(null); 
         setTriggerCountdown(true);
       } else {
         throw new Error("Reaction ID not received.");
@@ -134,16 +122,13 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     } catch (err) {
       console.error('❌ Failed to initialize reaction:', err);
       let errorMessage = 'Unable to start a reaction session. Please refresh and try again.';
-      // Note: Checking for err.response.data.error for AxiosError requires 'axios' import
-      // and type guard, which might be overly complex for this direct edit.
-      // Sticking to a simpler error message extraction for now.
       if (err instanceof Error && err.message && (err.message.includes('session') || err.message.includes('name'))) {
           errorMessage = err.message;
       }
       setPermissionError(errorMessage);
-      toast.error(errorMessage); // Also show a toast
-      setIsNameSubmitted(false); // Keep UI in name input state
-      setTriggerCountdown(false); // Add this in the catch block
+      toast.error(errorMessage); 
+      setIsNameSubmitted(false); 
+      setTriggerCountdown(false); 
     }
   };
 
@@ -203,7 +188,12 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
       {normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl && (
         <div className="mt-4 rounded-lg overflow-hidden">
-          <video ref={videoRef} src={normalizedMessage.videoUrl} controls autoPlay playsInline className="w-full object-cover" />
+          <VideoPlayer
+            src={normalizedMessage.videoUrl}
+            poster={normalizedMessage.thumbnailUrl || undefined}
+            className="w-full object-cover"
+            autoPlay={countdownComplete}
+          />
         </div>
       )}
 
@@ -244,26 +234,25 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     <div
       className={"flex min-h-screen w-full flex-col items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900 sm:py-12"}
     >
-      {showRecorder && !isReactionRecorded && ( // WebcamRecorder comes first
+      {showRecorder && !isReactionRecorded && ( 
         <div className="w-full max-w-md mx-auto mb-4">
           <WebcamRecorder
             onRecordingComplete={handleReactionComplete}
             onCancel={() => { /* Consider what cancel means in this new flow */ }}
-          maxDuration={15000}
-          countdownDuration={5} // This might be manually controlled now
-          onPermissionDenied={(err) => setPermissionError(err)}
-          autoStart={false} // Explicitly set to false
-          triggerCountdownSignal={triggerCountdown} // New prop
-          onCountdownComplete={handleCountdownComplete} // This prop might need to change if countdown is managed outside
-          hidePreviewAfterCountdown={true}
-          onStatusUpdate={setWebcamStatusMessage} // New prop
-          onWebcamError={setWebcamInlineError}   // New prop
-          isUploading={isUploading} // Pass the state here
-          // The WebcamRecorder might need a new prop to trigger its countdown if it's not auto-starting
-        />
+            maxDuration={15000}
+            countdownDuration={5} 
+            onPermissionDenied={(err) => setPermissionError(err)}
+            autoStart={false} 
+            triggerCountdownSignal={triggerCountdown} 
+            onCountdownComplete={handleCountdownComplete} 
+            hidePreviewAfterCountdown={true}
+            onStatusUpdate={setWebcamStatusMessage} 
+            onWebcamError={setWebcamInlineError}   
+            isUploading={isUploading} 
+          />
         </div>
       )}
-      {showRecorder && !isNameSubmitted && ( // Name Input Section comes after
+      {showRecorder && !isNameSubmitted && ( 
         <div className="mb-4 w-full max-w-md mx-auto">
           <label htmlFor="recipientName" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1 text-center">
             Say hello with your name
@@ -275,12 +264,12 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
             onChange={(e) => setRecipientName(e.target.value)}
             placeholder="Enter your name"
             className="w-full p-2 border border-neutral-300 rounded-md dark:bg-neutral-700 dark:border-neutral-600 dark:text-white"
-            disabled={isNameSubmitted} // Disable if name is submitted
+            disabled={isNameSubmitted} 
           />
           <button
-            onClick={handleStartReaction} // Assign the new handler
+            onClick={handleStartReaction} 
             disabled={!recipientName.trim() || isNameSubmitted}
-            className="btn btn-primary w-full mt-2" // Full width, adjust as needed
+            className="btn btn-primary w-full mt-2" 
           >
             Start Reaction
           </button>
