@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 import type { Reaction } from '../types/reaction';
 import { normalizeMessage } from '../utils/normalizeKeys';
 import { QRCodeSVG } from 'qrcode.react';
+import VideoPlayer from '../components/dashboard/VideoPlayer'; // Added VideoPlayer import
 
 const Message: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -36,7 +37,7 @@ const Message: React.FC = () => {
         const response = await api.get(MESSAGE_ROUTES.GET_BY_ID(id!));
         if (!response.data) throw new Error('No message found');
         setMessage(response.data);
-        console.log('🔍 Message data from API:', response.data);
+        // console.log('🔍 Message data from API:', response.data); // Removed for final version
       } catch (err) {
         setError('Failed to load message details');
         console.error(err);
@@ -162,8 +163,6 @@ const Message: React.FC = () => {
     };
   };
 
-  // Removed getQrCodeUrl function
-
   if (loading) {
     return (
       <MainLayout>
@@ -237,7 +236,12 @@ const Message: React.FC = () => {
             {normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl && (
               <div className="mb-6">
                 <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Video</h2>
-                <video src={normalizedMessage.videoUrl} controls poster={normalizedMessage.thumbnailUrl} className="w-full max-w-lg" />
+                <VideoPlayer
+                  src={normalizedMessage.videoUrl}
+                  poster={normalizedMessage.thumbnailUrl || undefined}
+                  className="w-full max-w-lg"
+                  autoPlay={false}
+                />
                 <div className="mt-3">
                   <button
                     onClick={() => downloadVideo(normalizedMessage.videoUrl!, 'message-video.mp4')}
@@ -283,13 +287,13 @@ const Message: React.FC = () => {
                   {showQrCode && normalizedMessage.shareableLink && (
                     <div className="mt-4 text-center">
                       <h3 className="mb-2 text-md font-semibold text-neutral-900 dark:text-white">Scan QR Code</h3>
-                      <div className="inline-block rounded-lg bg-white p-4 shadow"> {/* Increased padding slightly for aesthetics */}
+                      <div className="inline-block rounded-lg bg-white p-4 shadow">
                         <QRCodeSVG
                           value={normalizedMessage.shareableLink}
-                          size={200} // Adjust size as needed
+                          size={200} 
                           bgColor={"#ffffff"}
                           fgColor={"#000000"}
-                          level={"L"} // Error correction level
+                          level={"L"} 
                         />
                       </div>
                       <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
@@ -371,7 +375,12 @@ const Message: React.FC = () => {
 
                       {reaction.videourl ? (
                         <>
-                          <video src={reaction.videourl} controls poster={reaction.thumbnailurl || undefined} className="w-full rounded" />
+                          <VideoPlayer
+                            src={reaction.videourl}
+                            poster={reaction.thumbnailurl || undefined}
+                            className="w-full rounded"
+                            autoPlay={false}
+                          />
                           <button
                             onClick={() => {
                               if (!reaction.videourl) {
