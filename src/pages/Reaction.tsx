@@ -21,7 +21,6 @@ const ReactionPage: React.FC = () => {
         if (!reactionId) return;
 
         const reactionRes = await reactionsApi.getById(reactionId);
-        console.log('[ReactionPage] Raw API Response for reactionRes.data:', JSON.stringify(reactionRes.data, null, 2));
 
         let fetchedData = reactionRes.data;
         if (fetchedData) {
@@ -44,7 +43,6 @@ const ReactionPage: React.FC = () => {
         }
 
         setReaction(fetchedData);
-        console.log('[ReactionPage] Processed fetchedData after transformation:', JSON.stringify(fetchedData, null, 2));
 
         // Fetch the parent message if available
         if (fetchedData?.messageId) {
@@ -53,7 +51,6 @@ const ReactionPage: React.FC = () => {
           setParentMessage(fetchedParentMessage);
 
           if (fetchedParentMessage?.reactions) {
-            console.log('[ReactionPage] Parent message reactions:', JSON.stringify(fetchedParentMessage.reactions, null, 2));
             const reactionFromParent = fetchedParentMessage.reactions.find(
               (r: Reaction) => r.id === (fetchedData?.id || reactionId)
             );
@@ -66,7 +63,6 @@ const ReactionPage: React.FC = () => {
                   replies: reactionFromParent.replies,
                 };
               });
-              console.log('[ReactionPage] Replies sourced from parent message and set for reactionId:', (fetchedData?.id || reactionId));
             }
           }
         }
@@ -167,9 +163,7 @@ const ReactionPage: React.FC = () => {
       </div>
 
       {reaction.videoUrl ? (
-        <div className="mx-auto max-w-5xl px-4 py-8">
-          {(() => { console.log('[ReactionPage] Before VideoPlayer - reaction.videoUrl:', reaction?.videoUrl); return null; })()}
-          {(() => { console.log('[ReactionPage] Before VideoPlayer - reaction.thumbnailUrl:', reaction?.thumbnailUrl); return null; })()}
+        <div className="px-4 py-8">
           <VideoPlayer
             src={reaction.videoUrl}
             poster={reaction.thumbnailUrl || undefined}
@@ -188,7 +182,6 @@ const ReactionPage: React.FC = () => {
       )}
 
       {/* Replies */}
-      {(() => { console.log('[ReactionPage] Before Replies - reaction.replies:', JSON.stringify(reaction?.replies, null, 2)); return null; })()}
       {reaction.replies && reaction.replies.length > 0 && (
         <div className="mx-auto max-w-3xl px-4 py-6">
           <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">Replies</h2>
