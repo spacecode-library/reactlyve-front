@@ -45,7 +45,26 @@ const ReactionPage: React.FC = () => {
         // Fetch the parent message if available
         if (fetchedData?.messageId) {
           const messageRes = await messagesApi.getById(fetchedData.messageId);
-          setParentMessage(messageRes.data);
+          const fetchedParentMessage = messageRes.data;
+          setParentMessage(fetchedParentMessage);
+
+          if (fetchedParentMessage?.reactions) {
+            console.log('[ReactionPage] Parent message reactions:', JSON.stringify(fetchedParentMessage.reactions, null, 2));
+            const reactionFromParent = fetchedParentMessage.reactions.find(
+              (r: Reaction) => r.id === (fetchedData?.id || reactionId)
+            );
+
+            if (reactionFromParent && reactionFromParent.replies) {
+              setReaction(prevReaction => {
+                if (!prevReaction) return null; // Should not happen if fetchedData was set
+                return {
+                  ...prevReaction,
+                  replies: reactionFromParent.replies,
+                };
+              });
+              console.log('[ReactionPage] Replies sourced from parent message and set for reactionId:', (fetchedData?.id || reactionId));
+            }
+          }
         }
 
         window.scrollTo(0, 0);
