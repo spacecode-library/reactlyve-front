@@ -22,12 +22,29 @@ const ReactionPage: React.FC = () => {
 
         const reactionRes = await reactionsApi.getById(reactionId);
         console.log('[ReactionPage] Raw API Response for reactionRes.data:', JSON.stringify(reactionRes.data, null, 2));
-        setReaction(reactionRes.data);
-        console.log('[ReactionPage] reactionRes.data after setReaction call:', JSON.stringify(reactionRes.data, null, 2));
+
+        let fetchedData = reactionRes.data;
+        if (fetchedData) {
+          fetchedData = {
+            ...fetchedData,
+            videoUrl: (fetchedData as any).videourl,
+            thumbnailUrl: (fetchedData as any).thumbnailurl
+          };
+          // Clean up the original lowercase keys if they exist
+          if ((fetchedData as any).videourl !== undefined) {
+            delete (fetchedData as any).videourl;
+          }
+          if ((fetchedData as any).thumbnailurl !== undefined) {
+            delete (fetchedData as any).thumbnailurl;
+          }
+        }
+
+        setReaction(fetchedData);
+        console.log('[ReactionPage] Processed fetchedData after transformation:', JSON.stringify(fetchedData, null, 2));
 
         // Fetch the parent message if available
-        if (reactionRes.data.messageId) {
-          const messageRes = await messagesApi.getById(reactionRes.data.messageId);
+        if (fetchedData?.messageId) {
+          const messageRes = await messagesApi.getById(fetchedData.messageId);
           setParentMessage(messageRes.data);
         }
 
