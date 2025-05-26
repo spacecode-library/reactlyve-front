@@ -168,6 +168,7 @@ const ReactionPage: React.FC = () => {
             src={reaction.videoUrl}
             poster={reaction.thumbnailUrl || undefined}
             className="w-full aspect-video rounded-lg object-contain"
+            autoPlay={true}
           />
           <button
             onClick={() => downloadVideo(reaction.videoUrl!, getDownloadFilename())}

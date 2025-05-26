@@ -274,20 +274,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             showControls || !isPlaying ? 'opacity-100' : 'opacity-0'
           )}
         >
-          {/* Progress bar */}
-          <div
-            ref={progressRef}
-            className="relative h-1 cursor-pointer rounded-full bg-neutral-600"
-            onClick={handleSeek}
-          >
-            <div
-              className="absolute inset-y-0 left-0 rounded-full bg-primary-500"
-              style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
-            ></div>
-          </div>
-          
           {/* Controls row */}
-          <div className="mt-2 flex items-center justify-between">
+          <div className="mb-2 flex items-center justify-between"> {/* Changed mt-2 to mb-2 */}
             <div className="flex items-center space-x-2">
               {/* Play/Pause button */}
               <button
@@ -428,6 +416,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 </svg>
               )}
             </button>
+          </div>
+          {/* Progress bar */}
+          <div
+            ref={progressRef}
+            className="relative h-1 cursor-pointer rounded-full bg-neutral-600"
+            onClick={handleSeek}
+          >
+            <div
+              className="absolute inset-y-0 left-0 rounded-full bg-primary-500"
+              style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
+            ></div>
           </div>
         </div>
       )}
