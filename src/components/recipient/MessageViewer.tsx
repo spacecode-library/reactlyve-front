@@ -249,8 +249,8 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
               hidePreviewAfterCountdown={true}
               onStatusUpdate={setWebcamStatusMessage} 
               onWebcamError={setWebcamInlineError}   
-              isUploading={isUploading}
-              hideUploadSpinner={isUploading} {/* Added new prop */}
+              isUploading={isUploading} // This line was duplicated in the error
+              hideUploadSpinner={isUploading} 
             />
           </div>
         )}
