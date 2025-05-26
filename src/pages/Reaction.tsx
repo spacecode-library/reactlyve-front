@@ -28,7 +28,7 @@ const ReactionPage: React.FC = () => {
             ...fetchedData,
             videoUrl: (fetchedData as any).videourl,
             thumbnailUrl: (fetchedData as any).thumbnailurl,
-            messageId: (fetchedData as any).messageid // Add messageId mapping
+            messageId: (fetchedData as any).messageid
           };
           // Clean up the original lowercase keys if they exist
           if ((fetchedData as any).videourl !== undefined) {
@@ -37,7 +37,7 @@ const ReactionPage: React.FC = () => {
           if ((fetchedData as any).thumbnailurl !== undefined) {
             delete (fetchedData as any).thumbnailurl;
           }
-          if ((fetchedData as any).messageid !== undefined) { // Delete original messageid
+          if ((fetchedData as any).messageid !== undefined) {
             delete (fetchedData as any).messageid;
           }
         }
@@ -57,7 +57,7 @@ const ReactionPage: React.FC = () => {
 
             if (reactionFromParent && reactionFromParent.replies) {
               setReaction(prevReaction => {
-                if (!prevReaction) return null; // Should not happen if fetchedData was set
+                if (!prevReaction) return null; 
                 return {
                   ...prevReaction,
                   replies: reactionFromParent.replies,

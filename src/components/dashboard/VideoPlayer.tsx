@@ -275,43 +275,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           )}
         >
           {/* Controls row */}
-          <div className="mb-2 flex items-center justify-between"> {/* Changed mt-2 to mb-2 */}
+          <div className="mb-2 flex items-center justify-between">
+            {/* Time display */}
+            <div className="text-sm text-white">
+              <span>{formatDuration(currentTime)}</span>
+              <span className="mx-1">/</span>
+              <span>{formatDuration(duration)}</span>
+            </div>
+            
+            {/* Group of controls (Volume and Fullscreen) */}
             <div className="flex items-center space-x-2">
-              {/* Play/Pause button */}
-              <button
-                type="button"
-                onClick={togglePlay}
-                className="rounded-full p-1 text-white hover:bg-white/20"
-              >
-                {isPlaying ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                )}
-              </button>
-              
               {/* Volume control */}
               <div className="flex items-center space-x-1">
                 <button
@@ -374,48 +347,41 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 </div>
               </div>
               
-              {/* Time display */}
-              <div className="text-sm text-white">
-                <span>{formatDuration(currentTime)}</span>
-                <span className="mx-1">/</span>
-                <span>{formatDuration(duration)}</span>
-              </div>
+              {/* Fullscreen button */}
+              <button
+                type="button"
+                onClick={toggleFullscreen}
+                className="rounded-full p-1 text-white hover:bg-white/20"
+              >
+                {isFullscreen ? (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5 4a1 1 0 00-1 1v10a1 1 0 001 1h10a1 1 0 001-1V5a1 1 0 00-1-1H5zm0 2h4v4H5V6zm0 6h4v4H5v-4zm6-6h4v4h-4V6zm0 6h4v4h-4v-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+              </button>
             </div>
-            
-            {/* Fullscreen button */}
-            <button
-              type="button"
-              onClick={toggleFullscreen}
-              className="rounded-full p-1 text-white hover:bg-white/20"
-            >
-              {isFullscreen ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5 4a1 1 0 00-1 1v10a1 1 0 001 1h10a1 1 0 001-1V5a1 1 0 00-1-1H5zm0 2h4v4H5V6zm0 6h4v4H5v-4zm6-6h4v4h-4V6zm0 6h4v4h-4v-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              )}
-            </button>
           </div>
           {/* Progress bar */}
           <div
