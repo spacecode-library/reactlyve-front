@@ -97,27 +97,43 @@ const ReactionPage: React.FC = () => {
   };
 
   const getDownloadFilename = () => {
-    let extension = 'mp4';
-    try {
-      if (reaction?.videoUrl) {
+    const prefix = "Reactlyve";
+
+    let titlePart = "video";
+    if (parentMessage && parentMessage.content) {
+      titlePart = parentMessage.content.replace(/\s+/g, '_').substring(0, 5);
+    }
+    
+    const responderNamePart = reaction?.name ? reaction.name.replace(/\s+/g, '_') : "UnknownResponder";
+
+    let dateTimePart = "timestamp";
+    if (reaction?.createdAt) {
+      try {
+        dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
+      } catch (e) {
+        console.error("Error formatting date for filename:", e);
+      }
+    }
+
+    let extension = "mp4"; // Default to mp4 as per instruction refinement
+    if (reaction?.videoUrl) {
+      try {
         const urlPath = new URL(reaction.videoUrl).pathname;
         const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
         if (lastSegment.includes('.')) {
           const ext = lastSegment.split('.').pop();
-          if (ext) {
-            extension = ext;
-          }
+          if (ext) extension = ext;
         }
+      } catch (e) {
+        console.error("Could not parse video URL for extension:", e);
       }
-    } catch (e) {
-      console.error('Could not parse video URL for extension:', e);
-      // Default to 'mp4' if parsing fails
     }
 
-    if (reaction?.id) {
-      return `reaction-${reaction.id}.${extension}`;
-    }
-    return `reaction_video.${extension}`;
+    const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
+    const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+    const finalFilename = `${sanitizedName}.${extension}`;
+    
+    return finalFilename;
   };
 
   if (loading) {
@@ -145,16 +161,17 @@ const ReactionPage: React.FC = () => {
     );
   }
 
-  const formattedDate = format(new Date(reaction.createdAt), 'dd MMM yyyy, HH:mm');
+  const formattedDateDisplay = reaction?.createdAt ? format(new Date(reaction.createdAt), 'dd MMM yyyy, HH:mm') : 'Date not available';
+
 
   return (
     <MainLayout>
       <div className="mx-auto max-w-2xl px-4 py-8">
         <div className="rounded-lg bg-white p-6 shadow dark:bg-neutral-800">
           <h1 className="mb-4 text-2xl font-bold text-neutral-900 dark:text-white">Reaction Details</h1>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">{formattedDate}</p>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">{formattedDateDisplay}</p>
 
-          {reaction.name && (
+          {reaction?.name && (
             <p className="mt-2 text-neutral-700 dark:text-neutral-300">
               <strong>From:</strong> {reaction.name}
             </p>
@@ -162,7 +179,7 @@ const ReactionPage: React.FC = () => {
         </div>
       </div>
 
-      {reaction.videoUrl ? (
+      {reaction?.videoUrl ? (
         <div className="px-4 py-8">
           <VideoPlayer
             src={reaction.videoUrl}
@@ -182,7 +199,7 @@ const ReactionPage: React.FC = () => {
       )}
 
       {/* Replies */}
-      {reaction.replies && reaction.replies.length > 0 && (
+      {reaction?.replies && reaction.replies.length > 0 && (
         <div className="mx-auto max-w-3xl px-4 py-6">
           <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">Replies</h2>
           <ul className="space-y-3 text-sm text-neutral-700 dark:text-neutral-300">
