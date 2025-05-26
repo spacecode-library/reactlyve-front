@@ -231,58 +231,67 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   );
 
   return (
-    <div
-      className={"flex min-h-screen w-full flex-col items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900 sm:py-12"}
-    >
-      {showRecorder && !isReactionRecorded && ( 
-        <div className="w-full max-w-md mx-auto mb-4">
-          <WebcamRecorder
-            onRecordingComplete={handleReactionComplete}
-            onCancel={() => { /* Consider what cancel means in this new flow */ }}
-            maxDuration={15000}
-            countdownDuration={5} 
-            onPermissionDenied={(err) => setPermissionError(err)}
-            autoStart={false} 
-            triggerCountdownSignal={triggerCountdown} 
-            onCountdownComplete={handleCountdownComplete} 
-            hidePreviewAfterCountdown={true}
-            onStatusUpdate={setWebcamStatusMessage} 
-            onWebcamError={setWebcamInlineError}   
-            isUploading={isUploading} 
-          />
+    <>
+      <div
+        className={"flex min-h-screen w-full flex-col items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900 sm:py-12"}
+      >
+        {showRecorder && !isReactionRecorded && ( 
+          <div className="w-full max-w-md mx-auto mb-4">
+            <WebcamRecorder
+              onRecordingComplete={handleReactionComplete}
+              onCancel={() => { /* Consider what cancel means in this new flow */ }}
+              maxDuration={15000}
+              countdownDuration={5} 
+              onPermissionDenied={(err) => setPermissionError(err)}
+              autoStart={false} 
+              triggerCountdownSignal={triggerCountdown} 
+              onCountdownComplete={handleCountdownComplete} 
+              hidePreviewAfterCountdown={true}
+              onStatusUpdate={setWebcamStatusMessage} 
+              onWebcamError={setWebcamInlineError}   
+              isUploading={isUploading} 
+            />
+          </div>
+        )}
+        {showRecorder && !isNameSubmitted && ( 
+          <div className="mb-4 w-full max-w-md mx-auto">
+            <label htmlFor="recipientName" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1 text-center">
+              Say hello with your name
+            </label>
+            <input
+              type="text"
+              id="recipientName"
+              value={recipientName}
+              onChange={(e) => setRecipientName(e.target.value)}
+              placeholder="Enter your name"
+              className="w-full p-2 border border-neutral-300 rounded-md dark:bg-neutral-700 dark:border-neutral-600 dark:text-white"
+              disabled={isNameSubmitted} 
+            />
+            <button
+              onClick={handleStartReaction} 
+              disabled={!recipientName.trim() || isNameSubmitted}
+              className="btn btn-primary w-full mt-2" 
+            >
+              Start Reaction
+            </button>
+            {!permissionError && webcamStatusMessage && (
+              <p className="text-sm text-gray-500 mt-2 text-center">{webcamStatusMessage}</p>
+            )}
+            {!permissionError && webcamInlineError && (
+              <p className="text-sm text-red-600 mt-2 text-center">{webcamInlineError}</p>
+            )}
+          </div>
+        )}
+        {countdownComplete && renderMessageContent()}
+      </div>
+      {isUploading && (
+        <div className="fixed inset-0 bg-black/70 flex flex-col items-center justify-center z-50">
+          <div className="h-16 w-16 animate-spin rounded-full border-8 border-neutral-300 border-t-primary-600 mb-4"></div>
+          <p className="text-white text-xl font-semibold">Uploading Reaction...</p>
+          <p className="text-neutral-200 text-md">Please wait a moment.</p>
         </div>
       )}
-      {showRecorder && !isNameSubmitted && ( 
-        <div className="mb-4 w-full max-w-md mx-auto">
-          <label htmlFor="recipientName" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1 text-center">
-            Say hello with your name
-          </label>
-          <input
-            type="text"
-            id="recipientName"
-            value={recipientName}
-            onChange={(e) => setRecipientName(e.target.value)}
-            placeholder="Enter your name"
-            className="w-full p-2 border border-neutral-300 rounded-md dark:bg-neutral-700 dark:border-neutral-600 dark:text-white"
-            disabled={isNameSubmitted} 
-          />
-          <button
-            onClick={handleStartReaction} 
-            disabled={!recipientName.trim() || isNameSubmitted}
-            className="btn btn-primary w-full mt-2" 
-          >
-            Start Reaction
-          </button>
-          {!permissionError && webcamStatusMessage && (
-            <p className="text-sm text-gray-500 mt-2 text-center">{webcamStatusMessage}</p>
-          )}
-          {!permissionError && webcamInlineError && (
-            <p className="text-sm text-red-600 mt-2 text-center">{webcamInlineError}</p>
-          )}
-        </div>
-      )}
-      {countdownComplete && renderMessageContent()}
-    </div>
+    </>
   );
 };
 
