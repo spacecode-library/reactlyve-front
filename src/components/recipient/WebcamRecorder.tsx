@@ -19,6 +19,7 @@ interface WebcamRecorderProps {
   onStatusUpdate?: (message: string | null) => void;
   onWebcamError?: (message: string | null) => void;
   isUploading?: boolean;
+  hideUploadSpinner?: boolean; // Added new prop
 }
 
 const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
@@ -36,6 +37,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   onStatusUpdate,
   onWebcamError,
   isUploading = false,
+  hideUploadSpinner = false, // Destructured new prop
 }) => {
   const [showCountdown, setShowCountdown] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -382,7 +384,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
         </button>
       )}
 
-      {isUploading && (
+      {isUploading && !hideUploadSpinner && ( // Modified condition
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
         </div>

@@ -4,6 +4,7 @@ import MainLayout from '../layouts/MainLayout';
 import { format } from 'date-fns';
 import { DownloadIcon } from 'lucide-react';
 import { reactionsApi, messagesApi } from '@/services/api';
+import VideoPlayer from '../components/dashboard/VideoPlayer';
 import type { MessageWithReactions } from '@/types/message';
 import type { Reaction } from '@/types/reaction';
 
@@ -20,12 +21,50 @@ const ReactionPage: React.FC = () => {
         if (!reactionId) return;
 
         const reactionRes = await reactionsApi.getById(reactionId);
-        setReaction(reactionRes.data);
+
+        let fetchedData = reactionRes.data;
+        if (fetchedData) {
+          fetchedData = {
+            ...fetchedData,
+            videoUrl: (fetchedData as any).videourl,
+            thumbnailUrl: (fetchedData as any).thumbnailurl,
+            messageId: (fetchedData as any).messageid
+          };
+          // Clean up the original lowercase keys if they exist
+          if ((fetchedData as any).videourl !== undefined) {
+            delete (fetchedData as any).videourl;
+          }
+          if ((fetchedData as any).thumbnailurl !== undefined) {
+            delete (fetchedData as any).thumbnailurl;
+          }
+          if ((fetchedData as any).messageid !== undefined) {
+            delete (fetchedData as any).messageid;
+          }
+        }
+
+        setReaction(fetchedData);
 
         // Fetch the parent message if available
-        if (reactionRes.data.messageId) {
-          const messageRes = await messagesApi.getById(reactionRes.data.messageId);
-          setParentMessage(messageRes.data);
+        if (fetchedData?.messageId) {
+          const messageRes = await messagesApi.getById(fetchedData.messageId);
+          const fetchedParentMessage = messageRes.data;
+          setParentMessage(fetchedParentMessage);
+
+          if (fetchedParentMessage?.reactions) {
+            const reactionFromParent = fetchedParentMessage.reactions.find(
+              (r: Reaction) => r.id === (fetchedData?.id || reactionId)
+            );
+
+            if (reactionFromParent && reactionFromParent.replies) {
+              setReaction(prevReaction => {
+                if (!prevReaction) return null; 
+                return {
+                  ...prevReaction,
+                  replies: reactionFromParent.replies,
+                };
+              });
+            }
+          }
         }
 
         window.scrollTo(0, 0);
@@ -58,38 +97,43 @@ const ReactionPage: React.FC = () => {
   };
 
   const getDownloadFilename = () => {
-    const prefix = 'Reactlyve';
+    const prefix = "Reactlyve";
 
-    let titlePart = 'video';
-    if (parentMessage?.content) {
+    let titlePart = "video";
+    if (parentMessage && parentMessage.content) {
       titlePart = parentMessage.content.replace(/\s+/g, '_').substring(0, 5);
     }
+    
+    const responderNamePart = reaction?.name ? reaction.name.replace(/\s+/g, '_') : "UnknownResponder";
 
-    const responderName = reaction?.name ? reaction.name.replace(/\s+/g, '_') : 'UnknownResponder';
-
-    let dateTimePart = 'timestamp';
+    let dateTimePart = "timestamp";
     if (reaction?.createdAt) {
       try {
         dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
       } catch (e) {
-        console.error('Error formatting date:', e);
+        console.error("Error formatting date for filename:", e);
       }
     }
 
-    let extension = 'mp4';
-    try {
-      const urlPath = new URL(reaction?.videoUrl || '').pathname;
-      const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
-      if (lastSegment.includes('.')) {
-        const ext = lastSegment.split('.').pop();
-        if (ext) extension = ext;
+    let extension = "mp4"; // Default to mp4 as per instruction refinement
+    if (reaction?.videoUrl) {
+      try {
+        const urlPath = new URL(reaction.videoUrl).pathname;
+        const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
+        if (lastSegment.includes('.')) {
+          const ext = lastSegment.split('.').pop();
+          if (ext) extension = ext;
+        }
+      } catch (e) {
+        console.error("Could not parse video URL for extension:", e);
       }
-    } catch (e) {
-      console.error('Could not parse video URL for extension:', e);
     }
 
-    const baseName = `${prefix}-${titlePart}-${responderName}-${dateTimePart}`;
-    return `${baseName.replace(/[^a-zA-Z0-9_\-\.]/g, '_')}.${extension}`;
+    const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
+    const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+    const finalFilename = `${sanitizedName}.${extension}`;
+    
+    return finalFilename;
   };
 
   if (loading) {
@@ -117,16 +161,17 @@ const ReactionPage: React.FC = () => {
     );
   }
 
-  const formattedDate = format(new Date(reaction.createdAt), 'dd MMM yyyy, HH:mm');
+  const formattedDateDisplay = reaction?.createdAt ? format(new Date(reaction.createdAt), 'dd MMM yyyy, HH:mm') : 'Date not available';
+
 
   return (
     <MainLayout>
       <div className="mx-auto max-w-2xl px-4 py-8">
         <div className="rounded-lg bg-white p-6 shadow dark:bg-neutral-800">
           <h1 className="mb-4 text-2xl font-bold text-neutral-900 dark:text-white">Reaction Details</h1>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">{formattedDate}</p>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">{formattedDateDisplay}</p>
 
-          {reaction.name && (
+          {reaction?.name && (
             <p className="mt-2 text-neutral-700 dark:text-neutral-300">
               <strong>From:</strong> {reaction.name}
             </p>
@@ -134,11 +179,10 @@ const ReactionPage: React.FC = () => {
         </div>
       </div>
 
-      {reaction.videoUrl ? (
-        <div className="mx-auto max-w-5xl px-4 py-8">
-          <video
+      {reaction?.videoUrl ? (
+        <div className="px-4 py-8">
+          <VideoPlayer
             src={reaction.videoUrl}
-            controls
             poster={reaction.thumbnailUrl || undefined}
             className="w-full aspect-video rounded-lg object-contain"
           />
@@ -155,7 +199,7 @@ const ReactionPage: React.FC = () => {
       )}
 
       {/* Replies */}
-      {reaction.replies && reaction.replies.length > 0 && (
+      {reaction?.replies && reaction.replies.length > 0 && (
         <div className="mx-auto max-w-3xl px-4 py-6">
           <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">Replies</h2>
           <ul className="space-y-3 text-sm text-neutral-700 dark:text-neutral-300">
