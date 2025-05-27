@@ -98,10 +98,9 @@ const ProfilePage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6"> {/* Removed container, mx-auto, p-4 */}
+      <div className="space-y-6"> {/* Main content div ensuring it's properly closed before DashboardLayout closes */}
         <h1 className="text-3xl font-bold mb-6">My Profile</h1>
         
-        {/* Using simple divs for structure, replace with Card if available and desired */}
       <div className="bg-white shadow rounded-lg p-6">
         <div className="flex items-center space-x-4 mb-6">
           {picture && (
@@ -128,7 +127,6 @@ const ProfilePage: React.FC = () => {
             <span className="font-semibold">Last Login:</span>
             <span className="ml-2">{profileData.lastLogin ? formatDateTime(profileData.lastLogin) : 'Not available'}</span>
           </div>
-          {/* Displaying User ID for completeness, can be removed if not needed */}
           <div>
             <span className="font-semibold">User ID:</span>
             <span className="ml-2">{profileData.id}</span>
@@ -140,7 +138,7 @@ const ProfilePage: React.FC = () => {
         <h3 className="text-xl font-semibold mb-3">Account Management</h3>
         <Button 
           variant="danger"
-          onClick={() => setIsDeleteModalOpen(true)} // Open modal
+          onClick={() => setIsDeleteModalOpen(true)}
         >
           Delete Account
         </Button>
@@ -149,40 +147,42 @@ const ProfilePage: React.FC = () => {
         </p>
       </div>
 
-      {/* Delete Account Modal */}
-      <Modal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        title="Confirm Account Deletion"
-        size="md"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            Are you sure you want to delete your account? This action is irreversible and will remove all your messages, reactions, replies, and associated content.
-          </p>
-          <p className="text-sm font-semibold text-red-600 dark:text-red-400">
-            All your data will be permanently lost.
-          </p>
-        </div>
-        <div className="mt-6 flex justify-end space-x-3">
-          <Button
-            variant="outline"
-            onClick={() => setIsDeleteModalOpen(false)}
-            disabled={isDeleting}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            onClick={handleDeleteAccount}
-            isLoading={isDeleting}
-            disabled={isDeleting}
-          >
-            Confirm Delete
-          </Button>
-        </div>
-      </Modal>
-    </div>
+      {isDeleteModalOpen && ( // Ensure Modal is only rendered when isOpen is true
+        <Modal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          title="Confirm Account Deletion"
+          size="md"
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Are you sure you want to delete your account? This action is irreversible and will remove all your messages, reactions, replies, and associated content.
+            </p>
+            <p className="text-sm font-semibold text-red-600 dark:text-red-400">
+              All your data will be permanently lost.
+            </p>
+          </div>
+          <div className="mt-6 flex justify-end space-x-3">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleDeleteAccount}
+              isLoading={isDeleting}
+              disabled={isDeleting}
+            >
+              Confirm Delete
+            </Button>
+          </div>
+        </Modal>
+      )}
+      </div> {/* This is the crucial closing div for "space-y-6" */}
+    </DashboardLayout> // This is the crucial closing tag for DashboardLayout
   );
 };
 
