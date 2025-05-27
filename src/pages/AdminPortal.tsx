@@ -163,7 +163,7 @@ const AdminPortalPage: React.FC = () => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-300">
-                  {user.last_login ? formatDate(user.last_login) : 'N/A'}
+                  {user.lastLogin ? formatDate(user.lastLogin) : 'N/A'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-300">
                   {user.createdAt ? formatDate(user.createdAt) : 'N/A'}

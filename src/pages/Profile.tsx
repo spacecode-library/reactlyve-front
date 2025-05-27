@@ -120,7 +120,7 @@ const ProfilePage: React.FC = () => {
           </div>
           <div>
             <span className="font-semibold">Last Login:</span>
-            <span className="ml-2">{profileData.last_login ? formatDate(profileData.last_login) : 'Not available'}</span>
+            <span className="ml-2">{profileData.lastLogin ? formatDate(profileData.lastLogin) : 'Not available'}</span>
           </div>
           {/* Displaying User ID for completeness, can be removed if not needed */}
           <div>

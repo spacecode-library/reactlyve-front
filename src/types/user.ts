@@ -4,7 +4,7 @@ export interface User {
     name: string;
     picture?: string;
     role: 'user' | 'admin' | 'guest';
-    last_login: string;
+    lastLogin: string; // Changed from last_login
     blocked: boolean;
     createdAt?: string;
     updatedAt?: string;
