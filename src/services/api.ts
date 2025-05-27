@@ -137,4 +137,20 @@ export const adminApi = {
   getStats: () => api.get('/admin/stats'),
 };
 
+// ------------------ PROFILE API ------------------
+export const profileApi = {
+  getProfileMe: () => api.get('/api/profile/me'),
+  deleteProfileMe: () => api.delete('/api/profile/me'),
+};
+
+// ------------------ NEW ADMIN API FUNCTIONS ------------------
+// Note: These functions are added here because they are admin-related.
+// Depending on the project structure, they could be in a separate adminApi service.
+export const newAdminApi = {
+  getAdminUsers: () => api.get('/api/admin/users'),
+  updateAdminUserRole: (userId: string, role: User['role']) =>
+    api.put(`/api/admin/users/${userId}/role`, { role }),
+  deleteAdminUser: (userId: string) => api.delete(`/api/admin/users/${userId}`),
+};
+
 export default api;
