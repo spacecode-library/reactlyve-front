@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { profileApi } from '../services/api';
 import { User } from '../types/user';
 import { useAuth } from '../context/AuthContext';
-import { formatDate } from '../utils/formatters';
+import { formatDate, formatDateTime } from '../utils/formatters'; // Import formatDateTime
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import toast from 'react-hot-toast';
@@ -120,7 +120,7 @@ const ProfilePage: React.FC = () => {
           </div>
           <div>
             <span className="font-semibold">Last Login:</span>
-            <span className="ml-2">{profileData.lastLogin ? formatDate(profileData.lastLogin) : 'Not available'}</span>
+            <span className="ml-2">{profileData.lastLogin ? formatDateTime(profileData.lastLogin) : 'Not available'}</span>
           </div>
           {/* Displaying User ID for completeness, can be removed if not needed */}
           <div>

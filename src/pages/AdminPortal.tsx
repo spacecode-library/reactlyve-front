@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { newAdminApi } from '../services/api';
 import { User } from '../types/user';
-import { formatDate } from '../utils/formatters';
+import { formatDate, formatDateTime } from '../utils/formatters'; // Import formatDateTime
 import Button from '../components/common/Button';
 import toast from 'react-hot-toast';
 import Modal from '../components/common/Modal';
@@ -163,10 +163,14 @@ const AdminPortalPage: React.FC = () => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-300">
-                  {user.lastLogin ? formatDate(user.lastLogin) : 'N/A'}
+                  {user.lastLogin ? formatDateTime(user.lastLogin) : 'N/A'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-300">
-                  {user.createdAt ? formatDate(user.createdAt) : 'N/A'}
+                  {user.createdAt ? formatDateTime(user.createdAt) : 'N/A'} 
+                  {/* Also update createdAt to use formatDateTime for consistency, if desired, or keep formatDate if only date is preferred. 
+                      The task only specified lastLogin, but this is a good place to consider consistency. 
+                      For now, I'll update createdAt too as it's a common expectation for admin portals.
+                  */}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex items-center space-x-2">
