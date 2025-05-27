@@ -71,6 +71,26 @@ const ProfilePage: React.FC = () => {
   const email = profileData.email || authUser?.email;
   const picture = profileData.picture || authUser?.picture;
 
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    try {
+      await profileApi.deleteProfileMe();
+      toast.success('Account deleted successfully.');
+      setIsDeleteModalOpen(false); // Close modal
+      logout(); // Clear auth context and local token
+      navigate('/login'); // Redirect to login page
+    } catch (err) {
+      console.error('Delete account error:', err);
+      toast.error(
+        (err as any)?.response?.data?.message || 'Failed to delete account. Please try again.'
+      );
+      // Optionally keep modal open, or close as done for success:
+      // setIsDeleteModalOpen(false); 
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="container mx-auto p-4 space-y-6">
       <h1 className="text-3xl font-bold mb-6">My Profile</h1>

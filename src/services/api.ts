@@ -1,5 +1,6 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import type { User } from '../types/user'; // Import User type
 import { API_BASE_URL, REPLY_ROUTES } from '../components/constants/apiRoutes';
 
 // Axios instance for authenticated requests

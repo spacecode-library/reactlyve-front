@@ -66,6 +66,28 @@ const AdminPortalPage: React.FC = () => {
     }
   };
 
+  const handleConfirmDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    setIsDeletingUser(true);
+    try {
+      await newAdminApi.deleteAdminUser(userToDelete.id);
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userToDelete.id));
+      toast.success(`User ${userToDelete.name} (ID: ${userToDelete.id}) deleted successfully.`);
+      setIsDeleteUserModalOpen(false);
+      setUserToDelete(null);
+    } catch (err) {
+      console.error('Delete user error:', err);
+      toast.error(
+        (err as any)?.response?.data?.message || 'Failed to delete user.'
+      );
+      // Optionally, keep modal open on error for user to retry or cancel, 
+      // or close it as done above for success case. For now, it closes on success and stays open on error.
+    } finally {
+      setIsDeletingUser(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto p-4 flex justify-center items-center min-h-[calc(100vh-200px)]">
