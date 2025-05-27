@@ -7,7 +7,8 @@ import { formatDate, formatDateTime } from '../utils/formatters'; // Import form
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import toast from 'react-hot-toast';
-import LoadingSpinner from '../components/common/LoadingSpinner'; // Import LoadingSpinner
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import DashboardLayout from '../layouts/DashboardLayout'; // Import DashboardLayout
 
 // Assuming a Card component might exist for layout, will add if available or use simple divs
 // import Card from '../components/common/Card'; 
@@ -42,27 +43,31 @@ const ProfilePage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-4 flex justify-center items-center min-h-[calc(100vh-200px)]"> 
-        {/* Centering the spinner */}
-        <LoadingSpinner size="lg" />
-      </div>
+      <DashboardLayout>
+        <div className="flex justify-center items-center min-h-[calc(100vh-200px)]"> {/* Adjust min-height if needed */}
+          <LoadingSpinner size="lg" />
+        </div>
+      </DashboardLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto p-4 text-center text-red-500">
-        <p>{error}</p>
-      </div>
+      <DashboardLayout>
+        <div className="text-center text-red-500 p-4"> {/* Added p-4 for some spacing */}
+          <p>{error}</p>
+        </div>
+      </DashboardLayout>
     );
   }
 
   if (!profileData) {
     return (
-      <div className="container mx-auto p-4 text-center">
-        <p>No profile data available.</p>
-        {/* This case might indicate an issue or an unauthorized access attempt if error is not set */}
-      </div>
+      <DashboardLayout>
+        <div className="text-center p-4"> {/* Added p-4 for some spacing */}
+          <p>No profile data available.</p>
+        </div>
+      </DashboardLayout>
     );
   }
 
@@ -92,10 +97,11 @@ const ProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <h1 className="text-3xl font-bold mb-6">My Profile</h1>
-      
-      {/* Using simple divs for structure, replace with Card if available and desired */}
+    <DashboardLayout>
+      <div className="space-y-6"> {/* Removed container, mx-auto, p-4 */}
+        <h1 className="text-3xl font-bold mb-6">My Profile</h1>
+        
+        {/* Using simple divs for structure, replace with Card if available and desired */}
       <div className="bg-white shadow rounded-lg p-6">
         <div className="flex items-center space-x-4 mb-6">
           {picture && (

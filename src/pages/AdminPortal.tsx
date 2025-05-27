@@ -5,7 +5,8 @@ import { formatDate, formatDateTime } from '../utils/formatters'; // Import form
 import Button from '../components/common/Button';
 import toast from 'react-hot-toast';
 import Modal from '../components/common/Modal';
-import LoadingSpinner from '../components/common/LoadingSpinner'; // Import LoadingSpinner
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import DashboardLayout from '../layouts/DashboardLayout'; // Import DashboardLayout
 
 // Define the available roles for the select dropdown
 const ROLES: User['role'][] = ['user', 'admin', 'guest'];
@@ -90,45 +91,50 @@ const AdminPortalPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-4 flex justify-center items-center min-h-[calc(100vh-200px)]">
-        {/* Centering the spinner */}
-        <LoadingSpinner size="lg" />
-      </div>
+      <DashboardLayout>
+        <div className="flex justify-center items-center min-h-[calc(100vh-200px)]"> {/* Adjust min-height if needed */}
+          <LoadingSpinner size="lg" />
+        </div>
+      </DashboardLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto p-4 text-center text-red-500">
-        {/* Replace with ErrorMessage component if available */}
-        <p>{error}</p>
-      </div>
+      <DashboardLayout>
+        <div className="text-center text-red-500 p-4"> {/* Added p-4 for some spacing */}
+          <p>{error}</p>
+        </div>
+      </DashboardLayout>
     );
   }
 
   if (users.length === 0) {
     return (
-      <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-semibold mb-6">Admin Portal - User Management</h1>
-        <p>No users found.</p>
-      </div>
+      <DashboardLayout>
+        <div className="p-4"> {/* Added p-4 for some spacing */}
+          <h1 className="text-2xl font-semibold mb-6">Admin Portal - User Management</h1>
+          <p>No users found.</p>
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-semibold mb-6">Admin Portal - User Management</h1>
-      
-      <div className="overflow-x-auto bg-white shadow rounded-lg">
+    <DashboardLayout>
+      <div> {/* Removed container, mx-auto, p-4. Outer div for structure if needed. */}
+        <h1 className="text-2xl font-semibold mb-6">Admin Portal - User Management</h1>
+        
+        <div className="overflow-x-auto bg-white shadow rounded-lg">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
           <thead className="bg-gray-50 dark:bg-neutral-800">
             <tr>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300">Name</th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300">Email</th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300">Role</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300">Status</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300">Last Login</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300">Created At</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300 hidden sm:table-cell">Status</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300 hidden sm:table-cell">Last Login</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300 hidden md:table-cell">Created At</th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300">Actions</th>
             </tr>
           </thead>
@@ -154,7 +160,7 @@ const AdminPortalPage: React.FC = () => {
                   </span>
                   {/* Placeholder for role change UI */}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                <td className="px-6 py-4 whitespace-nowrap text-sm hidden sm:table-cell">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                     user.blocked ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' :
                     'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
@@ -162,10 +168,10 @@ const AdminPortalPage: React.FC = () => {
                     {user.blocked ? 'Blocked' : 'Active'}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-300">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-300 hidden sm:table-cell">
                   {user.lastLogin ? formatDateTime(user.lastLogin) : 'N/A'}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-300">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-300 hidden md:table-cell">
                   {user.createdAt ? formatDateTime(user.createdAt) : 'N/A'} 
                   {/* Also update createdAt to use formatDateTime for consistency, if desired, or keep formatDate if only date is preferred. 
                       The task only specified lastLogin, but this is a good place to consider consistency. 
