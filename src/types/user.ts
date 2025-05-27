@@ -3,7 +3,9 @@ export interface User {
     email: string;
     name: string;
     picture?: string;
-    role: 'user' | 'admin';
+    role: 'user' | 'admin' | 'guest';
+    lastLogin: string; // Changed from last_login
+    blocked: boolean;
     createdAt?: string;
     updatedAt?: string;
   }

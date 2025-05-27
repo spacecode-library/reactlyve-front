@@ -1,17 +1,10 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import axios from 'axios';
-import api from '../services/api';
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  picture: string;
-  role: 'user' | 'admin';
-}
+// axios import is not directly used here anymore for requests, api service is.
+import api, { profileApi } from '../services/api'; // Import profileApi
+import { User } from '../types/user'; // Import User from types
 
 interface AuthContextType {
-  user: User | null;
+  user: User | null; // Use the imported User type
   token: string | null;
   isLoading: boolean;
   error: string | null;
@@ -50,9 +43,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (stored) {
         try {
           setToken(stored);
-          api.defaults.headers.common['Authorization'] = `Bearer ${stored}`;
-          const response = await api.get('/auth/me');
-          setUser(response.data.user);
+          // The Authorization header is already set by the api instance's interceptor
+          // in src/services/api.ts if a token is present in localStorage,
+          // so explicitly setting api.defaults.headers.common['Authorization'] here might be redundant
+          // if the api instance used by profileApi already includes this interceptor.
+          // However, to be safe and ensure it's set before the first call if not already,
+          // we can keep it, or rely on the interceptor. For now, let's assume the interceptor handles it.
+          
+          const response = await profileApi.getProfileMe(); // Use profileApi.getProfileMe()
+          setUser(response.data); // Assuming response.data is the user object
         } catch (err) {
           console.error('Authentication failed:', err);
           setError('Failed to authenticate');

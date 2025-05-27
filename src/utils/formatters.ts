@@ -121,3 +121,23 @@
     
     return maskedPart + lastChar;
   };
+
+/**
+ * Format a date string to a human-readable date and time format
+ * @param dateString - ISO date string
+ * @returns Formatted date and time string (e.g., "June 1, 2023, 14:05:30")
+ */
+export const formatDateTime = (dateString: string | Date | null | undefined): string => {
+  const date = new Date(dateString ?? '');
+  if (isNaN(date.getTime())) return 'Invalid date';
+
+  return new Intl.DateTimeFormat('en-US', { // Using 'en-US' for consistency, can be 'default'
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false, // Use 24-hour format
+  }).format(date);
+};

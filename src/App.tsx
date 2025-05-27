@@ -15,29 +15,12 @@ import About from './pages/About';
 import NotFound from './pages/NotFound';
 import Message from './pages/Message';
 import Reaction from './pages/Reaction';
+import ProfilePage from './pages/Profile'; // Import the actual ProfilePage
+import AdminPortalPage from './pages/AdminPortal'; // Import AdminPortalPage
 
-// Admin and Profile components (placeholder for now)
-const Admin = () => (
-  <div className="flex h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">
-    <div className="text-center">
-      <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Admin Dashboard</h1>
-      <p className="mt-4 text-neutral-600 dark:text-neutral-300">
-        Coming soon. This page will provide admin controls for managing users and content.
-      </p>
-    </div>
-  </div>
-);
+// Placeholder Admin component removed
 
-const Profile = () => (
-  <div className="flex h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">
-    <div className="text-center">
-      <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">User Profile</h1>
-      <p className="mt-4 text-neutral-600 dark:text-neutral-300">
-        Coming soon. This page will allow users to manage their profile settings.
-      </p>
-    </div>
-  </div>
-);
+// Placeholder for Profile has been removed, ProfilePage is imported instead.
 
 function App() {
   return (
@@ -56,14 +39,14 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/create" element={<Create />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile" element={<ProfilePage />} /> {/* Use ProfilePage here */}
             <Route path="/message/:id" element={<Message/>} />
             <Route path="/reaction/:reactionId" element={<Reaction />} />
           </Route>
           
           {/* Admin routes */}
           <Route element={<ProtectedRoute requireAdmin={true} />}>
-            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin" element={<AdminPortalPage />} /> {/* Use AdminPortalPage here */}
           </Route>
           
           {/* 404 route */}
