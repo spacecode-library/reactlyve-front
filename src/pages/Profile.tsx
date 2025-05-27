@@ -152,7 +152,7 @@ const ProfilePage: React.FC = () => {
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-600 dark:text-gray-300">
-            Are you sure you want to delete your account? This action is irreversible and will remove all your messages, reactions, and associated content.
+            Are you sure you want to delete your account? This action is irreversible and will remove all your messages, reactions, replies, and associated content.
           </p>
           <p className="text-sm font-semibold text-red-600 dark:text-red-400">
             All your data will be permanently lost.

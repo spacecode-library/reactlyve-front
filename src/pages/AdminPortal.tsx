@@ -216,7 +216,7 @@ const AdminPortalPage: React.FC = () => {
           <div className="space-y-4">
             <p className="text-sm text-gray-600 dark:text-gray-300">
               Are you sure you want to delete the user <span className="font-semibold">{userToDelete.name}</span> (ID: {userToDelete.id})? 
-              This action is irreversible and will remove all their messages, reactions, and associated content.
+              This action is irreversible and will remove all their messages, reactions, replies, and associated content.
             </p>
             <p className="text-sm font-semibold text-red-600 dark:text-red-400">
               All data associated with this user will be permanently lost.
