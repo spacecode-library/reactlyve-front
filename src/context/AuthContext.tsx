@@ -59,8 +59,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setToken(null);
           delete api.defaults.headers.common['Authorization'];
         }
-      } else {
-        console.log('No token found in localStorage');
       }
       
       setIsLoading(false);
