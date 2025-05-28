@@ -4,6 +4,7 @@ import ScrollToTop from './components/common/ScrollToTop'; // Import ScrollToTop
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import CookieBanner from './components/common/CookieBanner'; // New import
 
 // Page components
 import Home from './pages/Home';
@@ -83,6 +84,7 @@ function App() {
             },
           }}
         />
+        <CookieBanner /> {/* Add CookieBanner here */}
       </AuthProvider>
     </ThemeProvider>
   );
