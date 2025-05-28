@@ -35,14 +35,28 @@ const CookieBanner: React.FC = () => {
           </Link>
           .
         </p>
-        <Button
-          onClick={handleAccept}
-          variant="primary" // Or a suitable variant for your Button component
-          size="sm"
-          className="bg-white text-neutral-800 hover:bg-neutral-200 dark:bg-primary-500 dark:text-white dark:hover:bg-primary-600" // Ensure good contrast
-        >
-          Accept & Close
-        </Button>
+        <div className="flex items-center mt-2 sm:mt-0 sm:ml-4 flex-shrink-0"> {/* Added flex-shrink-0 */}
+          <Button
+            onClick={handleAccept} // Using same handler for now
+            size="sm"
+            className="px-4 py-2 rounded-md text-sm font-medium \
+                       text-neutral-700 bg-transparent border border-neutral-400 hover:bg-neutral-100 \
+                       dark:text-neutral-300 dark:border-neutral-600 dark:hover:bg-neutral-700 \
+                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 mr-2" // Added mr-2
+          >
+            Reject
+          </Button>
+          <Button
+            onClick={handleAccept}
+            size="sm"
+            className="px-4 py-2 rounded-md shadow-sm text-sm font-medium \
+                       text-neutral-800 bg-white hover:bg-neutral-200 \
+                       dark:text-white dark:bg-primary-500 dark:hover:bg-primary-600 \
+                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            Accept & Close
+          </Button>
+        </div>
       </div>
     </div>
   );
