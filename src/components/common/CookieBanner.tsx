@@ -39,19 +39,19 @@ const CookieBanner: React.FC = () => {
           <Button
             onClick={handleAccept} // Using same handler for now
             size="sm"
-            className="px-4 py-2 rounded-md text-sm font-medium \
-                       text-neutral-700 bg-transparent border border-neutral-400 hover:bg-neutral-100 \
-                       dark:text-neutral-300 dark:border-neutral-600 dark:hover:bg-neutral-700 \
-                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 mr-2" // Added mr-2
+            className="px-4 py-2 rounded-md text-sm font-medium shadow-sm \
+                       text-neutral-700 bg-neutral-100 border border-neutral-300 hover:bg-neutral-200 \
+                       dark:text-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 dark:hover:bg-neutral-600 \
+                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 mr-2"
           >
             Reject
           </Button>
           <Button
             onClick={handleAccept}
             size="sm"
-            className="px-4 py-2 rounded-md shadow-sm text-sm font-medium \
-                       text-neutral-800 bg-white hover:bg-neutral-200 \
-                       dark:text-white dark:bg-primary-500 dark:hover:bg-primary-600 \
+            className="px-4 py-2 rounded-md text-sm font-semibold shadow-sm \
+                       text-neutral-700 bg-neutral-100 border border-neutral-300 hover:bg-neutral-200 \
+                       dark:text-neutral-200 dark:bg-neutral-700 dark:border-neutral-600 dark:hover:bg-neutral-600 \
                        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           >
             Accept & Close
