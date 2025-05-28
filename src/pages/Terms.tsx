@@ -1,11 +1,13 @@
 import React from 'react';
+import MainLayout from '../layouts/MainLayout'; // Added import
 
 const TermsPage: React.FC = () => {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4">Terms and Conditions</h1>
-      <p className="mb-2">
-        Welcome to our platform. If you continue to browse and use this platform, you are agreeing to comply with and be bound by the following terms and conditions of use, which together with our privacy policy govern our relationship with you in relation to this platform.
+    <MainLayout> {/* Added MainLayout wrapper */}
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-4">Terms and Conditions</h1>
+        <p className="mb-2">
+          Welcome to our platform. If you continue to browse and use this platform, you are agreeing to comply with and be bound by the following terms and conditions of use, which together with our privacy policy govern our relationship with you in relation to this platform.
       </p>
       <h2 className="text-2xl font-semibold mt-6 mb-3">1. Acceptance of Terms</h2>
       <p className="mb-2">
@@ -18,7 +20,8 @@ const TermsPage: React.FC = () => {
       <p className="mt-6">
         <em>This is a placeholder document. The actual Terms and Conditions will be updated by the legal team.</em>
       </p>
-    </div>
+      </div>
+    </MainLayout> 
   );
 };
 

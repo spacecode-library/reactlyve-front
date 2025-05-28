@@ -1,11 +1,13 @@
 import React from 'react';
+import MainLayout from '../layouts/MainLayout'; // Added import
 
 const PrivacyPolicyPage: React.FC = () => {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4">Privacy Policy</h1>
-      <p className="mb-2">
-        This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use our Service and the choices you have associated with that data.
+    <MainLayout> {/* Added MainLayout wrapper */}
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-4">Privacy Policy</h1>
+        <p className="mb-2">
+          This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use our Service and the choices you have associated with that data.
       </p>
       <h2 className="text-2xl font-semibold mt-6 mb-3">1. Information Collection and Use</h2>
       <p className="mb-2">
@@ -22,7 +24,8 @@ const PrivacyPolicyPage: React.FC = () => {
       <p className="mt-6">
         <em>This is a placeholder document. The actual Privacy Policy will be updated by the legal team.</em>
       </p>
-    </div>
+      </div>
+    </MainLayout> 
   );
 };
 

@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import ScrollToTop from './components/common/ScrollToTop'; // Import ScrollToTop
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -29,6 +30,7 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
+        <ScrollToTop /> {/* Add ScrollToTop here */}
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Home />} />

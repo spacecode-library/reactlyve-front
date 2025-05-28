@@ -1,11 +1,13 @@
 import React from 'react';
+import MainLayout from '../layouts/MainLayout'; // Added import
 
 const CookiePolicyPage: React.FC = () => {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4">Cookie Policy</h1>
-      <p className="mb-2">
-        This Cookie Policy explains what cookies are and how we use them on our platform. You should read this policy so you can understand what type of cookies we use, the information we collect using cookies and how that information is used.
+    <MainLayout> {/* Added MainLayout wrapper */}
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-4">Cookie Policy</h1>
+        <p className="mb-2">
+          This Cookie Policy explains what cookies are and how we use them on our platform. You should read this policy so you can understand what type of cookies we use, the information we collect using cookies and how that information is used.
       </p>
       <h2 className="text-2xl font-semibold mt-6 mb-3">What Are Cookies?</h2>
       <p className="mb-2">
@@ -22,7 +24,8 @@ const CookiePolicyPage: React.FC = () => {
       <p className="mt-6">
         <em>This is a placeholder document. The actual Cookie Policy will be updated to reflect specific platform functionalities.</em>
       </p>
-    </div>
+      </div>
+    </MainLayout> 
   );
 };
 

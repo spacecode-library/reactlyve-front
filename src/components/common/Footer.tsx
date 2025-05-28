@@ -85,7 +85,7 @@ const Footer: React.FC = () => {
               </li>
               <li>
                 <Link
-                  to="/cookies"
+                  to="/cookie-policy"
                   className="text-sm text-neutral-500 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-primary-400"
                 >
                   Cookie Policy
