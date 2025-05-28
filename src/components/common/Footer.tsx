@@ -85,7 +85,7 @@ const Footer: React.FC = () => {
               </li>
               <li>
                 <Link
-                  to="/cookies"
+                  to="/cookie-policy"
                   className="text-sm text-neutral-500 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-primary-400"
                 >
                   Cookie Policy
@@ -106,26 +106,6 @@ const Footer: React.FC = () => {
                   className="text-sm text-neutral-500 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-primary-400"
                 >
                   support@reactlyve.com
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://twitter.com/reactlyve"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-neutral-500 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-primary-400"
-                >
-                  Twitter
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://facebook.com/reactlyve"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-neutral-500 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-primary-400"
-                >
-                  Facebook
                 </a>
               </li>
             </ul>

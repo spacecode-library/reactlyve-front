@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import MainLayout from '../layouts/MainLayout';
 
 const Home = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
 
   return (
     <MainLayout>
@@ -23,7 +23,15 @@ const Home = () => {
               Create moments that last forever.
             </p>
             <div className="mx-auto mt-10 max-w-sm sm:flex sm:max-w-none sm:justify-center">
-              {user ? (
+              {isLoading ? (
+                // Placeholder for buttons during loading to prevent layout shift.
+                // This creates a space roughly equivalent to two buttons.
+                <div className="space-y-4 sm:mx-auto sm:inline-grid sm:grid-cols-2 sm:gap-5 sm:space-y-0" style={{ minHeight: '46px' }}> 
+                  {/* You can make this more sophisticated with actual skeleton elements if desired */}
+                  <div className="flex items-center justify-center rounded-md border border-transparent bg-neutral-200 dark:bg-neutral-700 px-4 py-3 text-base font-medium text-transparent shadow-sm sm:px-8" style={{ minWidth: '120px' }}>&nbsp;</div>
+                  <div className="flex items-center justify-center rounded-md border border-neutral-300 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-700 px-4 py-3 text-base font-medium text-transparent shadow-sm sm:px-8" style={{ minWidth: '120px' }}>&nbsp;</div>
+                </div>
+              ) : user ? (
                 <div className="space-y-4 sm:mx-auto sm:inline-grid sm:grid-cols-2 sm:gap-5 sm:space-y-0">
                   <Link
                     to="/create"

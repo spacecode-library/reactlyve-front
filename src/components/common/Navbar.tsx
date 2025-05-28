@@ -151,6 +151,19 @@ const Navbar = () => {
                         </Link>
                       )}
                     </Menu.Item>
+                    <Menu.Item>
+                      {({ active }) => (
+                        <Link
+                          to="/create"
+                          className={classNames(
+                            active ? 'bg-neutral-100 dark:bg-neutral-700' : '',
+                            'block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200'
+                          )}
+                        >
+                          Create Message
+                        </Link>
+                      )}
+                    </Menu.Item>
                     {user.role === 'admin' && (
                       <Menu.Item>
                         {({ active }) => (

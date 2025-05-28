@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/common/Navbar';
+import Footer from '../components/common/Footer'; // New import
 import { classNames } from '../utils/classNames';
 
 interface DashboardLayoutProps {
@@ -40,22 +41,12 @@ const AdminIcon = () => (
   </svg>
 );
 
-const MenuOpenIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-6 w-6">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-  </svg>
-);
-
-const XMarkIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-6 w-6">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-  </svg>
-);
+// MenuOpenIcon and XMarkIcon removed as they are no longer used
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user } = useAuth();
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // const [sidebarOpen, setSidebarOpen] = useState(false); // Removed sidebarOpen state
 
   // Define navigation items
   const navigation = [
@@ -75,63 +66,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       <Navbar />
       
       <div className="flex flex-1 max-w-screen-xl mx-auto w-full">
-        {/* Mobile sidebar toggle */}
-        <div className={classNames(
-          "fixed inset-0 z-40 flex md:hidden",
-          !sidebarOpen ? "pointer-events-none" : "" // Disable pointer events on this container when sidebar is closed
-        )}>
-          <button
-            type="button"
-            // Ensure the toggle button itself is always clickable
-            className="fixed right-3 top-16 z-50 rounded-md bg-neutral-800 p-2 text-white md:hidden pointer-events-auto"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          >
-            {sidebarOpen ? <XMarkIcon /> : <MenuOpenIcon />}
-          </button>
-          
-          {/* Mobile sidebar backdrop */}
-          {sidebarOpen && (
-            <div
-              // Backdrop should allow clicks (to close) and have pointer events
-              className="fixed inset-0 bg-neutral-800 bg-opacity-50 pointer-events-auto"
-              onClick={() => setSidebarOpen(false)}
-            ></div>
-          )}
-          
-          {/* Mobile sidebar */}
-          <div
-            className={classNames(
-              'fixed inset-y-0 left-0 flex w-64 flex-col bg-white transition-transform dark:bg-neutral-800',
-              // Sidebar should have pointer events only when open and on screen
-              sidebarOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none'
-            )}
-          >
-            <div className="flex h-16 flex-shrink-0 items-center border-b border-neutral-200 px-4 dark:border-neutral-700">
-              <Link to="/" className="text-xl font-bold text-primary-600 dark:text-primary-400">
-                Reactlyve
-              </Link>
-            </div>
-            <div className="flex flex-1 flex-col overflow-y-auto">
-              <nav className="flex-1 space-y-1 px-2 py-4">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={classNames(
-                      location.pathname === item.href
-                        ? 'bg-primary-50 text-primary-600 dark:bg-neutral-700 dark:text-primary-400'
-                        : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-white',
-                      'group flex items-center rounded-md px-2 py-2 text-sm font-medium'
-                    )}
-                  >
-                    <item.icon />
-                    <span className="ml-3">{item.name}</span>
-                  </Link>
-                ))}
-              </nav>
-            </div>
-          </div>
-        </div>
+        {/* Mobile sidebar toggle and related elements removed */}
             
         {/* Sidebar for desktop */}
         <div className="hidden md:flex md:w-64 md:flex-col">
@@ -165,6 +100,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           </main>
         </div>
       </div>
+      <Footer /> {/* Add Footer here */}
     </div>
   );
 };

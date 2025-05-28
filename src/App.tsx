@@ -1,8 +1,10 @@
 import { Route, Routes } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import ScrollToTop from './components/common/ScrollToTop'; // Import ScrollToTop
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import CookieBanner from './components/common/CookieBanner'; // New import
 
 // Page components
 import Home from './pages/Home';
@@ -17,6 +19,9 @@ import Message from './pages/Message';
 import Reaction from './pages/Reaction';
 import ProfilePage from './pages/Profile'; // Import the actual ProfilePage
 import AdminPortalPage from './pages/AdminPortal'; // Import AdminPortalPage
+import TermsPage from './pages/Terms'; // Import TermsPage
+import PrivacyPolicyPage from './pages/Privacy'; // Import PrivacyPolicyPage
+import CookiePolicyPage from './pages/CookiePolicy'; // Import CookiePolicyPage
 
 // Placeholder Admin component removed
 
@@ -26,6 +31,7 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
+        <ScrollToTop /> {/* Add ScrollToTop here */}
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Home />} />
@@ -34,6 +40,9 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/view/:id" element={<View />} />
           <Route path="/m/:id" element={<View />} />
+          <Route path="/terms" element={<TermsPage />} /> {/* Add TermsPage route */}
+          <Route path="/privacy" element={<PrivacyPolicyPage />} /> {/* Add PrivacyPolicyPage route */}
+          <Route path="/cookie-policy" element={<CookiePolicyPage />} /> {/* Add CookiePolicyPage route */}
           
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
@@ -75,6 +84,7 @@ function App() {
             },
           }}
         />
+        <CookieBanner /> {/* Add CookieBanner here */}
       </AuthProvider>
     </ThemeProvider>
   );
