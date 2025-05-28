@@ -54,24 +54,24 @@ const PrivacyPolicyPage: React.FC = () => {
         <p className="mb-2"><strong>What are your rights?</strong> Depending on where you are located geographically, the applicable privacy law may mean you have certain rights regarding your personal information. Learn more about your privacy rights.</p>
         <p className="mb-2"><strong>How do you exercise your rights?</strong> The easiest way to exercise your rights is by visiting <a href="https://reactlyve.com/profile" className="text-blue-600 hover:underline">https://reactlyve.com/profile</a>, or by contacting us. Learn more.</p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">TABLE OF CONTENTS</h2>
-        <p className="mb-1">WHAT INFORMATION DO WE COLLECT?</p>
-        <p className="mb-1">HOW DO WE PROCESS YOUR INFORMATION?</p>
-        <p className="mb-1">WHAT LEGAL BASES DO WE RELY ON TO PROCESS YOUR PERSONAL INFORMATION?</p>
-        <p className="mb-1">WHEN AND WITH WHOM DO WE SHARE YOUR PERSONAL INFORMATION?</p>
-        <p className="mb-1">DO WE USE COOKIES AND OTHER TRACKING TECHNOLOGIES?</p>
-        <p className="mb-1">HOW DO WE HANDLE YOUR SOCIAL LOGINS?</p>
-        <p className="mb-1">HOW LONG DO WE KEEP YOUR INFORMATION?</p>
-        <p className="mb-1">HOW DO WE KEEP YOUR INFORMATION SAFE?</p>
-        <p className="mb-1">DO WE COLLECT INFORMATION FROM MINORS?</p>
-        <p className="mb-1">WHAT ARE YOUR PRIVACY RIGHTS?</p>
-        <p className="mb-1">CONTROLS FOR DO-NOT-TRACK FEATURES</p>
-        <p className="mb-1">DO UNITED STATES RESIDENTS HAVE SPECIFIC PRIVACY RIGHTS?</p>
-        <p className="mb-1">DO WE MAKE UPDATES TO THIS NOTICE?</p>
-        <p className="mb-1">HOW CAN YOU CONTACT US ABOUT THIS NOTICE?</p>
-        <p className="mb-1">HOW CAN YOU REVIEW, UPDATE, OR DELETE THE DATA WE COLLECT FROM YOU?</p>
+        <h2 id="table-of-contents-privacy" className="text-2xl font-semibold mt-6 mb-3">TABLE OF CONTENTS</h2>
+        <p className="mb-1"><a href="#what-information-do-we-collect" className="text-blue-600 hover:underline">WHAT INFORMATION DO WE COLLECT?</a></p>
+        <p className="mb-1"><a href="#how-do-we-process-your-information" className="text-blue-600 hover:underline">HOW DO WE PROCESS YOUR INFORMATION?</a></p>
+        <p className="mb-1"><a href="#what-legal-bases" className="text-blue-600 hover:underline">WHAT LEGAL BASES DO WE RELY ON TO PROCESS YOUR PERSONAL INFORMATION?</a></p>
+        <p className="mb-1"><a href="#when-and-with-whom-sharing" className="text-blue-600 hover:underline">WHEN AND WITH WHOM DO WE SHARE YOUR PERSONAL INFORMATION?</a></p>
+        <p className="mb-1"><a href="#cookies-and-tracking" className="text-blue-600 hover:underline">DO WE USE COOKIES AND OTHER TRACKING TECHNOLOGIES?</a></p>
+        <p className="mb-1"><a href="#social-logins" className="text-blue-600 hover:underline">HOW DO WE HANDLE YOUR SOCIAL LOGINS?</a></p>
+        <p className="mb-1"><a href="#how-long-information-kept" className="text-blue-600 hover:underline">HOW LONG DO WE KEEP YOUR INFORMATION?</a></p>
+        <p className="mb-1"><a href="#how-information-safe" className="text-blue-600 hover:underline">HOW DO WE KEEP YOUR INFORMATION SAFE?</a></p>
+        <p className="mb-1"><a href="#information-from-minors" className="text-blue-600 hover:underline">DO WE COLLECT INFORMATION FROM MINORS?</a></p>
+        <p className="mb-1"><a href="#privacy-rights" className="text-blue-600 hover:underline">WHAT ARE YOUR PRIVACY RIGHTS?</a></p>
+        <p className="mb-1"><a href="#do-not-track-features" className="text-blue-600 hover:underline">CONTROLS FOR DO-NOT-TRACK FEATURES</a></p>
+        <p className="mb-1"><a href="#us-residents-privacy-rights" className="text-blue-600 hover:underline">DO UNITED STATES RESIDENTS HAVE SPECIFIC PRIVACY RIGHTS?</a></p>
+        <p className="mb-1"><a href="#updates-to-notice" className="text-blue-600 hover:underline">DO WE MAKE UPDATES TO THIS NOTICE?</a></p>
+        <p className="mb-1"><a href="#contact-us-privacy" className="text-blue-600 hover:underline">HOW CAN YOU CONTACT US ABOUT THIS NOTICE?</a></p>
+        <p className="mb-1"><a href="#review-update-delete-data" className="text-blue-600 hover:underline">HOW CAN YOU REVIEW, UPDATE, OR DELETE THE DATA WE COLLECT FROM YOU?</a></p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">1. WHAT INFORMATION DO WE COLLECT?</h2>
+        <h2 id="what-information-do-we-collect" className="text-2xl font-semibold mt-6 mb-3">1. WHAT INFORMATION DO WE COLLECT?</h2>
         <h3 className="text-xl font-semibold mt-4 mb-2">Personal information you disclose to us</h3>
         <p className="mb-2">In short: We collect personal information that you provide to us.</p>
         <p className="mb-2">
@@ -95,7 +95,7 @@ const PrivacyPolicyPage: React.FC = () => {
           Google API: Our use of information received from Google APIs will adhere to Google API Services User Data Policy, including the Limited Use requirements.
         </p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">2. HOW DO WE PROCESS YOUR INFORMATION?</h2>
+        <h2 id="how-do-we-process-your-information" className="text-2xl font-semibold mt-6 mb-3">2. HOW DO WE PROCESS YOUR INFORMATION?</h2>
         <p className="mb-2">
           In short: We process your information to provide, improve, and administer our Services, communicate with you, for security and fraud prevention, and to comply with law.
         </p>
@@ -105,7 +105,7 @@ const PrivacyPolicyPage: React.FC = () => {
         <p className="mb-2">To enable user-to-user communications.</p>
         <p className="mb-2">To save or protect an individual's vital interest.</p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">3. WHAT LEGAL BASES DO WE RELY ON TO PROCESS YOUR INFORMATION?</h2>
+        <h2 id="what-legal-bases" className="text-2xl font-semibold mt-6 mb-3">3. WHAT LEGAL BASES DO WE RELY ON TO PROCESS YOUR INFORMATION?</h2>
         <p className="mb-2">
           In short: We only process your personal information when we believe it is necessary and we have a valid legal reason to do so under applicable law, like with your consent, to comply with laws, to provide you with services, to enter into or fulfill our contractual obligations, to protect your rights, or to fulfill our legitimate business interests.
         </p>
@@ -123,7 +123,7 @@ const PrivacyPolicyPage: React.FC = () => {
           <strong>Vital Interests:</strong> We may process your information where we believe it is necessary to protect your vital interests.
         </p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">4. WHEN AND WITH WHOM DO WE SHARE YOUR PERSONAL INFORMATION?</h2>
+        <h2 id="when-and-with-whom-sharing" className="text-2xl font-semibold mt-6 mb-3">4. WHEN AND WITH WHOM DO WE SHARE YOUR PERSONAL INFORMATION?</h2>
         <p className="mb-2">
           In short: We may share information in specific situations described in this section and/or with the following third parties.
         </p>
@@ -132,7 +132,7 @@ const PrivacyPolicyPage: React.FC = () => {
           <strong>Business Transfers:</strong> We may share or transfer your information in connection with, or during negotiations of, any merger, sale of company assets, financing, or acquisition of all or a portion of our business to another company.
         </p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">5. DO WE USE COOKIES AND OTHER TRACKING TECHNOLOGIES?</h2>
+        <h2 id="cookies-and-tracking" className="text-2xl font-semibold mt-6 mb-3">5. DO WE USE COOKIES AND OTHER TRACKING TECHNOLOGIES?</h2>
         <p className="mb-2">
           In short: We may use cookies and other tracking technologies to collect and store your information.
         </p>
@@ -149,7 +149,7 @@ const PrivacyPolicyPage: React.FC = () => {
           Specific information about how we use such technologies and how you can refuse certain cookies is set out in our Cookie Notice: <a href="https://reactlyve.com/cookie-policy" className="text-blue-600 hover:underline">https://reactlyve.com/cookie-policy</a>.
         </p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">6. HOW DO WE HANDLE YOUR SOCIAL LOGINS?</h2>
+        <h2 id="social-logins" className="text-2xl font-semibold mt-6 mb-3">6. HOW DO WE HANDLE YOUR SOCIAL LOGINS?</h2>
         <p className="mb-2">
           In short: If you choose to register or log in to our Services using a social media account, we may have access to certain information about you.
         </p>
@@ -160,7 +160,7 @@ const PrivacyPolicyPage: React.FC = () => {
           We will use the information we receive only for the purposes that are described in this Privacy Notice or that are otherwise made clear to you on the relevant Services. Please note that we do not control, and are not responsible for, other uses of your personal information by your third-party social media provider. We recommend that you review their privacy notice to understand how they collect, use, and share your personal information, and how you can set your privacy preferences on their sites and apps.
         </p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">7. HOW LONG DO WE KEEP YOUR INFORMATION?</h2>
+        <h2 id="how-long-information-kept" className="text-2xl font-semibold mt-6 mb-3">7. HOW LONG DO WE KEEP YOUR INFORMATION?</h2>
         <p className="mb-2">
           In short: We keep your information for as long as necessary to fulfill the purposes outlined in this Privacy Notice unless otherwise required by law.
         </p>
@@ -171,7 +171,7 @@ const PrivacyPolicyPage: React.FC = () => {
           When we have no ongoing legitimate business need to process your personal information, we will either delete or anonymize such information, or, if this is not possible (for example, because your personal information has been stored in backup archives), then we will securely store your personal information and isolate it from any further processing until deletion is possible.
         </p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">8. HOW DO WE KEEP YOUR INFORMATION SAFE?</h2>
+        <h2 id="how-information-safe" className="text-2xl font-semibold mt-6 mb-3">8. HOW DO WE KEEP YOUR INFORMATION SAFE?</h2>
         <p className="mb-2">
           In short: We aim to protect your personal information through a system of organizational and technical security measures.
         </p>
@@ -182,7 +182,7 @@ const PrivacyPolicyPage: React.FC = () => {
           Although we will do our best to protect your personal information, transmission of personal information to and from our Services is at your own risk. You should only access the Services within a secure environment.
         </p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">9. DO WE COLLECT INFORMATION FROM MINORS?</h2>
+        <h2 id="information-from-minors" className="text-2xl font-semibold mt-6 mb-3">9. DO WE COLLECT INFORMATION FROM MINORS?</h2>
         <p className="mb-2">
           In short: We do not knowingly collect data from or market to children under 18 years of age or the equivalent age as specified by law in your jurisdiction.
         </p>
@@ -190,7 +190,7 @@ const PrivacyPolicyPage: React.FC = () => {
           We do not knowingly collect, solicit data from, or market to children under 18 years of age or the equivalent age as specified by law in your jurisdiction, nor do we knowingly sell such personal information. By using the Services, you represent that you are at least 18 or the equivalent age as specified by law in your jurisdiction or that you are the parent or guardian of such a minor and consent to such minor dependent’s use of the Services. If we learn that personal information from users less than 18 years of age or the equivalent age as specified by law in your jurisdiction has been collected, we will deactivate the account and take reasonable measures to promptly delete such data from our records. If you become aware of any data we may have collected from children under age 18 or the equivalent age as specified by law in your jurisdiction, please contact us at <a href="mailto:support@reactlyve.com" className="text-blue-600 hover:underline">support@reactlyve.com</a>.
         </p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">10. WHAT ARE YOUR PRIVACY RIGHTS?</h2>
+        <h2 id="privacy-rights" className="text-2xl font-semibold mt-6 mb-3">10. WHAT ARE YOUR PRIVACY RIGHTS?</h2>
         <p className="mb-2">
           In short: Depending on your state of residence in the US or in some regions, such as the European Economic Area (EEA), United Kingdom (UK), Switzerland, and Canada, you have rights that allow you greater access to and control over your personal information. You may review, change, or terminate your account at any time, depending on your country, province, or state of residence.
         </p>
@@ -207,7 +207,7 @@ const PrivacyPolicyPage: React.FC = () => {
           If you are located in Switzerland, you may contact the Federal Data Protection and Information Commissioner.
         </p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">11. CONTROLS FOR DO-NOT-TRACK FEATURES</h2>
+        <h2 id="do-not-track-features" className="text-2xl font-semibold mt-6 mb-3">11. CONTROLS FOR DO-NOT-TRACK FEATURES</h2>
         <p className="mb-2">
           Most web browsers and some mobile operating systems and mobile applications include a Do-Not-Track ('DNT') feature or setting you can activate to signal your privacy preference not to have data about your online browsing activities monitored and collected. At this stage, no uniform technology standard for recognizing and implementing DNT signals has been finalized. As such, we do not currently respond to DNT browser signals or any other mechanism that automatically communicates your choice not to be tracked online. If a standard for online tracking is adopted that we must follow in the future, we will inform you about that practice in a revised version of this Privacy Notice.
         </p>
@@ -215,7 +215,7 @@ const PrivacyPolicyPage: React.FC = () => {
           California law requires us to let you know how we respond to web browser DNT signals. Because there currently is not an industry or legal standard for recognizing or honoring DNT signals, we do not respond to them at this time.
         </p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">12. DO UNITED STATES RESIDENTS HAVE SPECIFIC PRIVACY RIGHTS?</h2>
+        <h2 id="us-residents-privacy-rights" className="text-2xl font-semibold mt-6 mb-3">12. DO UNITED STATES RESIDENTS HAVE SPECIFIC PRIVACY RIGHTS?</h2>
         <p className="mb-2">
           In short: If you are a resident of California, Colorado, Connecticut, Delaware, Florida, Indiana, Iowa, Kentucky, Maryland, Minnesota, Montana, Nebraska, New Hampshire, New Jersey, Oregon, Rhode Island, Tennessee, Texas, Utah, or Virginia, you may have the right to request access to and receive details about the personal information we maintain about you and how we have processed it, correct inaccuracies, get a copy of, or delete your personal information. You may also have the right to withdraw your consent to our processing of your personal information. These rights may be limited in some circumstances by applicable law. More information is provided below.
         </p>
@@ -350,7 +350,7 @@ const PrivacyPolicyPage: React.FC = () => {
           California Civil Code Section 1798.83, also known as the 'Shine The Light' law, permits our users who are California residents to request and obtain from us, once a year and free of charge, information about categories of personal information (if any) we disclosed to third parties for direct marketing purposes and the names and addresses of all third parties with which we shared personal information in the immediately preceding calendar year. If you are a California resident and would like to make such a request, please submit your request in writing to us by using the contact details provided in the section "HOW CAN YOU CONTACT US ABOUT THIS NOTICE?"
         </p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">13. DO WE MAKE UPDATES TO THIS NOTICE?</h2>
+        <h2 id="updates-to-notice" className="text-2xl font-semibold mt-6 mb-3">13. DO WE MAKE UPDATES TO THIS NOTICE?</h2>
         <p className="mb-2">
           In short: Yes, we will update this notice as necessary to stay compliant with relevant laws.
         </p>
@@ -358,7 +358,7 @@ const PrivacyPolicyPage: React.FC = () => {
           We may update this Privacy Notice from time to time. The updated version will be indicated by an updated 'Revised' date at the top of this Privacy Notice. If we make material changes to this Privacy Notice, we may notify you either by prominently posting a notice of such changes or by directly sending you a notification. We encourage you to review this Privacy Notice frequently to be informed of how we are protecting your information.
         </p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">14. HOW CAN YOU CONTACT US ABOUT THIS NOTICE?</h2>
+        <h2 id="contact-us-privacy" className="text-2xl font-semibold mt-6 mb-3">14. HOW CAN YOU CONTACT US ABOUT THIS NOTICE?</h2>
         <p className="mb-2">
           If you have questions or comments about this notice, you may contact our Data Protection Officer (DPO) by email at <a href="mailto:support@reactlyve.com" className="text-blue-600 hover:underline">support@reactlyve.com</a>
         </p>
@@ -366,7 +366,7 @@ const PrivacyPolicyPage: React.FC = () => {
           If you are a resident in the United Kingdom, we are the 'data controller' of your personal information. We have appointed Dan Brooks to be our representative in the UK. You can contact them directly regarding our processing of your information, by email at <a href="mailto:support@reactlyve.com" className="text-blue-600 hover:underline">support@reactlyve.com</a> or by visiting <a href="https://reactlyve.com/" className="text-blue-600 hover:underline">https://reactlyve.com/</a>.
         </p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">15. HOW CAN YOU REVIEW, UPDATE, OR DELETE THE DATA WE COLLECT FROM YOU?</h2>
+        <h2 id="review-update-delete-data" className="text-2xl font-semibold mt-6 mb-3">15. HOW CAN YOU REVIEW, UPDATE, OR DELETE THE DATA WE COLLECT FROM YOU?</h2>
         <p className="mb-2">
           Based on the applicable laws of your country or state of residence in the US, you may have the right to request access to the personal information we collect from you, details about how we have processed it, correct inaccuracies, or delete your personal information. You may also have the right to withdraw your consent to our processing of your personal information. These rights may be limited in some circumstances by applicable law. To request to review, update, or delete your personal information, please visit: <a href="https://reactlyve.com/profile" className="text-blue-600 hover:underline">https://reactlyve.com/profile</a>.
         </p>
