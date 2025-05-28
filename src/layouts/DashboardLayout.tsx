@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/common/Navbar';
+import Footer from '../components/common/Footer'; // New import
 import { classNames } from '../utils/classNames';
 
 interface DashboardLayoutProps {
@@ -165,6 +166,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           </main>
         </div>
       </div>
+      <Footer /> {/* Add Footer here */}
     </div>
   );
 };
