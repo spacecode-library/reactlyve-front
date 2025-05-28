@@ -235,15 +235,17 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           {replyText.length}/500 characters
         </p>
       </div>
-      <div className="mt-8 text-center">
-        <p className="text-sm text-neutral-700 dark:text-neutral-300">
-          Get reactions to your own messages by{' '}
-          <Link to="/" className="font-semibold text-primary-600 hover:text-primary-700 dark:hover:text-primary-500 underline">
-            signing up here
-          </Link>
-          .
-        </p>
-      </div>
+      {isReactionRecorded && (
+        <div className="mt-8 text-center">
+          <p className="text-sm text-neutral-700 dark:text-neutral-300">
+            Get reactions to your own messages by{' '}
+            <Link to="/" className="font-semibold text-primary-600 hover:text-primary-700 dark:hover:text-primary-500 underline">
+              signing up here
+            </Link>
+            .
+          </p>
+        </div>
+      )}
     </div>
   );
 
