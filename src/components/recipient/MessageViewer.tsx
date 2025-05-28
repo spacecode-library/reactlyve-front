@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom'; // Import Link
 import WebcamRecorder from './WebcamRecorder';
 import PermissionRequest from './PermissionRequest';
 import PasscodeEntry from './PasscodeEntry';
@@ -234,6 +235,15 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           {replyText.length}/500 characters
         </p>
       </div>
+      <div className="mt-8 text-center">
+        <p className="text-sm text-neutral-700 dark:text-neutral-300">
+          Get reactions to your own messages by{' '}
+          <Link to="/" className="font-semibold text-primary-600 hover:text-primary-700 dark:hover:text-primary-500 underline">
+            signing up here
+          </Link>
+          .
+        </p>
+      </div>
     </div>
   );
 
@@ -282,6 +292,17 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
             >
               Start Reaction
             </button>
+            <p className="mt-2 text-xs text-neutral-600 dark:text-neutral-400 text-center">
+              By continuing, you are accepting the{' '}
+              <Link to="/terms" className="underline hover:text-primary-600">
+                Terms and Conditions
+              </Link>{' '}
+              and{' '}
+              <Link to="/privacy" className="underline hover:text-primary-600">
+                Privacy Policy
+              </Link>
+              .
+            </p>
             {!permissionError && webcamStatusMessage && (
               <p className="text-sm text-gray-500 mt-2 text-center">{webcamStatusMessage}</p>
             )}
