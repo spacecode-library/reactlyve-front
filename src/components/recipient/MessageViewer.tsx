@@ -296,10 +296,14 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
               By continuing, you are accepting the{' '}
               <Link to="/terms" className="underline hover:text-primary-600">
                 Terms and Conditions
-              </Link>{' '}
-              and{' '}
+              </Link>
+              ,{' '}
               <Link to="/privacy" className="underline hover:text-primary-600">
                 Privacy Policy
+              </Link>
+              , and{' '}
+              <Link to="/cookie-policy" className="underline hover:text-primary-600">
+                Cookie Policy
               </Link>
               .
             </p>

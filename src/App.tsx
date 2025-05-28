@@ -19,6 +19,7 @@ import ProfilePage from './pages/Profile'; // Import the actual ProfilePage
 import AdminPortalPage from './pages/AdminPortal'; // Import AdminPortalPage
 import TermsPage from './pages/Terms'; // Import TermsPage
 import PrivacyPolicyPage from './pages/Privacy'; // Import PrivacyPolicyPage
+import CookiePolicyPage from './pages/CookiePolicy'; // Import CookiePolicyPage
 
 // Placeholder Admin component removed
 
@@ -38,6 +39,7 @@ function App() {
           <Route path="/m/:id" element={<View />} />
           <Route path="/terms" element={<TermsPage />} /> {/* Add TermsPage route */}
           <Route path="/privacy" element={<PrivacyPolicyPage />} /> {/* Add PrivacyPolicyPage route */}
+          <Route path="/cookie-policy" element={<CookiePolicyPage />} /> {/* Add CookiePolicyPage route */}
           
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
