@@ -78,12 +78,15 @@ const PrivacyPolicyPage: React.FC = () => {
           We collect personal information that you voluntarily provide to us when you register on the Services, express an interest in obtaining information about us or our products and Services, when you participate in activities on the Services, or otherwise when you contact us.
         </p>
         <p className="mb-2">
-          Personal Information Provided by You: The personal information that we collect depends on the context of your interactions with us and the Services, the choices you make, and the products and features you use. The personal information we collect may include the following:
+          Personal Information Provided by You: The personal information that we collect depends on the context of your interactions with us and the Services, the choices you make, and the products and features you use. The personal information we collect may include:
         </p>
-        <p className="mb-2">Names</p>
-        <p className="mb-2">Email addresses</p>
+        <p className="mb-1">- Name and email address</p>
+        <p className="mb-1">- Account activity (e.g. messages sent)</p>
+        <p className="mb-1">- Webcam recordings of recipients' reactions, which are only accessible by the sender</p>
+        <h3 className="text-xl font-semibold mt-4 mb-2">Video Data Classification</h3>
+        <p className="mb-2">Webcam reaction recordings are treated as personal data because they may contain identifiable images of users. However, we do not process these videos for biometric recognition, profiling, or automated analysis. They are not used to identify individuals and are only accessible by the sender of the original message.</p>
         <p className="mb-2">
-          Sensitive Information: We do not process sensitive information.
+          <strong>Sensitive Information:</strong> We do not process special category data as defined under GDPR (e.g. racial or biometric data for the purpose of uniquely identifying a person). However, webcam recordings may contain personally identifiable visual information and are treated as personal data. These are not analysed, scanned, or used for biometric identification and are accessible only to the original sender.
         </p>
         <p className="mb-2">
           Social Media Login Data: We may provide you with the option to register with us using your existing social media account details, like your Facebook, X, or other social media account. If you choose to register in this way, we will collect certain profile information about you from the social media provider, as described in the section called 'HOW DO WE HANDLE YOUR SOCIAL LOGINS?' below.
@@ -110,18 +113,11 @@ const PrivacyPolicyPage: React.FC = () => {
           In short: We only process your personal information when we believe it is necessary and we have a valid legal reason to do so under applicable law, like with your consent, to comply with laws, to provide you with services, to enter into or fulfill our contractual obligations, to protect your rights, or to fulfill our legitimate business interests.
         </p>
         <p className="mb-2">If you are located in the EU or UK, this section applies to you.</p>
-        <p className="mb-2">
-          <strong>Consent:</strong> We may process your information if you have given us permission to use your personal information for a specific purpose. You can withdraw your consent at any time.
-        </p>
-        <p className="mb-2">
-          <strong>Performance of a Contract:</strong> We may process your personal information when we believe it is necessary to fulfill our contractual obligations to you.
-        </p>
-        <p className="mb-2">
-          <strong>Legal Obligations:</strong> We may process your information where we believe it is necessary for compliance with our legal obligations.
-        </p>
-        <p className="mb-2">
-          <strong>Vital Interests:</strong> We may process your information where we believe it is necessary to protect your vital interests.
-        </p>
+        <p className="mb-2">We process your personal data under the following lawful bases as permitted by UK GDPR and EU GDPR:</p>
+        <p className="mb-2"><strong>Consent:</strong> When you voluntarily provide information or agree to webcam recording. You can withdraw your consent at any time.</p>
+        <p className="mb-2"><strong>Contract:</strong> To provide and operate the Services, fulfilling our contractual obligations to you.</p>
+        <p className="mb-2"><strong>Legal obligations:</strong> To comply with applicable laws and legal requirements.</p>
+        <p className="mb-2"><strong>Legitimate interests:</strong> To maintain platform security, monitor misuse, and enhance user experience. We may process your information when we believe it is necessary to fulfill our legitimate business interests.</p>
 
         <h2 id="when-and-with-whom-sharing" className="text-2xl font-semibold mt-6 mb-3">4. WHEN AND WITH WHOM DO WE SHARE YOUR PERSONAL INFORMATION?</h2>
         <p className="mb-2">
@@ -170,6 +166,7 @@ const PrivacyPolicyPage: React.FC = () => {
         <p className="mb-2">
           When we have no ongoing legitimate business need to process your personal information, we will either delete or anonymize such information, or, if this is not possible (for example, because your personal information has been stored in backup archives), then we will securely store your personal information and isolate it from any further processing until deletion is possible.
         </p>
+        <p className="mb-2">We may delete user accounts and associated personal data after 12 months of inactivity without prior notification. Data is also permanently deleted when you close your account.</p>
 
         <h2 id="how-information-safe" className="text-2xl font-semibold mt-6 mb-3">8. HOW DO WE KEEP YOUR INFORMATION SAFE?</h2>
         <p className="mb-2">
@@ -200,6 +197,7 @@ const PrivacyPolicyPage: React.FC = () => {
         <p className="mb-2">
           You can make such a request by contacting us by using the contact details provided in the section "HOW CAN YOU CONTACT US ABOUT THIS NOTICE?" below. We will consider and act upon any request in accordance with applicable data protection laws.
         </p>
+        <p className="mb-2">To exercise these rights, you can visit your account settings at <a href="https://reactlyve.com/profile" className="text-blue-600 hover:underline">https://reactlyve.com/profile</a> or contact us at <a href="mailto:support@reactlyve.com" className="text-blue-600 hover:underline">support@reactlyve.com</a>.</p>
         <p className="mb-2">
           If you are located in the EEA or UK and you believe we are unlawfully processing your personal information, you also have the right to complain to your Member State data protection authority or UK data protection authority.
         </p>
@@ -215,7 +213,8 @@ const PrivacyPolicyPage: React.FC = () => {
           California law requires us to let you know how we respond to web browser DNT signals. Because there currently is not an industry or legal standard for recognizing or honoring DNT signals, we do not respond to them at this time.
         </p>
 
-        <h2 id="us-residents-privacy-rights" className="text-2xl font-semibold mt-6 mb-3">12. DO UNITED STATES RESIDENTS HAVE SPECIFIC PRIVACY RIGHTS?</h2>
+        <h2 id="us-residents-privacy-rights" className="text-2xl font-semibold mt-6 mb-3">12. DO UNITED STATES RESIDENTS HAVE SPECIFIC PRIVACY RIGHTS? [For US Users Only]</h2>
+        <p className="mb-2">This section applies only to users residing in the United States.</p>
         <p className="mb-2">
           In short: If you are a resident of California, Colorado, Connecticut, Delaware, Florida, Indiana, Iowa, Kentucky, Maryland, Minnesota, Montana, Nebraska, New Hampshire, New Jersey, Oregon, Rhode Island, Tennessee, Texas, Utah, or Virginia, you may have the right to request access to and receive details about the personal information we maintain about you and how we have processed it, correct inaccuracies, get a copy of, or delete your personal information. You may also have the right to withdraw your consent to our processing of your personal information. These rights may be limited in some circumstances by applicable law. More information is provided below.
         </p>
@@ -370,6 +369,20 @@ const PrivacyPolicyPage: React.FC = () => {
         <p className="mb-2">
           Based on the applicable laws of your country or state of residence in the US, you may have the right to request access to the personal information we collect from you, details about how we have processed it, correct inaccuracies, or delete your personal information. You may also have the right to withdraw your consent to our processing of your personal information. These rights may be limited in some circumstances by applicable law. To request to review, update, or delete your personal information, please visit: <a href="https://reactlyve.com/profile" className="text-blue-600 hover:underline">https://reactlyve.com/profile</a>.
         </p>
+
+        <h2 className="text-2xl font-semibold mt-6 mb-3">PRIVACY POLICY – Plain English FAQs</h2>
+        <h3 className="text-xl font-semibold mt-4 mb-2">Q1: What personal data do you collect?</h3>
+        <p className="mb-2">We collect your name, email, and webcam recordings (when you send a message and the recipient reacts).</p>
+        <h3 className="text-xl font-semibold mt-4 mb-2">Q2: Are webcam videos considered biometric data?</h3>
+        <p className="mb-2">No. We do not analyse or scan them to identify anyone. However, the videos may show your face, so they are still treated as personal data.</p>
+        <h3 className="text-xl font-semibold mt-4 mb-2">Q3: Who can see the webcam recordings?</h3>
+        <p className="mb-2">Only the person who sent the original message can view the reaction video.</p>
+        <h3 className="text-xl font-semibold mt-4 mb-2">Q4: Do you sell or share personal data?</h3>
+        <p className="mb-2">No. We do not sell, share, or monetise your personal data.</p>
+        <h3 className="text-xl font-semibold mt-4 mb-2">Q5: How long do you keep my data?</h3>
+        <p className="mb-2">We retain data only while your account is active. If your account is deleted, your data is deleted too. If your account is inactive for 12 months, we may delete it (no notice is given).</p>
+        <h3 className="text-xl font-semibold mt-4 mb-2">Q6: What are my rights?</h3>
+        <p className="mb-2">You can ask to see, update, delete, or download your data. Just visit your profile page or email support@reactlyve.com.</p>
       </div>
     </MainLayout>
   );

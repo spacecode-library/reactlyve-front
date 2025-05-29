@@ -28,7 +28,7 @@ const TermsPage: React.FC = () => {
           Supplemental terms and conditions or documents that may be posted on the Services from time to time are hereby expressly incorporated herein by reference. We reserve the right, in our sole discretion, to make changes or modifications to these Legal Terms from time to time. We will alert you about any changes by updating the 'Last updated' date of these Legal Terms, and you waive any right to receive specific notice of each such change. It is your responsibility to periodically review these Legal Terms to stay informed of updates. You will be subject to, and will be deemed to have been made aware of and to have accepted, the changes in any revised Legal Terms by your continued use of the Services after the date such revised Legal Terms are posted.
         </p>
         <p className="mb-2">
-          The Services are intended for users who are at least 18 years old. Persons under the age of 18 are not permitted to use or register for the Services. We recommend that you print a copy of these Legal Terms for your records.
+            The Services are intended for users who are at least 18 years old. If you are aged 13 to 17, you may only use the Services with verifiable parental or legal guardian consent.
         </p>
 
         <h2 id="table-of-contents-terms" className="text-2xl font-semibold mt-6 mb-3">TABLE OF CONTENTS</h2>
@@ -105,6 +105,9 @@ const TermsPage: React.FC = () => {
 
         <h2 id="prohibited-activities" className="text-2xl font-semibold mt-6 mb-3">5. PROHIBITED ACTIVITIES</h2>
         <p className="mb-2">
+          Misuse of the platform—such as harassment, impersonation, data scraping, spam, or uploading harmful content—is strictly prohibited.
+        </p>
+        <p className="mb-2">
           You may not access or use the Services for any purpose other than that for which we make the Services available. The Services may not be used in connection with any commercial endeavors except those that are specifically endorsed or approved by us.
         </p>
         <p className="mb-2">As a user of the Services, you agree not to:</p>
@@ -153,6 +156,9 @@ const TermsPage: React.FC = () => {
         <p className="mb-2">Your Contributions do not violate any applicable law concerning child pornography, or otherwise intended to protect the health or wellbeing of minors.</p>
         <p className="mb-2">Your Contributions do not include any offensive comments that are connected to race, national origin, gender, sexual preference, or physical handicap.</p>
         <p className="mb-2">Your Contributions do not otherwise violate, or link to material that violates, any provision of these Legal Terms, or any applicable law or regulation.</p>
+        <p className="mb-4">
+            We retain ownership over the platform but you retain full ownership of any content you contribute. By uploading Contributions, you grant us a limited, non-exclusive, royalty-free licence to host, display, and use the Contributions in connection with providing the Services and for limited promotional purposes. We will never commercially exploit your content beyond this scope.
+        </p>
         <p className="mb-2">Any use of the Services in violation of the foregoing violates these Legal Terms and may result in, among other things, termination or suspension of your rights to use the Services.</p>
 
         <h2 id="contribution-licence" className="text-2xl font-semibold mt-6 mb-3">7. CONTRIBUTION LICENSE</h2>
@@ -198,7 +204,7 @@ const TermsPage: React.FC = () => {
           These Legal Terms shall remain in full force and effect while you use the Services. WITHOUT LIMITING ANY OTHER PROVISION OF THESE LEGAL TERMS, WE RESERVE THE RIGHT TO, IN OUR SOLE DISCRETION AND WITHOUT NOTICE OR LIABILITY, DENY ACCESS TO AND USE OF THE SERVICES (INCLUDING BLOCKING CERTAIN IP ADDRESSES), TO ANY PERSON FOR ANY REASON OR FOR NO REASON, INCLUDING WITHOUT LIMITATION FOR BREACH OF ANY REPRESENTATION, WARRANTY, OR COVENANT CONTAINED IN THESE LEGAL TERMS OR OF ANY APPLICABLE LAW OR REGULATION.
         </p>
         <p className="mb-2">
-          WE MAY TERMINATE YOUR USE OR PARTICIPATION IN THE SERVICES OR DELETE YOUR ACCOUNT AND ANY CONTENT OR INFORMATION THAT YOU POSTED AT ANY TIME, WITHOUT WARNING, IN OUR SOLE DISCRETION.
+          WE MAY TERMINATE YOUR USE OR PARTICIPATION IN THE SERVICES OR DELETE YOUR ACCOUNT AND ANY CONTENT OR INFORMATION THAT YOU POSTED AT ANY TIME, WITHOUT WARNING, IN OUR SOLE DISCRETION. Accounts that have been inactive for 12 consecutive months may be permanently deleted without prior notice. Data associated with such accounts will also be deleted.
         </p>
         <p className="mb-2">
           If we terminate or suspend your account for any reason, you are prohibited from registering and creating a new account under your name, a fake or borrowed name, or the name of any third party, even if you may be acting on behalf of the third party. In addition to terminating or suspending your account, we reserve the right to take appropriate legal action, including without limitation pursuing civil, criminal, and injunctive redress.
@@ -289,7 +295,7 @@ const TermsPage: React.FC = () => {
           YOU HEREBY AGREE TO THE USE OF ELECTRONIC SIGNATURES, CONTRACTS, ORDERS, AND OTHER RECORDS, AND TO ELECTRONIC DELIVERY OF NOTICES, POLICIES, AND RECORDS OF TRANSACTIONS INITIATED OR COMPLETED BY US OR VIA THE SERVICES. You hereby waive any rights or requirements under any statutes, regulations, rules, ordinances, or other laws in any jurisdiction which require an original signature or delivery or retention of non-electronic records, or to payments or the granting of credits by any means other than electronic means.
         </p>
 
-        <h2 id="california-users-and-residents" className="text-2xl font-semibold mt-6 mb-3">21. CALIFORNIA USERS AND RESIDENTS</h2>
+        <h2 id="california-users-and-residents" className="text-2xl font-semibold mt-6 mb-3">21. CALIFORNIA USERS AND RESIDENTS [For US Users Only]</h2>
         <p className="mb-2">
           If any complaint with us is not satisfactorily resolved, you can contact the Complaint Assistance Unit of the Division of Consumer Services of the California Department of Consumer Affairs in writing at 1625 North Market Blvd., Suite N 112, Sacramento, California 95834 or by telephone at (800) 952-5210 or (916) 445-1254.
         </p>
@@ -311,6 +317,18 @@ const TermsPage: React.FC = () => {
         <p className="mb-2">
           <a href="mailto:support@reactlyve.com" className="text-blue-600 hover:underline">support@reactlyve.com</a>
         </p>
+
+        <h2 className="text-2xl font-semibold mt-6 mb-3">TERMS OF SERVICE – Plain English FAQs</h2>
+        <h3 className="text-xl font-semibold mt-4 mb-2">Q1: What is Reactlyve?</h3>
+        <p className="mb-2">Reactlyve is a browser-based app where you can send video, text, or image messages—and capture the recipient's webcam reaction (with their permission).</p>
+        <h3 className="text-xl font-semibold mt-4 mb-2">Q2: Who can use it?</h3>
+        <p className="mb-2">Only users aged 18 or over, or 13+ with parental consent, can register and use Reactlyve.</p>
+        <h3 className="text-xl font-semibold mt-4 mb-2">Q3: What can’t I do on the platform?</h3>
+        <p className="mb-2">No illegal activity, harassment, impersonation, or data scraping. Don’t misuse our services or upload harmful or offensive content.</p>
+        <h3 className="text-xl font-semibold mt-4 mb-2">Q4: Who owns the content I upload?</h3>
+        <p className="mb-2">You do. But by uploading it, you give us permission to display, store, and share it as part of the service.</p>
+        <h3 className="text-xl font-semibold mt-4 mb-2">Q5: What happens if I break the rules?</h3>
+        <p className="mb-2">We may suspend or close your account without notice and may take legal action if necessary.</p>
       </div>
     </MainLayout>
   );
