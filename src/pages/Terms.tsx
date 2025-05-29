@@ -55,6 +55,7 @@ const TermsPage: React.FC = () => {
         <p className="mb-1"><a href="#california-users-and-residents" className="text-blue-600 hover:underline">CALIFORNIA USERS AND RESIDENTS</a></p>
         <p className="mb-1"><a href="#miscellaneous" className="text-blue-600 hover:underline">MISCELLANEOUS</a></p>
         <p className="mb-1"><a href="#contact-us-terms" className="text-blue-600 hover:underline">CONTACT US</a></p>
+        <p className="mb-1"><a href="#terms-faqs" className="text-blue-600 hover:underline">TERMS OF SERVICE – FAQs</a></p>
 
         <h2 id="our-services" className="text-2xl font-semibold mt-6 mb-3">1. OUR SERVICES</h2>
         <p className="mb-2">
@@ -318,7 +319,7 @@ const TermsPage: React.FC = () => {
           <a href="mailto:support@reactlyve.com" className="text-blue-600 hover:underline">support@reactlyve.com</a>
         </p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">TERMS OF SERVICE – Plain English FAQs</h2>
+        <h2 id="terms-faqs" className="text-2xl font-semibold mt-6 mb-3">TERMS OF SERVICE – FAQs</h2>
         <h3 className="text-xl font-semibold mt-4 mb-2">Q1: What is Reactlyve?</h3>
         <p className="mb-2">Reactlyve is a browser-based app where you can send video, text, or image messages—and capture the recipient's webcam reaction (with their permission).</p>
         <h3 className="text-xl font-semibold mt-4 mb-2">Q2: Who can use it?</h3>

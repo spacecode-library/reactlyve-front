@@ -70,6 +70,7 @@ const PrivacyPolicyPage: React.FC = () => {
         <p className="mb-1"><a href="#updates-to-notice" className="text-blue-600 hover:underline">DO WE MAKE UPDATES TO THIS NOTICE?</a></p>
         <p className="mb-1"><a href="#contact-us-privacy" className="text-blue-600 hover:underline">HOW CAN YOU CONTACT US ABOUT THIS NOTICE?</a></p>
         <p className="mb-1"><a href="#review-update-delete-data" className="text-blue-600 hover:underline">HOW CAN YOU REVIEW, UPDATE, OR DELETE THE DATA WE COLLECT FROM YOU?</a></p>
+        <p className="mb-1"><a href="#privacy-faqs" className="text-blue-600 hover:underline">PRIVACY POLICY – FAQs</a></p>
 
         <h2 id="what-information-do-we-collect" className="text-2xl font-semibold mt-6 mb-3">1. WHAT INFORMATION DO WE COLLECT?</h2>
         <h3 className="text-xl font-semibold mt-4 mb-2">Personal information you disclose to us</h3>
@@ -370,7 +371,7 @@ const PrivacyPolicyPage: React.FC = () => {
           Based on the applicable laws of your country or state of residence in the US, you may have the right to request access to the personal information we collect from you, details about how we have processed it, correct inaccuracies, or delete your personal information. You may also have the right to withdraw your consent to our processing of your personal information. These rights may be limited in some circumstances by applicable law. To request to review, update, or delete your personal information, please visit: <a href="https://reactlyve.com/profile" className="text-blue-600 hover:underline">https://reactlyve.com/profile</a>.
         </p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">PRIVACY POLICY – Plain English FAQs</h2>
+        <h2 id="privacy-faqs" className="text-2xl font-semibold mt-6 mb-3">PRIVACY POLICY – FAQs</h2>
         <h3 className="text-xl font-semibold mt-4 mb-2">Q1: What personal data do you collect?</h3>
         <p className="mb-2">We collect your name, email, and webcam recordings (when you send a message and the recipient reacts).</p>
         <h3 className="text-xl font-semibold mt-4 mb-2">Q2: Are webcam videos considered biometric data?</h3>
