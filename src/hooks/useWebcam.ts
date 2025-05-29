@@ -9,7 +9,7 @@ interface UseWebcamOptions {
 
 interface UseWebcamReturn {
   stream: MediaStream | null;
-  videoRef: React.RefObject<HTMLVideoElement | null>; // ✅ FIXED: Allow null
+  videoRef: React.RefObject<HTMLVideoElement>;
   isLoading: boolean;
   error: Error | null;
   startWebcam: () => Promise<void>;
@@ -29,7 +29,7 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
   const [permissionState, setPermissionState] = useState<PermissionState | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null); // ✅ FIXED: null allowed
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const checkPermission = useCallback(async () => {
     try {
