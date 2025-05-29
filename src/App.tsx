@@ -1,66 +1,66 @@
+import React, { Suspense } from 'react'; // Import React and Suspense
 import { Route, Routes } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import ScrollToTop from './components/common/ScrollToTop'; // Import ScrollToTop
+import ScrollToTop from './components/common/ScrollToTop';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import CookieBanner from './components/common/CookieBanner'; // New import
+import CookieBanner from './components/common/CookieBanner';
+import LoadingSpinner from './components/common/LoadingSpinner'; // Import LoadingSpinner
 
-// Page components
-import Home from './pages/Home';
-import Login from './pages/Login';
-import AuthCallback from './pages/AuthCallback';
-import Create from './pages/Create';
-import Dashboard from './pages/Dashboard';
-import View from './pages/View';
-import About from './pages/About';
-import NotFound from './pages/NotFound';
-import Message from './pages/Message';
-import Reaction from './pages/Reaction';
-import ProfilePage from './pages/Profile'; // Import the actual ProfilePage
-import AdminPortalPage from './pages/AdminPortal'; // Import AdminPortalPage
-import TermsPage from './pages/Terms'; // Import TermsPage
-import PrivacyPolicyPage from './pages/Privacy'; // Import PrivacyPolicyPage
-import CookiePolicyPage from './pages/CookiePolicy'; // Import CookiePolicyPage
-
-// Placeholder Admin component removed
-
-// Placeholder for Profile has been removed, ProfilePage is imported instead.
+// Page components using React.lazy
+const Home = React.lazy(() => import('./pages/Home'));
+const Login = React.lazy(() => import('./pages/Login'));
+const AuthCallback = React.lazy(() => import('./pages/AuthCallback'));
+const Create = React.lazy(() => import('./pages/Create'));
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const View = React.lazy(() => import('./pages/View'));
+const About = React.lazy(() => import('./pages/About'));
+const NotFound = React.lazy(() => import('./pages/NotFound'));
+const Message = React.lazy(() => import('./pages/Message'));
+const Reaction = React.lazy(() => import('./pages/Reaction'));
+const ProfilePage = React.lazy(() => import('./pages/Profile'));
+const AdminPortalPage = React.lazy(() => import('./pages/AdminPortal'));
+const TermsPage = React.lazy(() => import('./pages/Terms'));
+const PrivacyPolicyPage = React.lazy(() => import('./pages/Privacy'));
+const CookiePolicyPage = React.lazy(() => import('./pages/CookiePolicy'));
 
 function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <ScrollToTop /> {/* Add ScrollToTop here */}
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/auth/success" element={<AuthCallback />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/view/:id" element={<View />} />
-          <Route path="/m/:id" element={<View />} />
-          <Route path="/terms" element={<TermsPage />} /> {/* Add TermsPage route */}
-          <Route path="/privacy" element={<PrivacyPolicyPage />} /> {/* Add PrivacyPolicyPage route */}
-          <Route path="/cookie-policy" element={<CookiePolicyPage />} /> {/* Add CookiePolicyPage route */}
-          
-          {/* Protected routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/create" element={<Create />} />
-            <Route path="/profile" element={<ProfilePage />} /> {/* Use ProfilePage here */}
-            <Route path="/message/:id" element={<Message/>} />
-            <Route path="/reaction/:reactionId" element={<Reaction />} />
-          </Route>
-          
-          {/* Admin routes */}
-          <Route element={<ProtectedRoute requireAdmin={true} />}>
-            <Route path="/admin" element={<AdminPortalPage />} /> {/* Use AdminPortalPage here */}
-          </Route>
-          
-          {/* 404 route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <ScrollToTop />
+        <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><LoadingSpinner size="lg" /></div>}>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/auth/success" element={<AuthCallback />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/view/:id" element={<View />} />
+            <Route path="/m/:id" element={<View />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+            
+            {/* Protected routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/create" element={<Create />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/message/:id" element={<Message/>} />
+              <Route path="/reaction/:reactionId" element={<Reaction />} />
+            </Route>
+            
+            {/* Admin routes */}
+            <Route element={<ProtectedRoute requireAdmin={true} />}>
+              <Route path="/admin" element={<AdminPortalPage />} />
+            </Route>
+            
+            {/* 404 route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
         
         <Toaster 
           position="top-right"
