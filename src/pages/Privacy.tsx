@@ -84,8 +84,9 @@ const PrivacyPolicyPage: React.FC = () => {
         <p className="mb-1">- Name and email address</p>
         <p className="mb-1">- Account activity (e.g. messages sent)</p>
         <p className="mb-1">- Webcam recordings of recipients' reactions, which are only accessible by the sender</p>
+        <p className="mb-2">We do not collect personal information through third-party cookies for advertising or profiling purposes. Only an essential cookie is used, as described in our Cookie Policy.</p>
         <h3 className="text-xl font-semibold mt-4 mb-2">Video Data Classification</h3>
-        <p className="mb-2">Webcam reaction recordings are treated as personal data because they may contain identifiable images of users. However, we do not process these videos for biometric recognition, profiling, or automated analysis. They are not used to identify individuals and are only accessible by the sender of the original message.</p>
+        <p className="mb-2">Webcam reaction recordings are treated as personal data because they may contain identifiable images of users. However, we do not process these videos for biometric recognition, profiling, or automated analysis. They are never used for biometric recognition, emotional profiling, or any automated analysis that could identify or classify individuals.</p>
         <p className="mb-2">
           <strong>Sensitive Information:</strong> We do not process special category data as defined under GDPR (e.g. racial or biometric data for the purpose of uniquely identifying a person). However, webcam recordings may contain personally identifiable visual information and are treated as personal data. These are not analysed, scanned, or used for biometric identification and are accessible only to the original sender.
         </p>
@@ -118,7 +119,7 @@ const PrivacyPolicyPage: React.FC = () => {
         <p className="mb-2"><strong>Consent:</strong> When you voluntarily provide information or agree to webcam recording. You can withdraw your consent at any time.</p>
         <p className="mb-2"><strong>Contract:</strong> To provide and operate the Services, fulfilling our contractual obligations to you.</p>
         <p className="mb-2"><strong>Legal obligations:</strong> To comply with applicable laws and legal requirements.</p>
-        <p className="mb-2"><strong>Legitimate interests:</strong> To maintain platform security, monitor misuse, and enhance user experience. We may process your information when we believe it is necessary to fulfill our legitimate business interests.</p>
+        <p className="mb-2"><strong>Legitimate interests:</strong> To maintain platform security, monitor misuse, and enhance user experience. We may process your information when we believe it is necessary to fulfill our legitimate business interests. For example, to detect unusual login patterns or potential misuse of the messaging features.</p>
 
         <h2 id="when-and-with-whom-sharing" className="text-2xl font-semibold mt-6 mb-3">4. WHEN AND WITH WHOM DO WE SHARE YOUR PERSONAL INFORMATION?</h2>
         <p className="mb-2">
@@ -137,7 +138,7 @@ const PrivacyPolicyPage: React.FC = () => {
           We may use cookies and similar tracking technologies (like web beacons and pixels) to gather information when you interact with our Services. Some online tracking technologies help us maintain the security of our Services and your account, prevent crashes, fix bugs, save your preferences, and assist with basic site functions.
         </p>
         <p className="mb-2">
-          We also permit third parties and service providers to use online tracking technologies on our Services for analytics and advertising, including to help manage and display advertisements, to tailor advertisements to your interests, or to send abandoned shopping cart reminders (depending on your communication preferences). The third parties and service providers use their technology to provide advertising about products and services tailored to your interests, which may appear either on our Services or on other websites.
+          We also permit third parties and service providers to use online tracking technologies on our Services for analytics and advertising, including to help manage and display advertisements, to tailor advertisements to your interests. The third parties and service providers use their technology to provide advertising about products and services tailored to your interests, which may appear either on our Services or on other websites.
         </p>
         <p className="mb-2">
           To the extent these online tracking technologies are deemed to be a 'sale'/'sharing' (which includes targeted advertising, as defined under the applicable laws) under applicable US state laws, you can opt out of these online tracking technologies by submitting a request as described below under section "DO UNITED STATES RESIDENTS HAVE SPECIFIC PRIVACY RIGHTS?"
@@ -174,7 +175,7 @@ const PrivacyPolicyPage: React.FC = () => {
           In short: We aim to protect your personal information through a system of organizational and technical security measures.
         </p>
         <p className="mb-2">
-          We have implemented appropriate and reasonable technical and organizational security measures designed to protect the security of any personal information we process. However, despite our safeguards and efforts to secure your information, no electronic transmission over the internet or information storage technology can be guaranteed to be 100% secure, so we cannot promise or guarantee that hackers, cybercriminals, or other unauthorized third parties will not be able to defeat our security and improperly collect, access, steal, or modify your information.
+          We implement robust technical and organisational security measures to protect your personal information. However, despite our safeguards and efforts to secure your information, no electronic transmission over the internet or information storage technology can be guaranteed to be 100% secure, so we cannot promise or guarantee that hackers, cybercriminals, or other unauthorized third parties will not be able to defeat our security and improperly collect, access, steal, or modify your information.
         </p>
         <p className="mb-2">
           Although we will do our best to protect your personal information, transmission of personal information to and from our Services is at your own risk. You should only access the Services within a secure environment.
@@ -185,7 +186,7 @@ const PrivacyPolicyPage: React.FC = () => {
           In short: We do not knowingly collect data from or market to children under 18 years of age or the equivalent age as specified by law in your jurisdiction.
         </p>
         <p className="mb-2">
-          We do not knowingly collect, solicit data from, or market to children under 18 years of age or the equivalent age as specified by law in your jurisdiction, nor do we knowingly sell such personal information. By using the Services, you represent that you are at least 18 or the equivalent age as specified by law in your jurisdiction or that you are the parent or guardian of such a minor and consent to such minor dependent’s use of the Services. If we learn that personal information from users less than 18 years of age or the equivalent age as specified by law in your jurisdiction has been collected, we will deactivate the account and take reasonable measures to promptly delete such data from our records. If you become aware of any data we may have collected from children under age 18 or the equivalent age as specified by law in your jurisdiction, please contact us at <a href="mailto:support@reactlyve.com" className="text-blue-600 hover:underline">support@reactlyve.com</a>.
+          We do not knowingly collect, solicit data from, or market to children under 18 years of age or the equivalent age as specified by law in your jurisdiction, nor do we knowingly sell such personal information. By using the Services, you represent that you are at least 18 or at least 13 years old with verifiable parental or legal guardian consent or the equivalent age as specified by law in your jurisdiction or that you are the parent or guardian of such a minor and consent to such minor dependent’s use of the Services. If we learn that personal information from users less than 18 years of age or the equivalent age as specified by law in your jurisdiction has been collected, we will deactivate the account and take reasonable measures to promptly delete such data from our records. If you become aware of any data we may have collected from children under age 18 or the equivalent age as specified by law in your jurisdiction, please contact us at <a href="mailto:support@reactlyve.com" className="text-blue-600 hover:underline">support@reactlyve.com</a>.
         </p>
 
         <h2 id="privacy-rights" className="text-2xl font-semibold mt-6 mb-3">10. WHAT ARE YOUR PRIVACY RIGHTS?</h2>
@@ -211,7 +212,7 @@ const PrivacyPolicyPage: React.FC = () => {
           Most web browsers and some mobile operating systems and mobile applications include a Do-Not-Track ('DNT') feature or setting you can activate to signal your privacy preference not to have data about your online browsing activities monitored and collected. At this stage, no uniform technology standard for recognizing and implementing DNT signals has been finalized. As such, we do not currently respond to DNT browser signals or any other mechanism that automatically communicates your choice not to be tracked online. If a standard for online tracking is adopted that we must follow in the future, we will inform you about that practice in a revised version of this Privacy Notice.
         </p>
         <p className="mb-2">
-          California law requires us to let you know how we respond to web browser DNT signals. Because there currently is not an industry or legal standard for recognizing or honoring DNT signals, we do not respond to them at this time.
+          California law requires us to let you know how we respond to web browser DNT signals. Because there currently is not an industry or legal standard for recognizing or honoring DNT signals, we do not respond to them at this time. As most browsers lack consistent DNT enforcement, our systems do not currently respond to these signals. If this changes, we will update this notice accordingly.
         </p>
 
         <h2 id="us-residents-privacy-rights" className="text-2xl font-semibold mt-6 mb-3">12. DO UNITED STATES RESIDENTS HAVE SPECIFIC PRIVACY RIGHTS? [For US Users Only]</h2>
@@ -371,6 +372,7 @@ const PrivacyPolicyPage: React.FC = () => {
           Based on the applicable laws of your country or state of residence in the US, you may have the right to request access to the personal information we collect from you, details about how we have processed it, correct inaccuracies, or delete your personal information. You may also have the right to withdraw your consent to our processing of your personal information. These rights may be limited in some circumstances by applicable law. To request to review, update, or delete your personal information, please visit: <a href="https://reactlyve.com/profile" className="text-blue-600 hover:underline">https://reactlyve.com/profile</a>.
         </p>
 
+        <p className="mb-2">📘 Quick Summary – FAQs (Informative Only)<br />These FAQs summarise key points in plain English but do not replace or override the full Privacy Policy.</p>
         <h2 id="privacy-faqs" className="text-2xl font-semibold mt-6 mb-3">PRIVACY POLICY – FAQs</h2>
         <h3 className="text-xl font-semibold mt-4 mb-2">Q1: What personal data do you collect?</h3>
         <p className="mb-2">We collect your name, email, and webcam recordings (when you send a message and the recipient reacts).</p>

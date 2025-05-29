@@ -164,7 +164,7 @@ const TermsPage: React.FC = () => {
 
         <h2 id="contribution-licence" className="text-2xl font-semibold mt-6 mb-3">7. CONTRIBUTION LICENSE</h2>
         <p className="mb-2">
-          By posting your Contributions to any part of the Services, you automatically grant, and you represent and warrant that you have the right to grant, to us an unrestricted, unlimited, irrevocable, perpetual, non-exclusive, transferable, royalty-free, fully-paid, worldwide right, and license to host, use, copy, reproduce, disclose, sell, resell, publish, broadcast, retitle, archive, store, cache, publicly perform, publicly display, reformat, translate, transmit, excerpt (in whole or in part), and distribute such Contributions (including, without limitation, your image and voice) for any purpose, commercial, advertising, or otherwise, and to prepare derivative works of, or incorporate into other works, such Contributions, and grant and authorize sublicenses of the foregoing. The use and distribution may occur in any media formats and through any media channels.
+          By posting your Contributions to any part of the Services, you automatically grant, and you represent and warrant that you have the right to grant, to us an unrestricted, unlimited, irrevocable, perpetual, non-exclusive, transferable, royalty-free, fully-paid, worldwide right, and license to host, use, copy, reproduce, disclose, sell, resell, publish, broadcast, retitle, archive, store, cache, publicly perform, publicly display, reformat, translate, transmit, excerpt (in whole or in part), and distribute such Contributions (including, without limitation, your image and voice) for any purpose consistent with the scope outlined in Section 6, such as operating, promoting, and improving the Services, and to prepare derivative works of, or incorporate into other works, such Contributions, and grant and authorize sublicenses of the foregoing. The use and distribution may occur in any media formats and through any media channels.
         </p>
         <p className="mb-2">
           This license will apply to any form, media, or technology now known or hereafter developed, and includes our use of your name, company name, and franchise name, as applicable, and any of the trademarks, service marks, trade names, logos, and personal and commercial images you provide. You waive all moral rights in your Contributions, and you warrant that moral rights have not otherwise been asserted in your Contributions.
@@ -297,6 +297,7 @@ const TermsPage: React.FC = () => {
         </p>
 
         <h2 id="california-users-and-residents" className="text-2xl font-semibold mt-6 mb-3">21. CALIFORNIA USERS AND RESIDENTS [For US Users Only]</h2>
+        <p className="mb-2">This section applies only to users residing in the United States.</p>
         <p className="mb-2">
           If any complaint with us is not satisfactorily resolved, you can contact the Complaint Assistance Unit of the Division of Consumer Services of the California Department of Consumer Affairs in writing at 1625 North Market Blvd., Suite N 112, Sacramento, California 95834 or by telephone at (800) 952-5210 or (916) 445-1254.
         </p>
@@ -319,6 +320,7 @@ const TermsPage: React.FC = () => {
           <a href="mailto:support@reactlyve.com" className="text-blue-600 hover:underline">support@reactlyve.com</a>
         </p>
 
+        <p className="mb-2">📘 Quick Summary – FAQs (Informative Only)<br />These FAQs summarise key points in plain English but do not replace or override the full Terms of Service.</p>
         <h2 id="terms-faqs" className="text-2xl font-semibold mt-6 mb-3">TERMS OF SERVICE – FAQs</h2>
         <h3 className="text-xl font-semibold mt-4 mb-2">Q1: What is Reactlyve?</h3>
         <p className="mb-2">Reactlyve is a browser-based app where you can send video, text, or image messages—and capture the recipient's webcam reaction (with their permission).</p>

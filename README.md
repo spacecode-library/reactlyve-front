@@ -2,7 +2,7 @@
 
 ## Overview
 
-Reactlyve is a modern web application that allows users to create and share surprise messages, then record recipients' authentic reactions via webcam. Built with React, TypeScript, and Tailwind CSS, it offers a seamless user experience with a focus on capturing genuine moments.
+Reactlyve is a modern web application that allows users to create and share surprise messages (video, image, or text) and, **with recipient consent**, record their authentic reactions via webcam. Built with React, TypeScript, and Tailwind CSS, it offers a seamless user experience with a focus on capturing genuine moments and respecting user privacy.
 
 ## Features
 
@@ -12,6 +12,7 @@ Reactlyve is a modern web application that allows users to create and share surp
 - **Dashboard** for managing messages and viewing reactions
 - **Responsive design** for desktop and mobile devices
 - **Dark/light mode** support with persistent theme preference
+- Comprehensive and up-to-date legal documentation (Terms of Service, Privacy Policy, Cookie Policy) ensuring transparency and user rights.
 
 ## Tech Stack
 
