@@ -14,40 +14,44 @@ const CookiePolicyPage: React.FC = () => {
           In some cases, we may use cookies to collect personal information, or that becomes personal information if we combine it with other information.
         </p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">What are cookies?</h2>
+        <h2 id="table-of-contents-cookie" className="text-2xl font-semibold mt-6 mb-3">TABLE OF CONTENTS</h2>
+        <p className="mb-1"><a href="#what-are-cookies" className="text-blue-600 hover:underline">WHAT ARE COOKIES?</a></p>
+        <p className="mb-1"><a href="#why-do-we-use-cookies" className="text-blue-600 hover:underline">WHY DO WE USE COOKIES?</a></p>
+        <p className="mb-1"><a href="#how-can-i-control-cookies" className="text-blue-600 hover:underline">HOW CAN I CONTROL COOKIES?</a></p>
+        <p className="mb-1"><a href="#how-can-i-control-cookies-on-my-browser" className="text-blue-600 hover:underline">HOW CAN I CONTROL COOKIES ON MY BROWSER?</a></p>
+        <p className="mb-1"><a href="#how-often-will-you-update-this-cookie-policy" className="text-blue-600 hover:underline">HOW OFTEN WILL YOU UPDATE THIS COOKIE POLICY?</a></p>
+        <p className="mb-1"><a href="#where-can-i-get-further-information" className="text-blue-600 hover:underline">WHERE CAN I GET FURTHER INFORMATION?</a></p>
+        <p className="mb-1"><a href="#cookie-faqs" className="text-blue-600 hover:underline">COOKIE POLICY – FAQs</a></p>
+
+        <h2 id="what-are-cookies" className="text-2xl font-semibold mt-6 mb-3">What are cookies?</h2>
         <p className="mb-2">
           Cookies are small data files that are placed on your computer or mobile device when you visit a website. Cookies are widely used by website owners in order to make their websites work, or to work more efficiently, as well as to provide reporting information.
         </p>
+        <p className="mb-2">We do not use cookies for marketing, tracking, or analytics purposes. Only a single, essential cookie is used to manage your visual display settings (e.g. dark/light theme).</p>
         <p className="mb-2">
-          Cookies set by the website owner (in this case, Reactlyve) are called "first-party cookies." Cookies set by parties other than the website owner are called "third-party cookies." Third-party cookies enable third-party features or functionality to be provided on or through the website (e.g., advertising, interactive content, and analytics). The parties that set these third-party cookies can recognize your computer both when it visits the website in question and also when it visits certain other websites.
+          Cookies set by the website owner (in this case, Reactlyve) are called "first-party cookies." We only use a first-party cookie for essential site functionality.
+        </p>
+        <h3 className="text-xl font-semibold mt-4 mb-2">Third-Party Cookies</h3>
+        <p className="mb-2">We do not use any third-party cookies on our platform. This means no third-party services can track your behaviour across websites or serve targeted content via Reactlyve.</p>
+
+        <h2 id="why-do-we-use-cookies" className="text-2xl font-semibold mt-6 mb-3">Why do we use cookies?</h2>
+        <p className="mb-2">We only use a single, essential first-party cookie called “theme” to store your interface display preferences. This helps ensure a consistent experience as you navigate our platform.</p>
+        <h3 className="text-xl font-semibold mt-4 mb-2">Tracking & Analytics</h3>
+        <p className="mb-2">We do not use any cookies or similar technologies for advertising, analytics, profiling, or behavioural tracking.</p>
+        <p className="mb-2">No profiling, session recording, or behavioural monitoring occurs on our platform. Your use of Reactlyve remains private and isolated to your own experience.</p>
+
+        <h2 id="how-can-i-control-cookies" className="text-2xl font-semibold mt-6 mb-3">How can I control cookies?</h2>
+        <p className="mb-2">
+          You have the right to decide whether to accept or reject cookies. 
+        </p>
+        <p className="mb-2">Because we only use an essential cookie, consent is not required under the UK Privacy and Electronic Communications Regulations (PECR) or EU cookie laws. You will not be asked to accept or reject this cookie.</p>
+        <p className="mb-2">This essential cookie is strictly necessary to provide a core feature of the website. It does not require opt-in consent under PECR or GDPR regulations, as it does not track users.</p>
+        <p className="mb-2">
+          You may also set or amend your web browser controls to accept or refuse cookies.
         </p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">Why do we use cookies?</h2>
-        <p className="mb-2">
-          We use first- and third-party cookies for several reasons. Some cookies are required for technical reasons in order for our Website to operate, and we refer to these as "essential" or "strictly necessary" cookies. Other cookies also enable us to track and target the interests of our users to enhance the experience on our Online Properties. Third parties serve cookies through our Website for advertising, analytics, and other purposes. This is described in more detail below.
-        </p>
-
-        <h2 className="text-2xl font-semibold mt-6 mb-3">How can I control cookies?</h2>
-        <p className="mb-2">
-          You have the right to decide whether to accept or reject cookies. You can exercise your cookie rights by setting your preferences in the Cookie Consent Manager. The Cookie Consent Manager allows you to select which categories of cookies you accept or reject. Essential cookies cannot be rejected as they are strictly necessary to provide you with services.
-        </p>
-        <p className="mb-2">
-          The Cookie Consent Manager can be found in the notification banner and on our Website. If you choose to reject cookies, you may still use our Website, though your access to some functionality and areas of our Website may be restricted. You may also set or amend your web browser controls to accept or refuse cookies.
-        </p>
-        <p className="mb-2">
-          The specific types of first- and third-party cookies served through our Website and the purposes they perform are described in the table below (please note that the specific cookies served may vary depending on the specific Online Properties you visit):
-        </p>
-
-        <h3 className="text-xl font-semibold mt-4 mb-2">Unclassified cookies:</h3>
-        <p className="mb-2">
-          These are cookies that have not yet been categorized. We are in the process of classifying these cookies with the help of their providers.
-        </p>
-        <p className="mb-1"><strong>Name:</strong> theme</p>
-        <p className="mb-1"><strong>Provider:</strong> reactlyve.com</p>
-        <p className="mb-1"><strong>Type:</strong> html_local_storage</p>
-        <p className="mb-1"><strong>Expires in:</strong> persistent</p>
-
-        <h3 className="text-xl font-semibold mt-4 mb-2">How can I control cookies on my browser?</h3>
+        <h2 id="how-can-i-control-cookies-on-my-browser" className="text-2xl font-semibold mt-6 mb-3">How can I control cookies on my browser?</h2>
+        <p className="mb-2">You may manage or delete the theme cookie through your browser settings. If you disable this cookie, your display preferences (e.g. dark/light mode) may reset on each visit.</p>
         <p className="mb-2">
           As the means by which you can refuse cookies through your web browser controls vary from browser to browser, you should visit your browser's help menu for more information. The following is information about how to manage cookies on the most popular browsers:
         </p>
@@ -57,46 +61,26 @@ const CookiePolicyPage: React.FC = () => {
         <p className="mb-1"><a href="https://support.apple.com/guide/safari/manage-cookies-and-website-data-sfri11471/mac" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Safari</a></p>
         <p className="mb-1"><a href="https://support.microsoft.com/en-us/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Edge</a></p>
         <p className="mb-1"><a href="https://help.opera.com/en/latest/web-preferences/" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Opera</a></p>
-        <p className="mb-2">
-          In addition, most advertising networks offer you a way to opt out of targeted advertising. If you would like to find out more information, please visit:
-        </p>
-        <p className="mb-1"><a href="https://optout.aboutads.info/?c=2&lang=EN" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Digital Advertising Alliance</a></p>
-        <p className="mb-1"><a href="https://youradchoices.ca/" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Digital Advertising Alliance of Canada</a></p>
-        <p className="mb-1"><a href="https://www.youronlinechoices.com/" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">European Interactive Digital Advertising Alliance</a></p>
+        <p className="mb-2 mt-2">Note: Disabling the theme cookie will not affect your access to any part of the site, but your display preference (e.g. dark mode) will not be remembered between sessions.</p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">What about other tracking technologies, like web beacons?</h2>
-        <p className="mb-2">
-          Cookies are not the only way to recognize or track visitors to a website. We may use other, similar technologies from time to time, like web beacons (sometimes called "tracking pixels" or "clear gifs"). These are tiny graphics files that contain a unique identifier that enables us to recognize when someone has visited our Website or opened an email including them. This allows us, for example, to monitor the traffic patterns of users from one page within a website to another, to deliver or communicate with cookies, to understand whether you have come to the website from an online advertisement displayed on a third-party website, to improve site performance, and to measure the success of email marketing campaigns.
-        </p>
-        <p className="mb-2">
-          In many instances, these technologies are reliant on cookies to function properly, and so declining cookies will impair their functioning.
-        </p>
+        <h2 id="how-often-will-you-update-this-cookie-policy" className="text-2xl font-semibold mt-6 mb-3">How often will you update this Cookie Policy?</h2>
+        <p className="mb-2">We may update this Cookie Policy periodically to reflect changes in our cookie practices or legal obligations. Please check this page from time to time for updates. Any changes that materially affect your rights or the purpose of the cookie will be clearly communicated via our website.</p>
 
-        <h2 className="text-2xl font-semibold mt-6 mb-3">Do you use Flash cookies or Local Shared Objects?</h2>
-        <p className="mb-2">
-          Websites may also use so-called "Flash Cookies" (also known as Local Shared Objects or "LSOs") to, among other things, collect and store information about your use of our services, fraud prevention, and for other site operations.
-        </p>
-        <p className="mb-2">
-          If you do not want Flash Cookies stored on your computer, you can adjust the settings of your Flash player to block Flash Cookies storage using the tools contained in the <a href="http://www.macromedia.com/support/documentation/en/flashplayer/help/settings_manager07.html" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Website Storage Settings Panel</a>. You can also control Flash Cookies by going to the <a href="http://www.macromedia.com/support/documentation/en/flashplayer/help/settings_manager03.html" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">Global Storage Settings Panel</a> and following the instructions (which may include instructions that explain, for example, how to delete existing Flash Cookies, how to prevent Flash LSOs from being placed on your computer without your being asked, and how to block Flash Cookies that are not being delivered by the operator of the page you are on at the time).
-        </p>
-        <p className="mb-2">
-          Please note that setting the Flash Player to restrict or limit acceptance of Flash Cookies may reduce or impede the functionality of some Flash applications, including, potentially, Flash applications used in connection with our services or online content.
-        </p>
-
-        <h2 className="text-2xl font-semibold mt-6 mb-3">Do you serve targeted advertising?</h2>
-        <p className="mb-2">
-          Third parties may serve cookies on your computer or mobile device to serve advertising through our Website. These companies may use information about your visits to this and other websites in order to provide relevant advertisements about goods and services that you may be interested in. They may also employ technology that is used to measure the effectiveness of advertisements. They can accomplish this by using cookies or web beacons to collect information about your visits to this and other sites in order to provide relevant advertisements about goods and services of potential interest to you. The information collected through this process does not enable us or them to identify your name, contact details, or other details that directly identify you unless you choose to provide these.
-        </p>
-
-        <h2 className="text-2xl font-semibold mt-6 mb-3">How often will you update this Cookie Policy?</h2>
-        <p className="mb-2">
-          We may update this Cookie Policy from time to time in order to reflect, for example, changes to the cookies we use or for other operational, legal, or regulatory reasons. Please therefore revisit this Cookie Policy regularly to stay informed about our use of cookies and related technologies. The date at the top of this Cookie Policy indicates when it was last updated.
-        </p>
-
-        <h2 className="text-2xl font-semibold mt-6 mb-3">Where can I get further information?</h2>
+        <h2 id="where-can-i-get-further-information" className="text-2xl font-semibold mt-6 mb-3">Where can I get further information?</h2>
         <p className="mb-2">
           If you have any questions about our use of cookies or other technologies, please email us at <a href="mailto:support@reactlyve.com" className="text-blue-600 hover:underline">support@reactlyve.com</a>.
         </p>
+
+        <p className="mb-2">📘 Quick Summary – FAQs (Informative Only)<br />These FAQs summarise key points in plain English but do not replace or override the full Cookie Policy.</p>
+        <h2 id="cookie-faqs" className="text-2xl font-semibold mt-6 mb-3">COOKIE POLICY – FAQs</h2>
+        <h3 className="text-xl font-semibold mt-4 mb-2">Q1: What cookies do you use?</h3>
+        <p className="mb-2">Just one. A theme preference cookie so your display settings are remembered.</p>
+        <h3 className="text-xl font-semibold mt-4 mb-2">Q2: Do you use cookies for tracking or ads?</h3>
+        <p className="mb-2">No. We don’t use analytics, advertising, or third-party cookies.</p>
+        <h3 className="text-xl font-semibold mt-4 mb-2">Q3: Can I turn off the cookie?</h3>
+        <p className="mb-2">Yes, through your browser settings. But it may reset your display preferences.</p>
+        <h3 className="text-xl font-semibold mt-4 mb-2">Q4: What about those cookie banners?</h3>
+        <p className="mb-2">Since we only use an essential cookie, we don’t require banner-based consent under UK & EU cookie laws.</p>
       </div>
     </MainLayout>
   );
