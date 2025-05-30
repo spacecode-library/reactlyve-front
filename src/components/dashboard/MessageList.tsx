@@ -143,6 +143,11 @@ const normalizedMessages = messages.map(normalizeMessage);
                 {message.reactions.length} reaction{message.reactions.length > 1 ? 's' : ''}
                 </p>
               )}
+              {typeof message.reaction_length === 'number' && message.reaction_length > 0 && (
+                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                  Reaction Time: {message.reaction_length}s
+                </p>
+              )}
               </div>
 
               {/* Container for View/Delete buttons: vertical column on mobile, row on sm+ */}
