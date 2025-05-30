@@ -276,10 +276,11 @@ const Message: React.FC = () => {
                 )}
                 {message && !loading && (
                   <Button
-                    variant="danger" // Assuming a dangerOutline or similar for destructive actions
+                    variant="outline" // Changed from dangerOutline
                     size="sm"
                     onClick={() => setShowDeleteConfirmModal(true)}
                     disabled={isDeleting}
+                    className="text-red-600 border-red-600 hover:bg-red-100 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300"
                     leftIcon={<Trash2Icon size={16} />}
                   >
                     Delete Message
