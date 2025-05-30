@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import { formatDistance, format } from 'date-fns'; // Added format
-import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon, Trash2Icon } from 'lucide-react';
+import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon, Trash2Icon, Edit3Icon } from 'lucide-react';
 import api, { messagesApi, reactionsApi } from '@/services/api';
 import { MESSAGE_ROUTES } from '@/components/constants/apiRoutes';
 import type { MessageWithReactions } from '../types/message';
 import Modal from '@/components/common/Modal';
 import Button from '@/components/common/Button';
+import Input from '@/components/common/Input'; // Added Input
 import toast from 'react-hot-toast';
 import type { Reaction } from '../types/reaction';
 import { normalizeMessage } from '../utils/normalizeKeys';
@@ -30,6 +31,12 @@ const Message: React.FC = () => {
   const [copied, setCopied] = useState({ passcode: false, link: false });
   const [showQrCode, setShowQrCode] = useState(false);
 
+  // State for Edit Message Options Modal
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [reactionLengthInput, setReactionLengthInput] = useState(10);
+  const [passcodeInput, setPasscodeInput] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
+
   useEffect(() => {
     const fetchMessageDetails = async () => {
       try {
@@ -49,12 +56,63 @@ const Message: React.FC = () => {
     if (id) fetchMessageDetails();
   }, [id]);
 
-  // Scroll to top when message details are loaded
+  // Update form fields when message data is loaded/changed
   useEffect(() => {
     if (message) {
-      window.scrollTo(0, 0);
+      setReactionLengthInput(message.reaction_length || 10);
+      setPasscodeInput(message.passcode || '');
+      window.scrollTo(0, 0); // Also handles scroll to top
     }
   }, [message]);
+
+  const handleOpenEditModal = () => {
+    if (!message) return;
+    setReactionLengthInput(message.reaction_length || 10);
+    setPasscodeInput(message.passcode || '');
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+  };
+
+  const handleUpdateMessageOptions = async () => {
+    if (!id || !message) return;
+    setIsUpdating(true);
+
+    const updateData: { reaction_length?: number; passcode?: string | null } = {};
+
+    const currentReactionLength = message.reaction_length || 10;
+    if (reactionLengthInput !== currentReactionLength) {
+      updateData.reaction_length = reactionLengthInput;
+    }
+
+    const currentPasscode = message.passcode || '';
+    if (passcodeInput !== currentPasscode) {
+      updateData.passcode = passcodeInput === '' ? null : passcodeInput;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      toast('No changes made.');
+      setIsUpdating(false);
+      // setIsEditModalOpen(false); // Optionally close modal
+      return;
+    }
+
+    try {
+      const response = await messagesApi.updateMessageDetails(id, updateData);
+      // Assuming response.data is the full updated message object
+      // It might be partial, ensure backend sends complete object or fetch again
+      setMessage(prevMessage => prevMessage ? normalizeMessage({ ...prevMessage, ...response.data }) : null);
+      toast.success('Message options updated successfully!');
+      handleCloseEditModal();
+    } catch (err) {
+      toast.error('Failed to update message options. Please try again.');
+      console.error('Error updating message options:', err);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const handleDeleteMessage = async () => {
     if (!id) return;
@@ -205,17 +263,29 @@ const Message: React.FC = () => {
                   {formattedDate} ({timeAgo})
                 </p>
               </div>
-              {message && !loading && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowDeleteConfirmModal(true)}
-                  disabled={isDeleting}
-                  leftIcon={<Trash2Icon size={16} />}
-                >
-                  Delete Message
-                </Button>
-              )}
+              <div className="flex space-x-2">
+                {message && !loading && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleOpenEditModal}
+                    leftIcon={<Edit3Icon size={16} />}
+                  >
+                    Edit Options
+                  </Button>
+                )}
+                {message && !loading && (
+                  <Button
+                    variant="dangerOutline" // Assuming a dangerOutline or similar for destructive actions
+                    size="sm"
+                    onClick={() => setShowDeleteConfirmModal(true)}
+                    disabled={isDeleting}
+                    leftIcon={<Trash2Icon size={16} />}
+                  >
+                    Delete Message
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* Message content */}
@@ -561,6 +631,69 @@ const Message: React.FC = () => {
           <p className="text-neutral-600 dark:text-neutral-300">
             Are you sure you want to delete ALL reactions for this message? This action cannot be undone.
           </p>
+        </Modal>
+
+        {/* Edit Message Options Modal */}
+        <Modal
+          isOpen={isEditModalOpen}
+          onClose={handleCloseEditModal}
+          title="Edit Message Options"
+          size="md" // Or 'sm' based on content
+          footer={
+            <>
+              <Button variant="outline" onClick={handleCloseEditModal} disabled={isUpdating}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateMessageOptions} disabled={isUpdating} isLoading={isUpdating}>
+                {isUpdating ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="reactionLength" className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                Reaction Length (10-30 seconds)
+              </label>
+              <Input
+                type="number"
+                id="reactionLength"
+                value={reactionLengthInput.toString()}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  // Clamp value, ensure it's a number, default to 10 if input is cleared/NaN
+                  setReactionLengthInput(isNaN(val) ? 10 : Math.max(10, Math.min(30, val)));
+                }}
+                min="10"
+                max="30"
+                className="w-full dark:bg-neutral-700 dark:text-white"
+                placeholder="Default: 10 seconds"
+              />
+            </div>
+            <div>
+              <label htmlFor="passcode" className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                Passcode (optional)
+              </label>
+              <div className="flex items-center space-x-2">
+                <Input
+                  type="text"
+                  id="passcode"
+                  value={passcodeInput}
+                  onChange={(e) => setPasscodeInput(e.target.value)}
+                  placeholder="Leave empty to remove passcode"
+                  className="w-full dark:bg-neutral-700 dark:text-white"
+                />
+                {passcodeInput && (
+                  <Button variant="ghost" size="sm" onClick={() => setPasscodeInput('')} className="text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300">
+                    Clear
+                  </Button>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                If set, users will need this passcode to view the message via the shareable link.
+              </p>
+            </div>
+          </div>
         </Modal>
       </div>
     </MainLayout>
