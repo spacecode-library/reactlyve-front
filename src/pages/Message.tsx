@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import { formatDistance, format } from 'date-fns'; // Added format
-import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon, Trash2Icon } from 'lucide-react';
+import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon, Trash2Icon, Edit3Icon } from 'lucide-react';
 import api, { messagesApi, reactionsApi } from '@/services/api';
 import { MESSAGE_ROUTES } from '@/components/constants/apiRoutes';
 import type { MessageWithReactions } from '../types/message';
 import Modal from '@/components/common/Modal';
 import Button from '@/components/common/Button';
+import Input from '@/components/common/Input'; // Added Input
 import toast from 'react-hot-toast';
 import type { Reaction } from '../types/reaction';
 import { normalizeMessage } from '../utils/normalizeKeys';
@@ -30,6 +31,16 @@ const Message: React.FC = () => {
   const [copied, setCopied] = useState({ passcode: false, link: false });
   const [showQrCode, setShowQrCode] = useState(false);
 
+  // State for Passcode Edit Modal
+  const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
+  const [currentPasscodeValue, setCurrentPasscodeValue] = useState('');
+  const [isUpdatingPasscode, setIsUpdatingPasscode] = useState(false);
+
+  // State for Reaction Length Edit Modal
+  const [isReactionLengthModalOpen, setIsReactionLengthModalOpen] = useState(false);
+  const [currentReactionLengthValue, setCurrentReactionLengthValue] = useState(15); // Default to 15s, will be clamped
+  const [isUpdatingReactionLength, setIsUpdatingReactionLength] = useState(false);
+
   useEffect(() => {
     const fetchMessageDetails = async () => {
       try {
@@ -49,12 +60,110 @@ const Message: React.FC = () => {
     if (id) fetchMessageDetails();
   }, [id]);
 
-  // Scroll to top when message details are loaded
+  // Scroll to top when message details are loaded (keep this effect separate)
   useEffect(() => {
     if (message) {
       window.scrollTo(0, 0);
     }
   }, [message]);
+
+  // Passcode Modal Handlers
+  const handleOpenPasscodeModal = () => {
+    setCurrentPasscodeValue(message?.passcode || '');
+    setIsPasscodeModalOpen(true);
+  };
+
+  const handleClosePasscodeModal = () => {
+    setIsPasscodeModalOpen(false);
+  };
+
+  const handleSavePasscode = async () => {
+    if (!id || !message) return;
+    setIsUpdatingPasscode(true);
+
+    const originalPasscode = message?.passcode || '';
+    const newPasscode = currentPasscodeValue || null; // Treat empty string as null for backend
+
+    if (newPasscode === originalPasscode || (newPasscode === null && originalPasscode === '')) {
+      toast('No changes made.');
+      setIsUpdatingPasscode(false);
+      return;
+    }
+
+    const updateData = { passcode: newPasscode };
+
+    try {
+      const response = await messagesApi.updateMessageDetails(id, updateData);
+      const updatedFields = normalizeMessage(response.data);
+      setMessage(prevMessage => {
+        if (!prevMessage) return null;
+        const newReactions = updatedFields.reactions !== undefined ? updatedFields.reactions : prevMessage.reactions;
+        return {
+          ...prevMessage,
+          ...updatedFields,
+          reactions: newReactions,
+        };
+      });
+      toast.success('Passcode updated successfully!');
+      handleClosePasscodeModal();
+      setTimeout(() => window.location.reload(), 1000); // Reload after 1 second
+    } catch (err) {
+      toast.error('Failed to update passcode.');
+      console.error('Error updating passcode:', err);
+    } finally {
+      setIsUpdatingPasscode(false);
+    }
+  };
+
+  // Reaction Length Modal Handlers
+  const handleOpenReactionLengthModal = () => {
+    // Ensure value is within 10-30 range, default 15
+    const currentLength = message?.reaction_length || 15;
+    setCurrentReactionLengthValue(Math.max(10, Math.min(30, currentLength)));
+    setIsReactionLengthModalOpen(true);
+  };
+
+  const handleCloseReactionLengthModal = () => {
+    setIsReactionLengthModalOpen(false);
+  };
+
+  const handleSaveReactionLength = async () => {
+    if (!id || !message) return;
+    setIsUpdatingReactionLength(true);
+
+    // Ensure value is within 10-30 range before saving
+    const validatedLength = Math.max(10, Math.min(30, currentReactionLengthValue));
+
+    if (validatedLength === message?.reaction_length) {
+      toast('No changes made.');
+      setIsUpdatingReactionLength(false);
+      return;
+    }
+
+    const updateData = { reaction_length: validatedLength };
+
+    try {
+      const response = await messagesApi.updateMessageDetails(id, updateData);
+      const updatedFields = normalizeMessage(response.data);
+      setMessage(prevMessage => {
+        if (!prevMessage) return null;
+        const newReactions = updatedFields.reactions !== undefined ? updatedFields.reactions : prevMessage.reactions;
+        return {
+          ...prevMessage,
+          ...updatedFields,
+          reactions: newReactions,
+        };
+      });
+      toast.success('Reaction length updated successfully!');
+      handleCloseReactionLengthModal();
+      setTimeout(() => window.location.reload(), 1000); // Reload after 1 second
+    } catch (err) {
+      toast.error('Failed to update reaction length.');
+      console.error('Error updating reaction length:', err);
+    } finally {
+      setIsUpdatingReactionLength(false);
+    }
+  };
 
   const handleDeleteMessage = async () => {
     if (!id) return;
@@ -205,17 +314,21 @@ const Message: React.FC = () => {
                   {formattedDate} ({timeAgo})
                 </p>
               </div>
-              {message && !loading && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowDeleteConfirmModal(true)}
-                  disabled={isDeleting}
-                  leftIcon={<Trash2Icon size={16} />}
-                >
-                  Delete Message
-                </Button>
-              )}
+              <div className="flex space-x-2">
+                {/* The old "Edit Options" button is removed by not including it here. */}
+                {message && !loading && (
+                  <Button
+                    variant="outline" // Changed from dangerOutline
+                    size="sm"
+                    onClick={() => setShowDeleteConfirmModal(true)}
+                    disabled={isDeleting}
+                    className="text-red-600 border-red-600 hover:bg-red-100 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300"
+                    leftIcon={<Trash2Icon size={16} />}
+                  >
+                    Delete Message
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* Message content */}
@@ -304,18 +417,52 @@ const Message: React.FC = () => {
                 </div>
               )}
 
-              {message.passcode && (
+              {/* Passcode Display - Always show section, indicate if not set */}
+              {message && (
                 <div>
                   <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Passcode</h2>
                   <div className="flex items-center gap-2 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
                     <p className="flex-1 text-sm font-mono text-neutral-700 dark:text-neutral-300">
-                      {message.passcode}
+                      {message.passcode ? (
+                        message.passcode
+                      ) : (
+                        <span className="italic">Not Set</span>
+                      )}
+                    </p>
+                    {/* Only show copy button if passcode is set */}
+                    {message.passcode && (
+                      <button
+                        onClick={() => copyToClipboard(message.passcode, 'passcode')}
+                        className="rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700"
+                        title="Copy Passcode"
+                      >
+                        {copied.passcode ? <ClipboardIcon size={16} /> : <CopyIcon size={16} />}
+                      </button>
+                    )}
+                    <button
+                      onClick={handleOpenPasscodeModal}
+                      className="ml-2 rounded-md p-1 text-neutral-500 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-500"
+                      title="Edit Passcode"
+                    >
+                      <Edit3Icon size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
+              {/* Reaction Length Display */}
+              {message && typeof message.reaction_length === 'number' && (
+                <div>
+                  <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Reaction Length</h2>
+                  <div className="flex items-center justify-between gap-2 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
+                    <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                      {message.reaction_length} seconds
                     </p>
                     <button
-                      onClick={() => copyToClipboard(message.passcode, 'passcode')}
-                      className="rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700"
+                      onClick={handleOpenReactionLengthModal}
+                      className="ml-2 rounded-md p-1 text-neutral-500 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-500"
+                      title="Edit Reaction Length"
                     >
-                      {copied.passcode ? <ClipboardIcon size={16} /> : <CopyIcon size={16} />}
+                      <Edit3Icon size={16} />
                     </button>
                   </div>
                 </div>
@@ -561,6 +708,83 @@ const Message: React.FC = () => {
           <p className="text-neutral-600 dark:text-neutral-300">
             Are you sure you want to delete ALL reactions for this message? This action cannot be undone.
           </p>
+        </Modal>
+
+        {/* Passcode Edit Modal */}
+        <Modal
+          isOpen={isPasscodeModalOpen}
+          onClose={handleClosePasscodeModal}
+          title="Edit Passcode"
+          size="sm"
+          footer={
+            <>
+              <Button variant="outline" onClick={handleClosePasscodeModal} disabled={isUpdatingPasscode}>
+                Cancel
+              </Button>
+              <Button onClick={handleSavePasscode} disabled={isUpdatingPasscode} isLoading={isUpdatingPasscode}>
+                {isUpdatingPasscode ? 'Saving...' : 'Save Passcode'}
+              </Button>
+            </>
+          }
+        >
+          <div>
+            <label htmlFor="passcodeEdit" className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+              Passcode
+            </label>
+            <Input
+              type="text"
+              id="passcodeEdit"
+              value={currentPasscodeValue}
+              onChange={(e) => setCurrentPasscodeValue(e.target.value)}
+              placeholder="Leave empty to remove passcode"
+              className="w-full dark:bg-neutral-700 dark:text-white"
+            />
+            <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+              If set, users will need this passcode to view the message. Leave empty to remove.
+            </p>
+          </div>
+        </Modal>
+
+        {/* Reaction Length Edit Modal */}
+        <Modal
+          isOpen={isReactionLengthModalOpen}
+          onClose={handleCloseReactionLengthModal}
+          title="Edit Reaction Length"
+          size="sm"
+          footer={
+            <>
+              <Button variant="outline" onClick={handleCloseReactionLengthModal} disabled={isUpdatingReactionLength}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveReactionLength} disabled={isUpdatingReactionLength} isLoading={isUpdatingReactionLength}>
+                {isUpdatingReactionLength ? 'Saving...' : 'Save Length'}
+              </Button>
+            </>
+          }
+        >
+          <div>
+            {/* Slider for Reaction Length */}
+            <div>
+              <label
+                htmlFor="reaction_length_modal_slider"
+                className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+              >
+                Reaction Recording Length: {currentReactionLengthValue} seconds
+              </label>
+              <input
+                id="reaction_length_modal_slider"
+                type="range"
+                min="10"
+                max="30"
+                value={currentReactionLengthValue}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-primary-600"
+                onChange={(e) => setCurrentReactionLengthValue(parseInt(e.target.value, 10))}
+              />
+            </div>
+            <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400"> {/* Adjusted margin for helper text */}
+              Adjust the maximum duration for video reactions (10-30 seconds).
+            </p>
+          </div>
         </Modal>
       </div>
     </MainLayout>

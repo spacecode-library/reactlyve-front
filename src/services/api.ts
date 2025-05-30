@@ -87,6 +87,9 @@ export const messagesApi = {
     // Backend returns camelCased message object upon success
     return publicApi.post(`/messages/${messageId}/verify-passcode`, { passcode });
   },
+  updateMessageDetails: async (messageId: string, data: { reaction_length?: number; passcode?: string | null }) => {
+    return api.put(`/messages/${messageId}`, data);
+  },
 };
 
 // ------------------ REACTIONS API ------------------
