@@ -276,7 +276,7 @@ const Message: React.FC = () => {
                 )}
                 {message && !loading && (
                   <Button
-                    variant="dangerOutline" // Assuming a dangerOutline or similar for destructive actions
+                    variant="danger" // Assuming a dangerOutline or similar for destructive actions
                     size="sm"
                     onClick={() => setShowDeleteConfirmModal(true)}
                     disabled={isDeleting}
