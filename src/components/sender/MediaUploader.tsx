@@ -11,7 +11,7 @@ interface MediaUploaderProps {
 const MediaUploader: React.FC<MediaUploaderProps> = ({
   onMediaSelect,
   onError,
-  maxSizeMB = 10, // Default max size is 10MB
+  maxSizeMB = 100, // Default max size is 100MB
 }) => {
   const [selectedMedia, setSelectedMedia] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
