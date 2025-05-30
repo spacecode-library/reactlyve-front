@@ -5,8 +5,11 @@ module.exports = {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
       tsconfig: 'tsconfig.json',
       babelConfig: false,
+      compilerOptions: {
+        module: 'commonjs', // Override module type for Jest
+      },
     }],
-    '^.+\\.(js|jsx)$': 'babel-jest', // For completeness, if any JS files need Babel
+    '^.+\\.(js|jsx)$': 'babel-jest',
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   moduleNameMapper: {
@@ -15,7 +18,5 @@ module.exports = {
     // Example for path alias if src is aliased as @
     // '^@/(.*)$': '<rootDir>/src/$1',
   },
-  // setupFilesAfterEnv: ['@testing-library/jest-dom'], // Already in package.json, but good practice
-  // No, the correct path is '@testing-library/jest-dom/extend-expect' for Jest to pick up the matchers
   setupFilesAfterEnv: ['@testing-library/jest-dom/extend-expect'],
 };

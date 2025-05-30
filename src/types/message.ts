@@ -21,6 +21,7 @@ export interface Message {
   videoUrl?: string | null;
   mediaType?: 'image' | 'video';
   duration?: number;
+  reaction_length?: number;
   isreply?: string;
   sender?: {
     name: string;

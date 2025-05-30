@@ -250,6 +250,11 @@ const messageSchema = z.object({
     .max(500, VALIDATION_ERRORS.MESSAGE_TOO_LONG),
   hasPasscode: z.boolean().default(false),
   passcode: z.string().optional(),
+  reaction_length: z
+    .number()
+    .min(10, VALIDATION_ERRORS.REACTION_LENGTH_MIN)
+    .max(30, VALIDATION_ERRORS.REACTION_LENGTH_MAX)
+    .default(15),
 });
 
 type MessageFormValues = z.infer<typeof messageSchema>;
@@ -278,12 +283,14 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
       message: '',
       hasPasscode: false,
       passcode: '',
+      reaction_length: 15,
     },
   });
   
   // Watch form values
   const hasPasscode = watch('hasPasscode');
   const passcode = watch('passcode');
+  const reactionLengthValue = watch('reaction_length');
   
   // Handle media upload
   const handleMediaSelect = useCallback((file: File | null) => {
@@ -339,6 +346,9 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
       if (data.hasPasscode && data.passcode) {
         formData.append('passcode', data.passcode);
       }
+
+      // Add reaction length
+      formData.append('reaction_length', data.reaction_length.toString());
       
       console.log('Form data being sent:', Object.fromEntries(formData.entries()));
       
@@ -469,6 +479,37 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
           onPasscodeChange={handlePasscodeChange}
           enabled={hasPasscode}
         />
+      </div>
+
+      {/* Reaction Length Slider */}
+      <div>
+        <label
+          htmlFor="reaction_length"
+          className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+        >
+          Reaction Recording Length: {reactionLengthValue} seconds
+        </label>
+        <Controller
+          name="reaction_length"
+          control={control}
+          defaultValue={15} // Controller's own default, useForm defaultValues also sets this
+          render={({ field }) => (
+            <input
+              {...field}
+              id="reaction_length"
+              type="range"
+              min="10"
+              max="30"
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-primary-600"
+              onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+            />
+          )}
+        />
+        {errors.reaction_length && (
+          <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            {errors.reaction_length.message}
+          </p>
+        )}
       </div>
       
       {/* Submit button */}

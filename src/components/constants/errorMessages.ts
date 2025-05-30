@@ -30,6 +30,8 @@ export const GENERAL_ERRORS = {
     INVALID_FILE_TYPE: 'Invalid file type. Please upload an image file (JPG, PNG, or GIF).',
     MESSAGE_TOO_LONG: 'Message is too long. Maximum length is 500 characters.',
     PASSCODE_TOO_SHORT: 'Passcode must be at least 4 characters long.',
+    REACTION_LENGTH_MIN: 'Reaction recording length must be at least 10 seconds.',
+    REACTION_LENGTH_MAX: 'Reaction recording length can be at most 30 seconds.',
   };
   
   // Message error messages

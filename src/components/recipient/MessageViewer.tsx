@@ -259,7 +259,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
             <WebcamRecorder
               onRecordingComplete={handleReactionComplete}
               onCancel={() => { /* Consider what cancel means in this new flow */ }}
-              maxDuration={15000}
+              maxDuration={(normalizedMessage.reaction_length ? normalizedMessage.reaction_length * 1000 : 15000)}
               countdownDuration={5} 
               onPermissionDenied={(err) => setPermissionError(err)}
               autoStart={false} 
