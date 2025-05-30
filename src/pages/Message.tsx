@@ -94,7 +94,14 @@ const Message: React.FC = () => {
 
     try {
       const response = await messagesApi.updateMessageDetails(id, updateData);
-      setMessage(normalizeMessage(response.data));
+      const updatedFields = normalizeMessage(response.data);
+      setMessage(prevMessage => {
+        if (!prevMessage) return null;
+        return {
+          ...prevMessage,
+          ...updatedFields,
+        };
+      });
       toast.success('Passcode updated successfully!');
       handleClosePasscodeModal();
     } catch (err) {
@@ -134,7 +141,14 @@ const Message: React.FC = () => {
 
     try {
       const response = await messagesApi.updateMessageDetails(id, updateData);
-      setMessage(normalizeMessage(response.data));
+      const updatedFields = normalizeMessage(response.data);
+      setMessage(prevMessage => {
+        if (!prevMessage) return null;
+        return {
+          ...prevMessage,
+          ...updatedFields,
+        };
+      });
       toast.success('Reaction length updated successfully!');
       handleCloseReactionLengthModal();
     } catch (err) {
