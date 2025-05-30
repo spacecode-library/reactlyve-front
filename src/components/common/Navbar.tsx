@@ -21,6 +21,7 @@ const Navbar = () => {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
+              <img src="/vite.svg" alt="Reactlyve Logo" className="h-8 mr-2" />
               <span className="text-xl font-bold text-primary-600 dark:text-primary-400">
                 Reactlyve
               </span>
