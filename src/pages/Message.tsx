@@ -97,9 +97,11 @@ const Message: React.FC = () => {
       const updatedFields = normalizeMessage(response.data);
       setMessage(prevMessage => {
         if (!prevMessage) return null;
+        const newReactions = updatedFields.reactions !== undefined ? updatedFields.reactions : prevMessage.reactions;
         return {
           ...prevMessage,
           ...updatedFields,
+          reactions: newReactions,
         };
       });
       toast.success('Passcode updated successfully!');
@@ -144,9 +146,11 @@ const Message: React.FC = () => {
       const updatedFields = normalizeMessage(response.data);
       setMessage(prevMessage => {
         if (!prevMessage) return null;
+        const newReactions = updatedFields.reactions !== undefined ? updatedFields.reactions : prevMessage.reactions;
         return {
           ...prevMessage,
           ...updatedFields,
+          reactions: newReactions,
         };
       });
       toast.success('Reaction length updated successfully!');
