@@ -106,6 +106,7 @@ const Message: React.FC = () => {
       });
       toast.success('Passcode updated successfully!');
       handleClosePasscodeModal();
+      setTimeout(() => window.location.reload(), 1000); // Reload after 1 second
     } catch (err) {
       toast.error('Failed to update passcode.');
       console.error('Error updating passcode:', err);
@@ -155,6 +156,7 @@ const Message: React.FC = () => {
       });
       toast.success('Reaction length updated successfully!');
       handleCloseReactionLengthModal();
+      setTimeout(() => window.location.reload(), 1000); // Reload after 1 second
     } catch (err) {
       toast.error('Failed to update reaction length.');
       console.error('Error updating reaction length:', err);
