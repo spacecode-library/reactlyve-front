@@ -263,32 +263,37 @@ export const requestMediaPermissions = async (
     const largeFileTransformation = "w_1280,c_limit,q_auto,f_auto";
     const tenMBInBytes = 10 * 1024 * 1024;
 
+    // Determine the transformation string based on file size
     const transformationString = fileSizeInBytes < tenMBInBytes ? smallFileTransformation : largeFileTransformation;
 
-    const urlParts = originalUrl.split('/upload/');
+    const parts = originalUrl.split('/upload/');
 
-    if (urlParts.length === 2) {
-      // Ensure that we don't add double slashes if the original URL already had a transformation
-      const base = urlParts[0];
-      let versionAndPublicId = urlParts[1];
+    if (parts.length === 2) {
+      const baseUrl = parts[0]; // e.g., https://res.cloudinary.com/cloud_name/resource_type
+      let pathWithVersionAndPublicId = parts[1]; // This part contains version, public_id, and might contain existing transformations
 
-      // Check if versionAndPublicId already contains transformations (e.g., v12345/w_100,h_100/image.jpg)
-      // A simple check is to see if it contains a slash after the version number
-      const versionMatch = versionAndPublicId.match(/^v\d+\//);
-      if (versionMatch) {
-          const afterVersion = versionAndPublicId.substring(versionMatch[0].length);
-          if(afterVersion.includes('/')) {
-            // It already has a transformation, remove it before adding the new one.
-            // This assumes the existing transformation is the segment immediately after the version.
-            versionAndPublicId = versionMatch[0] + afterVersion.substring(afterVersion.indexOf('/') + 1);
-          }
+      // Check if pathWithVersionAndPublicId starts directly with a version number (e.g., "v12345/folder/image.jpg")
+      // Or if it starts with a transformation string (e.g., "w_100,h_100/v12345/folder/image.jpg")
+      if (/^v\d+\//.test(pathWithVersionAndPublicId)) {
+        // No existing transformation string found before the version number.
+        // pathWithVersionAndPublicId is already in the form "v123/folder/file.ext"
+        // We can directly prepend the new transformation.
+      } else {
+        // An existing transformation string is present before the version number.
+        // e.g., pathWithVersionAndPublicId is "old_transform/v123/folder/file.ext"
+        // We need to strip "old_transform/" to get "v123/folder/file.ext"
+        const firstSlashIndex = pathWithVersionAndPublicId.indexOf('/');
+        if (firstSlashIndex !== -1) {
+          pathWithVersionAndPublicId = pathWithVersionAndPublicId.substring(firstSlashIndex + 1);
+        } else {
+          // This case implies the URL part after /upload/ is malformed if it's not a version and has no slash.
+          // Log a warning and proceed, though the resulting URL might be incorrect.
+          console.warn('[getTransformedCloudinaryUrl] Could not reliably strip existing transformation. Original path part:', pathWithVersionAndPublicId);
+        }
       }
-
-
-      return `${base}/upload/${transformationString}/${versionAndPublicId}`;
+      return `${baseUrl}/upload/${transformationString}/${pathWithVersionAndPublicId}`;
     }
 
-    // Return original URL if it doesn't match the expected Cloudinary structure
-    console.warn('Original URL does not match expected Cloudinary structure. Returning original URL:', originalUrl);
+    console.warn('[getTransformedCloudinaryUrl] Original URL does not match expected Cloudinary structure. Returning original URL:', originalUrl);
     return originalUrl;
   };
