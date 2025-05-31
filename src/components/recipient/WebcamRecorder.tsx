@@ -244,10 +244,10 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
         await ffmpeg.writeFile(inputFileName, await fetchFile(blob));
 
         const ffmpegCommand = [
-          '-i', inputFileName,
-          '-vf', 'scale=720:-2',
+          '-i', inputFileName, // Typically "input.webm" or similar for webcam recordings
+          '-vf', "scale='if(gt(iw,ih),1280,-2)':'if(gt(iw,ih),-2,1280)'", // Updated scaling
           '-c:v', 'libx264',
-          '-crf', '28',
+          '-crf', '23', // Updated CRF
           '-preset', 'ultrafast',
           '-movflags', '+faststart',
           '-loglevel', 'error',

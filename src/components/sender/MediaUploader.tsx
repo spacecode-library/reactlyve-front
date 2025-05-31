@@ -98,9 +98,9 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           // console.log(`FFmpeg: Output file name for exec: ${outputFileName}`);
           const ffmpegCommand = [
             '-i', safeInputFileName,
-            '-vf', 'scale=720:-2', // Ensure height is even, often required by x264
+            '-vf', "scale='if(gt(iw,ih),1280,-2)':'if(gt(iw,ih),-2,1280)'", // Updated scaling
             '-c:v', 'libx264',
-            '-crf', '28',
+            '-crf', '23', // Updated CRF
             '-preset', 'ultrafast',
             '-movflags', '+faststart', // Added for better streamability
             '-loglevel', 'error',     // Added to capture more detailed errors from FFmpeg
