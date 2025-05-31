@@ -504,7 +504,118 @@ const Message: React.FC = () => {
                 <div className="grid gap-6 sm:grid-cols-2">
                   {message.reactions.map((reaction: Reaction & { name?: string; videoUrl?: string; thumbnailUrl?: string; duration?: number; replies?: { id: string; text: string; createdAt: string }[] }) => {
                     console.log('[MessagePage] Reaction - ID:', reaction.id, 'videoUrl:', reaction.videoUrl, 'duration:', reaction.duration, 'thumbnailUrl:', reaction.thumbnailUrl); // Ensure semicolon here
-                    return (<div key={reaction.id}>REACTION_ITEM_PLACEHOLDER</div>); // Simplified return
+                    return (
+                    <div key={reaction.id} className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          {reaction.name && (
+                           <p className="text-md font-semibold text-neutral-800 dark:text-neutral-100">
+                            From:{' '}
+                           <Link
+                             to={`/reaction/${reaction.id}`}
+                             className="text-blue-600 hover:underline dark:text-blue-400"
+                             title="View Reaction"
+                             >
+                             {reaction.name}
+                            </Link>
+                           </p>
+                          )}
+                          <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                            Received on {new Date(reaction.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openDeleteReactionModal(reaction.id)}
+                          className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 dark:text-neutral-400 dark:hover:text-red-500 dark:hover:bg-red-900/30"
+                          disabled={isDeletingReaction && reactionToDeleteId === reaction.id}
+                          isLoading={isDeletingReaction && reactionToDeleteId === reaction.id}
+                          title="Delete Reaction"
+                        >
+                          <Trash2Icon size={16} />
+                        </Button>
+                      </div>
+
+                      {reaction.videoUrl ? (
+                        <>
+                          <VideoPlayer
+                            src={reaction.videoUrl}
+                            poster={reaction.thumbnailUrl || undefined}
+                            className="w-full rounded"
+                            autoPlay={false}
+                          />
+                          <button
+                            onClick={() => {
+                              if (!reaction.videoUrl) {
+                                console.error("Download clicked but no videoUrl present for reaction:", reaction.id);
+                                return;
+                              }
+                              const prefix = "Reactlyve";
+                              let titlePart = "video";
+                              if (message && message.content) {
+                                titlePart = message.content.replace(/\s+/g, '_').substring(0, 5);
+                              }
+                              const responderNamePart = reaction.name ? reaction.name.replace(/\s+/g, '_') : "UnknownResponder";
+                              let dateTimePart = "timestamp";
+                              if (reaction.createdAt) {
+                                try {
+                                  dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
+                                } catch (e) {
+                                  console.error("Error formatting date for filename:", e);
+                                }
+                              }
+                              let extension = "video";
+                              try {
+                                const urlPath = new URL(reaction.videoUrl).pathname;
+                                const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
+                                if (lastSegment.includes('.')) {
+                                  const ext = lastSegment.split('.').pop();
+                                  if (ext) extension = ext;
+                                }
+                              } catch (e) {
+                                console.error("Could not parse video URL for extension:", e);
+                              }
+                              const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
+                              const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+                              const finalFilename = `${sanitizedName}.${extension}`;
+                              downloadVideo(reaction.videoUrl, finalFilename);
+                            }}
+                            className="mt-3 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                          >
+                            <DownloadIcon size={16} />
+                            Download Reaction
+                          </button>
+                          {reaction.duration && (
+                            <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                              Duration: {Math.floor(reaction.duration / 60)}:{(reaction.duration % 60).toString().padStart(2, '0')}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        (!reaction.replies || reaction.replies.length === 0) && (
+                          <p className="my-4 text-sm text-neutral-600 dark:text-neutral-400">
+                            No reaction video recorded or replies.
+                          </p>
+                        )
+                      )}
+
+                      {reaction.replies && reaction.replies.length > 0 && (
+                        <div className="mt-4 border-t pt-3 border-neutral-300 dark:border-neutral-600">
+                          <h4 className="mb-1 text-sm font-semibold text-neutral-900 dark:text-white">Replies:</h4>
+                          <ul className="space-y-1 text-sm text-neutral-700 dark:text-neutral-300">
+                            {reaction.replies.map(reply => (
+                              <li key={reply.id} className="border-b pb-1 border-neutral-200 dark:border-neutral-600">
+                                "{reply.text}"
+                                {' '}
+                                <span className="text-xs text-neutral-500">({new Date(reply.createdAt).toLocaleString()})</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  );
                   })}
                 </div>
               </div>
