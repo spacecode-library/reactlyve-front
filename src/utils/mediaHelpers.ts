@@ -250,3 +250,50 @@ export const requestMediaPermissions = async (
   export const isIOS = (): boolean => {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
   };
+
+  /**
+   * Get a transformed Cloudinary URL based on file size.
+   * Uses a smaller transformation for files under 10MB.
+   * @param originalUrl - The original Cloudinary URL
+   * @param fileSizeInBytes - The size of the file in bytes
+   * @returns The transformed Cloudinary URL
+   */
+  export const getTransformedCloudinaryUrl = (originalUrl: string, fileSizeInBytes: number): string => {
+    const smallFileTransformation = "f_auto";
+    const largeFileTransformation = "w_1280,c_limit,q_auto,f_auto";
+    const tenMBInBytes = 10 * 1024 * 1024;
+
+    // Determine the transformation string based on file size
+    const transformationString = fileSizeInBytes < tenMBInBytes ? smallFileTransformation : largeFileTransformation;
+
+    const parts = originalUrl.split('/upload/');
+
+    if (parts.length === 2) {
+      const baseUrl = parts[0]; // e.g., https://res.cloudinary.com/cloud_name/resource_type
+      let pathWithVersionAndPublicId = parts[1]; // This part contains version, public_id, and might contain existing transformations
+
+      // Check if pathWithVersionAndPublicId starts directly with a version number (e.g., "v12345/folder/image.jpg")
+      // Or if it starts with a transformation string (e.g., "w_100,h_100/v12345/folder/image.jpg")
+      if (/^v\d+\//.test(pathWithVersionAndPublicId)) {
+        // No existing transformation string found before the version number.
+        // pathWithVersionAndPublicId is already in the form "v123/folder/file.ext"
+        // We can directly prepend the new transformation.
+      } else {
+        // An existing transformation string is present before the version number.
+        // e.g., pathWithVersionAndPublicId is "old_transform/v123/folder/file.ext"
+        // We need to strip "old_transform/" to get "v123/folder/file.ext"
+        const firstSlashIndex = pathWithVersionAndPublicId.indexOf('/');
+        if (firstSlashIndex !== -1) {
+          pathWithVersionAndPublicId = pathWithVersionAndPublicId.substring(firstSlashIndex + 1);
+        } else {
+          // This case implies the URL part after /upload/ is malformed if it's not a version and has no slash.
+          // Log a warning and proceed, though the resulting URL might be incorrect.
+          console.warn('[getTransformedCloudinaryUrl] Could not reliably strip existing transformation. Original path part:', pathWithVersionAndPublicId);
+        }
+      }
+      return `${baseUrl}/upload/${transformationString}/${pathWithVersionAndPublicId}`;
+    }
+
+    console.warn('[getTransformedCloudinaryUrl] Original URL does not match expected Cloudinary structure. Returning original URL:', originalUrl);
+    return originalUrl;
+  };

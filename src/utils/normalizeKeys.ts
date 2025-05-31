@@ -34,6 +34,7 @@ export const normalizeMessage = (message: any) => {
     passcode: message.passcode,
     senderId: message.senderId || message.senderid,
     shareableLink: message.shareableLink || message.shareablelink,
+    fileSizeInBytes: message.fileSizeInBytes || message.mediaSize || message.file_size || undefined,
     reaction_length: message.reaction_length !== undefined ? message.reaction_length : message.reactionLength,
     reactions: (message.reactions || []).map(normalizeReaction),
     passcodeVerified: message.passcodeVerified || false,
@@ -42,6 +43,7 @@ export const normalizeMessage = (message: any) => {
 
 export const normalizeReaction = (reaction: any) => {
   if (!reaction) return reaction;
+  // console.log removed as per request
 
   return {
     ...reaction,
@@ -51,6 +53,7 @@ export const normalizeReaction = (reaction: any) => {
     updatedAt: reaction.updatedAt || reaction.updatedat,
     videoUrl: reaction.videoUrl || reaction.videourl,
     thumbnailUrl: reaction.thumbnailUrl || reaction.thumbnailurl,
+    duration: reaction.duration || reaction.videoDuration || reaction.video_duration || reaction.durationInSecs || undefined,
     replies: reaction.replies || [],
   };
 };

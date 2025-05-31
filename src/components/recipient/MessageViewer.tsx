@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom'; // Import Link
 import WebcamRecorder from './WebcamRecorder';
 import PermissionRequest from './PermissionRequest';
@@ -10,6 +10,7 @@ import { reactionsApi, repliesApi } from '../../services/api';
 import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
 import VideoPlayer from '../dashboard/VideoPlayer'; // Added VideoPlayer import
+import { getTransformedCloudinaryUrl } from '../../utils/mediaHelpers';
 
 interface MessageViewerProps {
   message: Message;
@@ -35,6 +36,12 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const normalizedMessage = normalizeMessage(message);
   const [reactionId, setReactionId] = useState<string | null>(null);
   const [recipientName, setRecipientName] = useState<string>('');
+  const [imageError, setImageError] = useState(false);
+  const [videoError, setVideoError] = useState(false);
+  const [imageRetryCount, setImageRetryCount] = useState(0);
+  const [videoRetryCount, setVideoRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
+
   const [isNameSubmitted, setIsNameSubmitted] = useState(false);
   const [triggerCountdown, setTriggerCountdown] = useState(false);
   const [webcamStatusMessage, setWebcamStatusMessage] = useState<string | null>(null);
@@ -61,6 +68,28 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   });
 
   // Removed useEffect for videoRef.current.play()
+
+  const handleImageError = useCallback(() => {
+    if (imageRetryCount < MAX_RETRIES) {
+      setImageError(true);
+    }
+  }, [imageRetryCount]);
+
+  const retryImageLoad = useCallback(() => {
+    setImageError(false);
+    setImageRetryCount(prev => prev + 1);
+  }, []);
+
+  const handleVideoError = useCallback(() => {
+    if (videoRetryCount < MAX_RETRIES) {
+      setVideoError(true);
+    }
+  }, [videoRetryCount]);
+
+  const retryVideoLoad = useCallback(() => {
+    setVideoError(false);
+    setVideoRetryCount(prev => prev + 1);
+  }, []);
 
   const handleReactionComplete = async (blob: Blob) => {
     setIsUploading(true); 
@@ -188,22 +217,78 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         <p className="whitespace-pre-wrap text-neutral-800 dark:text-neutral-200">{message.content}</p>
       </div>
 
-      {normalizedMessage.mediaType === 'image' && normalizedMessage.imageUrl && (
-        <div className="mt-4 rounded-lg overflow-hidden">
-          <img src={normalizedMessage.imageUrl} alt="Message attachment" className="w-full object-cover" />
-        </div>
-      )}
+      {(() => {
+        if (normalizedMessage.mediaType === 'image' && normalizedMessage.imageUrl) {
+          const transformedImgUrl = normalizedMessage.imageUrl ? getTransformedCloudinaryUrl(normalizedMessage.imageUrl, normalizedMessage.fileSizeInBytes || 0) + `?retry=${imageRetryCount}` : '';
+          // console.log('[MessageViewer] Image - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.imageUrl, 'Transformed URL:', transformedImgUrl);
+          return (
+            <div className="mt-4 rounded-lg overflow-hidden">
+              {imageError && imageRetryCount < MAX_RETRIES ? (
+                <div className="text-center p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded">
+                  <p>Media content is not yet available.</p>
+                  <button
+                    onClick={retryImageLoad}
+                    className="mt-2 px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : imageRetryCount >= MAX_RETRIES && imageError ? (
+                <div className="text-center p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                  <p>Failed to load image after multiple retries.</p>
+                </div>
+              ) : (
+                <img
+                  key={imageRetryCount} // Add key to force re-render on retry
+                  src={transformedImgUrl}
+                  alt="Message attachment"
+                  className="w-full object-cover"
+                  onError={handleImageError}
+                  onLoad={() => { setImageError(false); setImageRetryCount(0); }} // Reset error on successful load
+                />
+              )}
+            </div>
+          );
+        }
+        return null;
+      })()}
 
-      {normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl && (
-        <div className="mt-4 rounded-lg overflow-hidden">
-          <VideoPlayer
-            src={normalizedMessage.videoUrl}
-            poster={normalizedMessage.thumbnailUrl || undefined}
-            className="w-full object-cover"
-            autoPlay={countdownComplete}
-          />
-        </div>
-      )}
+      {(() => {
+        if (normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl) {
+          const transformedVidUrl = normalizedMessage.videoUrl ? getTransformedCloudinaryUrl(normalizedMessage.videoUrl, normalizedMessage.fileSizeInBytes || 0) + `?retry=${videoRetryCount}` : '';
+          // console.log('[MessageViewer] Video - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.videoUrl, 'Transformed URL:', transformedVidUrl);
+          return (
+            <div className="mt-4 rounded-lg overflow-hidden">
+              {videoError && videoRetryCount < MAX_RETRIES ? (
+                <div className="text-center p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded">
+                  <p>Media content is not yet available.</p>
+                  <button
+                    onClick={retryVideoLoad}
+                    className="mt-2 px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : videoRetryCount >= MAX_RETRIES && videoError ? (
+                <div className="text-center p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                  <p>Failed to load video after multiple retries.</p>
+                </div>
+              ) : (
+                <VideoPlayer
+                  key={videoRetryCount} // Add key to force re-render on retry
+                  src={transformedVidUrl}
+                  poster={normalizedMessage.thumbnailUrl || undefined}
+                  className="w-full object-cover"
+                  autoPlay={countdownComplete}
+                  onError={handleVideoError}
+                  // Consider adding an onLoaded or similar prop to VideoPlayer to reset error state
+                />
+              )}
+            </div>
+          );
+        }
+        return null;
+      })()}
 
       <div className="mt-6">
         <h3 className="mb-2 text-xl font-semibold text-neutral-900 dark:text-white">

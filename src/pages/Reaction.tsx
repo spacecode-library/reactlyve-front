@@ -7,6 +7,7 @@ import { reactionsApi, messagesApi } from '@/services/api';
 import VideoPlayer from '../components/dashboard/VideoPlayer';
 import type { MessageWithReactions } from '@/types/message';
 import type { Reaction } from '@/types/reaction';
+import { normalizeReaction } from '../utils/normalizeKeys';
 
 const ReactionPage: React.FC = () => {
   const { reactionId } = useParams<{ reactionId: string }>();
@@ -22,49 +23,36 @@ const ReactionPage: React.FC = () => {
 
         const reactionRes = await reactionsApi.getById(reactionId);
 
-        let fetchedData = reactionRes.data;
-        if (fetchedData) {
-          fetchedData = {
-            ...fetchedData,
-            videoUrl: (fetchedData as any).videourl,
-            thumbnailUrl: (fetchedData as any).thumbnailurl,
-            messageId: (fetchedData as any).messageid
-          };
-          // Clean up the original lowercase keys if they exist
-          if ((fetchedData as any).videourl !== undefined) {
-            delete (fetchedData as any).videourl;
-          }
-          if ((fetchedData as any).thumbnailurl !== undefined) {
-            delete (fetchedData as any).thumbnailurl;
-          }
-          if ((fetchedData as any).messageid !== undefined) {
-            delete (fetchedData as any).messageid;
-          }
-        }
+        const rawReactionData = reactionRes.data;
+        if (rawReactionData) {
+          const normalizedReactionData = normalizeReaction(rawReactionData);
+          setReaction(normalizedReactionData);
 
-        setReaction(fetchedData);
+          // Fetch the parent message if available
+          if (normalizedReactionData?.messageId) {
+            const messageRes = await messagesApi.getById(normalizedReactionData.messageId);
+            const fetchedParentMessage = messageRes.data;
+            setParentMessage(fetchedParentMessage);
 
-        // Fetch the parent message if available
-        if (fetchedData?.messageId) {
-          const messageRes = await messagesApi.getById(fetchedData.messageId);
-          const fetchedParentMessage = messageRes.data;
-          setParentMessage(fetchedParentMessage);
+            if (fetchedParentMessage?.reactions) {
+              // Ensure reactionFromParent check uses normalizedReactionData.id
+              const reactionFromParent = fetchedParentMessage.reactions.find(
+                (r: Reaction) => r.id === (normalizedReactionData?.id || reactionId)
+              );
 
-          if (fetchedParentMessage?.reactions) {
-            const reactionFromParent = fetchedParentMessage.reactions.find(
-              (r: Reaction) => r.id === (fetchedData?.id || reactionId)
-            );
-
-            if (reactionFromParent && reactionFromParent.replies) {
-              setReaction(prevReaction => {
-                if (!prevReaction) return null; 
-                return {
-                  ...prevReaction,
-                  replies: reactionFromParent.replies,
-                };
-              });
+              if (reactionFromParent && reactionFromParent.replies) {
+                setReaction(prevReaction => {
+                  if (!prevReaction) return null;
+                  return {
+                    ...prevReaction,
+                    replies: reactionFromParent.replies,
+                  };
+                });
+              }
             }
           }
+        } else {
+          setReaction(null);
         }
 
         window.scrollTo(0, 0);
@@ -163,7 +151,6 @@ const ReactionPage: React.FC = () => {
 
   const formattedDateDisplay = reaction?.createdAt ? format(new Date(reaction.createdAt), 'dd MMM yyyy, HH:mm') : 'Date not available';
 
-
   return (
     <MainLayout>
       <div className="mx-auto max-w-2xl px-4 py-8">
@@ -185,6 +172,7 @@ const ReactionPage: React.FC = () => {
             src={reaction.videoUrl}
             poster={reaction.thumbnailUrl || undefined}
             className="w-full aspect-video rounded-lg object-contain"
+            initialDurationSeconds={typeof reaction.duration === 'number' ? reaction.duration : undefined}
           />
           <button
             onClick={() => downloadVideo(reaction.videoUrl!, getDownloadFilename())}

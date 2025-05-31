@@ -12,6 +12,7 @@ import Input from '@/components/common/Input'; // Added Input
 import toast from 'react-hot-toast';
 import type { Reaction } from '../types/reaction';
 import { normalizeMessage } from '../utils/normalizeKeys';
+import { getTransformedCloudinaryUrl } from '../utils/mediaHelpers';
 import { QRCodeSVG } from 'qrcode.react';
 import VideoPlayer from '../components/dashboard/VideoPlayer'; // Added VideoPlayer import
 
@@ -231,7 +232,7 @@ const Message: React.FC = () => {
     }
   };
   
-  const normalizedMessage = normalizeMessage(message);
+  const normalizedMessage = message ? normalizeMessage(message) : null;
   
   const copyToClipboard = (text: string | undefined, type: 'passcode' | 'link') => {
     if (!text) return;
@@ -297,9 +298,58 @@ const Message: React.FC = () => {
     );
   }
 
-  const { formattedDate, timeAgo } = formatDate(message.createdAt);
+  // Message is guaranteed to be non-null here due to the check above,
+  // so normalizedMessage will also be non-null.
+  const { formattedDate, timeAgo } = formatDate(normalizedMessage!.createdAt);
   
-  const hasReactions = message.reactions && message.reactions.length > 0;
+  const hasReactions = normalizedMessage && normalizedMessage.reactions && normalizedMessage.reactions.length > 0;
+
+  let imageElement = null;
+  // normalizedMessage could be null if message was null, but the `if (error || !message)` block handles that.
+  // However, to be extremely safe, we can add a check for normalizedMessage here.
+  if (normalizedMessage && normalizedMessage.mediaType === 'image' && normalizedMessage.imageUrl) {
+      const transformedImgUrl = normalizedMessage.imageUrl ? getTransformedCloudinaryUrl(normalizedMessage.imageUrl, normalizedMessage.fileSizeInBytes || 0) : '';
+      // console.log('[MessagePage] Image - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.imageUrl, 'Transformed URL:', transformedImgUrl);
+      imageElement = (
+          <div className="mb-6">
+              <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Image</h2>
+              <img src={transformedImgUrl} alt="Message" className="w-full max-w-lg rounded object-cover" />
+          </div>
+      );
+  }
+
+  let videoElement = null;
+  // Similar safety check for normalizedMessage
+  if (normalizedMessage && normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl) {
+      const transformedVidUrl = normalizedMessage.videoUrl ? getTransformedCloudinaryUrl(normalizedMessage.videoUrl, normalizedMessage.fileSizeInBytes || 0) : '';
+      // console.log('[MessagePage] Video - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.videoUrl, 'Transformed URL:', transformedVidUrl);
+      videoElement = (
+          <div className="mb-6">
+              <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Video</h2>
+              <VideoPlayer
+                  src={transformedVidUrl}
+                  poster={normalizedMessage.thumbnailUrl || undefined}
+                  className="w-full max-w-lg"
+                  autoPlay={false}
+                   initialDurationSeconds={typeof message.duration === 'number' ? message.duration : undefined}
+              />
+              <div className="mt-3">
+                <button
+                  onClick={() => downloadVideo(normalizedMessage!.videoUrl!, 'message-video.mp4')}
+                  className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                >
+                  <DownloadIcon size={16} />
+                  Download Video
+                </button>
+                {message.duration && ( // message is confirmed non-null here
+                  <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                    Duration: {Math.floor(message.duration / 60)}:{(message.duration % 60).toString().padStart(2, '0')}
+                  </p>
+                )}
+              </div>
+          </div>
+      );
+  }
 
   return (
     <MainLayout>
@@ -340,37 +390,8 @@ const Message: React.FC = () => {
             </div>
 
             {/* Media */}
-            {normalizedMessage.mediaType === 'image' && normalizedMessage.imageUrl && (
-              <div className="mb-6">
-                <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Image</h2>
-                <img src={normalizedMessage.imageUrl} alt="Message" className="w-full max-w-lg rounded object-cover" />
-              </div>
-            )}
-            {normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl && (
-              <div className="mb-6">
-                <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Video</h2>
-                <VideoPlayer
-                  src={normalizedMessage.videoUrl}
-                  poster={normalizedMessage.thumbnailUrl || undefined}
-                  className="w-full max-w-lg"
-                  autoPlay={false}
-                />
-                <div className="mt-3">
-                  <button
-                    onClick={() => downloadVideo(normalizedMessage.videoUrl!, 'message-video.mp4')}
-                    className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                  >
-                    <DownloadIcon size={16} />
-                    Download Video
-                  </button>
-                  {message.duration && (
-                    <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-                      Duration: {Math.floor(message.duration / 60)}:{(message.duration % 60).toString().padStart(2, '0')}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
+            {imageElement}
+            {videoElement}
 
             {/* Shareable link and passcode */}
             <div className="mb-6 grid gap-4 md:grid-cols-2">
@@ -450,12 +471,12 @@ const Message: React.FC = () => {
                 </div>
               )}
               {/* Reaction Length Display */}
-              {message && typeof message.reaction_length === 'number' && (
+              {normalizedMessage && typeof normalizedMessage.reaction_length === 'number' && (
                 <div>
                   <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Reaction Length</h2>
                   <div className="flex items-center justify-between gap-2 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
                     <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                      {message.reaction_length} seconds
+                      {normalizedMessage.reaction_length} seconds
                     </p>
                     <button
                       onClick={handleOpenReactionLengthModal}
@@ -478,7 +499,7 @@ const Message: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => setShowDeleteAllReactionsModal(true)}
-                    disabled={isDeletingAllReactions || !message?.reactions?.length}
+                    disabled={isDeletingAllReactions || !normalizedMessage?.reactions?.length}
                     isLoading={isDeletingAllReactions}
                     className="text-red-600 border-red-600 hover:bg-red-50 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-900/30"
                   >
@@ -487,7 +508,9 @@ const Message: React.FC = () => {
                   </Button>
                 </div>
                 <div className="grid gap-6 sm:grid-cols-2">
-                  {message.reactions.map((reaction: Reaction & { name?: string; videourl?: string; thumbnailurl?: string; replies?: { id: string; text: string; createdAt: string }[] }) => (
+                  {hasReactions && normalizedMessage && normalizedMessage.reactions.map((reaction: Reaction & { name?: string; videoUrl?: string; thumbnailUrl?: string; duration?: number; replies?: { id: string; text: string; createdAt: string }[] }) => {
+                    // console.log removed as per request
+                    return (
                     <div key={reaction.id} className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
                       <div className="flex justify-between items-start mb-2">
                         <div>
@@ -520,35 +543,28 @@ const Message: React.FC = () => {
                         </Button>
                       </div>
 
-                      {reaction.videourl ? (
+                      {reaction.videoUrl ? (
                         <>
                           <VideoPlayer
-                            src={reaction.videourl}
-                            poster={reaction.thumbnailurl || undefined}
+                            src={reaction.videoUrl}
+                            poster={reaction.thumbnailUrl || undefined}
                             className="w-full rounded"
                             autoPlay={false}
+                             initialDurationSeconds={typeof reaction.duration === 'number' ? reaction.duration : undefined}
                           />
                           <button
                             onClick={() => {
-                              if (!reaction.videourl) {
-                                console.error("Download clicked but no videourl present for reaction:", reaction.id);
+                              if (!reaction.videoUrl) {
+                                console.error("Download clicked but no videoUrl present for reaction:", reaction.id);
                                 return;
                               }
-
-                              // 1. Prefix
                               const prefix = "Reactlyve";
-
-                              // 2. Message Title Part
-                              let titlePart = "video"; // Default if message.content is unavailable
+                              let titlePart = "video";
                               if (message && message.content) {
                                 titlePart = message.content.replace(/\s+/g, '_').substring(0, 5);
                               }
-                              
-                              // 3. Responder Name Part
                               const responderNamePart = reaction.name ? reaction.name.replace(/\s+/g, '_') : "UnknownResponder";
-
-                              // 4. Date/Time Part
-                              let dateTimePart = "timestamp"; // Default
+                              let dateTimePart = "timestamp";
                               if (reaction.createdAt) {
                                 try {
                                   dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
@@ -556,11 +572,9 @@ const Message: React.FC = () => {
                                   console.error("Error formatting date for filename:", e);
                                 }
                               }
-
-                              // 5. File Extension Part
-                              let extension = "video"; // Default extension
+                              let extension = "video";
                               try {
-                                const urlPath = new URL(reaction.videourl).pathname;
+                                const urlPath = new URL(reaction.videoUrl).pathname;
                                 const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
                                 if (lastSegment.includes('.')) {
                                   const ext = lastSegment.split('.').pop();
@@ -569,18 +583,21 @@ const Message: React.FC = () => {
                               } catch (e) {
                                 console.error("Could not parse video URL for extension:", e);
                               }
-
                               const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
                               const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
                               const finalFilename = `${sanitizedName}.${extension}`;
-
-                              downloadVideo(reaction.videourl, finalFilename);
+                              downloadVideo(reaction.videoUrl, finalFilename);
                             }}
                             className="mt-3 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                           >
                             <DownloadIcon size={16} />
                             Download Reaction
                           </button>
+                          {reaction.duration && (
+                            <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                              Duration: {Math.floor(reaction.duration / 60)}:{(reaction.duration % 60).toString().padStart(2, '0')}
+                            </p>
+                          )}
                         </>
                       ) : (
                         (!reaction.replies || reaction.replies.length === 0) && (
@@ -589,22 +606,24 @@ const Message: React.FC = () => {
                           </p>
                         )
                       )}
-                      
-                      {/* Replies */}
+
                       {reaction.replies && reaction.replies.length > 0 && (
                         <div className="mt-4 border-t pt-3 border-neutral-300 dark:border-neutral-600">
                           <h4 className="mb-1 text-sm font-semibold text-neutral-900 dark:text-white">Replies:</h4>
                           <ul className="space-y-1 text-sm text-neutral-700 dark:text-neutral-300">
                             {reaction.replies.map(reply => (
                               <li key={reply.id} className="border-b pb-1 border-neutral-200 dark:border-neutral-600">
-                                “{reply.text}” <span className="text-xs text-neutral-500">({new Date(reply.createdAt).toLocaleString()})</span>
+                                "{reply.text}"
+                                {' '}
+                                <span className="text-xs text-neutral-500">({new Date(reply.createdAt).toLocaleString()})</span>
                               </li>
                             ))}
                           </ul>
                         </div>
                       )}
                     </div>
-                  ))}
+                  );
+                  })}
                 </div>
               </div>
             ) : (
