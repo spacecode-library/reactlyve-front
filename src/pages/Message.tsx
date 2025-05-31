@@ -302,6 +302,49 @@ const Message: React.FC = () => {
   
   const hasReactions = message.reactions && message.reactions.length > 0;
 
+  let imageElement = null;
+  if (normalizedMessage.mediaType === 'image' && normalizedMessage.imageUrl) {
+      const transformedImgUrl = normalizedMessage.imageUrl ? getTransformedCloudinaryUrl(normalizedMessage.imageUrl, normalizedMessage.fileSizeInBytes || 0) : '';
+      console.log('[MessagePage] Image - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.imageUrl, 'Transformed URL:', transformedImgUrl);
+      imageElement = (
+          <div className="mb-6">
+              <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Image</h2>
+              <img src={transformedImgUrl} alt="Message" className="w-full max-w-lg rounded object-cover" />
+          </div>
+      );
+  }
+
+  let videoElement = null;
+  if (normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl) {
+      const transformedVidUrl = normalizedMessage.videoUrl ? getTransformedCloudinaryUrl(normalizedMessage.videoUrl, normalizedMessage.fileSizeInBytes || 0) : '';
+      console.log('[MessagePage] Video - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.videoUrl, 'Transformed URL:', transformedVidUrl);
+      videoElement = (
+          <div className="mb-6">
+              <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Video</h2>
+              <VideoPlayer
+                  src={transformedVidUrl}
+                  poster={normalizedMessage.thumbnailUrl || undefined}
+                  className="w-full max-w-lg"
+                  autoPlay={false}
+              />
+              <div className="mt-3">
+                <button
+                  onClick={() => downloadVideo(normalizedMessage.videoUrl!, 'message-video.mp4')}
+                  className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                >
+                  <DownloadIcon size={16} />
+                  Download Video
+                </button>
+                {message.duration && ( // message is confirmed non-null here
+                  <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                    Duration: {Math.floor(message.duration / 60)}:{(message.duration % 60).toString().padStart(2, '0')}
+                  </p>
+                )}
+              </div>
+          </div>
+      );
+  }
+
   return (
     <MainLayout>
       <div className="mx-auto max-w-4xl px-4 py-8">
@@ -341,48 +384,8 @@ const Message: React.FC = () => {
             </div>
 
             {/* Media */}
-            {(() => {
-              if (normalizedMessage.mediaType === 'image' && normalizedMessage.imageUrl) {
-                const transformedImgUrl = normalizedMessage.imageUrl ? getTransformedCloudinaryUrl(normalizedMessage.imageUrl, normalizedMessage.fileSizeInBytes || 0) : '';
-                console.log('[MessagePage] Image - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.imageUrl, 'Transformed URL:', transformedImgUrl);
-                return (
-                  <div className="mb-6">
-                    <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Image</h2>
-                    <img src={transformedImgUrl} alt="Message" className="w-full max-w-lg rounded object-cover" />
-                  </div>
-                );
-              }
-              return null;
-            })()}
-            {(() => {
-              if (normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl) {
-                const transformedVidUrl = normalizedMessage.videoUrl ? getTransformedCloudinaryUrl(normalizedMessage.videoUrl, normalizedMessage.fileSizeInBytes || 0) : '';
-                console.log('[MessagePage] Video - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.videoUrl, 'Transformed URL:', transformedVidUrl);
-                return (
-                  <div className="mb-6">
-                    <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Video</h2>
-                    <VideoPlayer
-                      src={transformedVidUrl}
-                      poster={normalizedMessage.thumbnailUrl || undefined}
-                      className="w-full max-w-lg"
-                  autoPlay={false}
-                />
-                <div className="mt-3">
-                  <button
-                    onClick={() => downloadVideo(normalizedMessage.videoUrl!, 'message-video.mp4')}
-                    className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                  >
-                    <DownloadIcon size={16} />
-                    Download Video
-                  </button>
-                  {message.duration && (
-                    <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-                      Duration: {Math.floor(message.duration / 60)}:{(message.duration % 60).toString().padStart(2, '0')}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
+            {imageElement}
+            {videoElement}
 
             {/* Shareable link and passcode */}
             <div className="mb-6 grid gap-4 md:grid-cols-2">
