@@ -1,4 +1,4 @@
-import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { FFmpeg, FileData } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { X, Upload, Check } from 'lucide-react';
@@ -92,10 +92,26 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           await ffmpeg.exec(['-i', safeInputFileName, '-vf', 'scale=720:-1', '-c:v', 'libx264', '-crf', '28', '-preset', 'ultrafast', outputFileName]);
           // console.log('FFmpeg command finished.');
 
-          const data = await ffmpeg.readFile(outputFileName);
+          const fileData: FileData = await ffmpeg.readFile(outputFileName);
           // console.log('Compressed file read from FFmpeg FS.');
 
-          const compressedFile = new File([data.buffer], file.name.replace(/\.[^/.]+$/, "_c.mp4"), { type: 'video/mp4' });
+          let compressedFile: File;
+          if (fileData instanceof Uint8Array) {
+            compressedFile = new File([fileData.buffer], file.name.replace(/\.[^/.]+$/, "_c.mp4"), { type: 'video/mp4' });
+          } else {
+            // This case should ideally not happen for binary video files.
+            // If it does, it's an error or unexpected data type.
+            console.error('FFmpeg readFile did not return Uint8Array for video file.');
+            // Fallback or error handling:
+            // Option 1: Throw an error to be caught by the main try/catch
+            throw new Error('FFmpeg output was not in the expected format (Uint8Array).');
+            // Option 2: Try to upload original (if you prefer, but the error above is cleaner)
+            // onError('Unexpected error processing video. Uploading original.');
+            // setSelectedMedia(file); // original file
+            // onMediaSelect(file);
+            // setIsCompressing(false);
+            // return;
+          }
 
           // Clean up virtual file system
           await ffmpeg.deleteFile(safeInputFileName);
