@@ -11,6 +11,7 @@ interface MediaUploaderProps {
 }
 
 const FFMPEG_CORE_BASE_URL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
+const COMPRESSION_THRESHOLD_BYTES = 10 * 1024 * 1024; // 10MB
 
 const MediaUploader: React.FC<MediaUploaderProps> = ({
   onMediaSelect,
@@ -58,16 +59,19 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
       const ffmpeg = ffmpegRef.current;
       
       if (isVideoFile) {
-        setIsCompressing(true);
-        setCompressionProgress(0);
-        // Show original file info and preview while compressing
-        setSelectedMedia(file);
-        const originalPreviewUrl = URL.createObjectURL(file);
-        setPreview(originalPreviewUrl);
-        setIsVideo(true); // Set isVideo true for the original file being processed
+        // --- Conditional Compression Logic ---
+        if (file.size > COMPRESSION_THRESHOLD_BYTES) {
+          // console.log(`MediaUploader: File size (${file.size} bytes) > threshold (${COMPRESSION_THRESHOLD_BYTES} bytes). Compressing.`);
+          setIsCompressing(true);
+          setCompressionProgress(0);
+          // Show original file info and preview while preparing for compression
+          setSelectedMedia(file);
+          const originalPreviewUrlWhileCompressing = URL.createObjectURL(file); // Use a distinct name if originalPreviewUrl is used elsewhere
+          setPreview(originalPreviewUrlWhileCompressing);
+          setIsVideo(true);
 
-        try {
-          if (!ffmpeg.loaded) {
+          try {
+            if (!ffmpeg.loaded) {
             const coreURL = await toBlobURL(`${FFMPEG_CORE_BASE_URL}/ffmpeg-core.js`, 'text/javascript');
             const wasmURL = await toBlobURL(`${FFMPEG_CORE_BASE_URL}/ffmpeg-core.wasm`, 'application/wasm');
             // console.log('Loading FFmpeg core...');
@@ -139,8 +143,8 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
             if (preview && preview.startsWith('blob:')) URL.revokeObjectURL(preview);
 
             // Revert to original file for preview and upload
-            const originalPreviewUrl = URL.createObjectURL(file); // 'file' is the original input file
-            setPreview(originalPreviewUrl);
+            // const originalPreviewUrl = URL.createObjectURL(file); // 'file' is the original input file
+            // setPreview(originalPreviewUrl); // Already set by originalPreviewUrlWhileCompressing or fallback
             setSelectedMedia(file);
             onMediaSelect(file); // Pass original file to parent
             setIsVideo(true);
@@ -155,7 +159,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           await ffmpeg.deleteFile(outputFileName);
 
           // Revoke old preview URL
-          if (originalPreviewUrl) URL.revokeObjectURL(originalPreviewUrl);
+          if (originalPreviewUrlWhileCompressing) URL.revokeObjectURL(originalPreviewUrlWhileCompressing);
 
           // Create preview for compressed file
           const compressedPreviewUrl = URL.createObjectURL(compressedFile);
@@ -166,37 +170,55 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           // console.log('Compression successful.');
 
         } catch (err) {
-          console.error("Error during video compression:", err);
+          console.error("Error during video compression (MediaUploader):", err);
           onError('Failed to compress video. Uploading original or try another file.');
           // Revert to original file if compression fails
-          if (originalPreviewUrl && preview !== originalPreviewUrl) URL.revokeObjectURL(preview as string); // Clean up failed compressed preview if any
-          setPreview(originalPreviewUrl); // Ensure original preview is shown
+          if (preview && preview !== originalPreviewUrlWhileCompressing) URL.revokeObjectURL(preview as string);
+          if (originalPreviewUrlWhileCompressing && preview !== originalPreviewUrlWhileCompressing) URL.revokeObjectURL(originalPreviewUrlWhileCompressing);
+
+          const originalPreviewFallbackUrl = URL.createObjectURL(file);
+          setPreview(originalPreviewFallbackUrl);
           setSelectedMedia(file);
-          onMediaSelect(file); // Pass original file
+          onMediaSelect(file);
           setIsVideo(true);
         } finally {
           setIsCompressing(false);
           setCompressionProgress(0);
-          // FFmpeg instance is kept loaded for next compressions. Terminated on unmount or specific error.
         }
-      } else { // Handle image files
-        setIsVideo(false);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setPreview(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+      } else {
+        // --- File is <= threshold, bypass compression ---
+        // console.log(`MediaUploader: File size (${file.size} bytes) <= threshold (${COMPRESSION_THRESHOLD_BYTES} bytes). Skipping compression.`);
+        if (preview) URL.revokeObjectURL(preview); // Clean up any existing preview from a previous selection
+
+        // Create a blob URL preview for videos (more consistent with compressed path):
+        const directPreviewUrl = URL.createObjectURL(file);
+        setPreview(directPreviewUrl);
+
         setSelectedMedia(file);
         onMediaSelect(file);
+        setIsVideo(true); // Still a video, just not compressed
+        setIsCompressing(false); // Ensure this is false
+        setCompressionProgress(0); // Ensure this is 0
       }
-    } else { // Handle null file (deselection)
-      if (preview) URL.revokeObjectURL(preview); // Clean up previous preview
-      setSelectedMedia(null);
-      setPreview(null);
+    } else { // Handle image files
+      if (preview) URL.revokeObjectURL(preview); // Clean up previous preview if any
       setIsVideo(false);
-      onMediaSelect(null);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      setSelectedMedia(file);
+      onMediaSelect(file);
     }
-  }, [maxSizeBytes, maxSizeMB, onError, onMediaSelect, preview]); // Added `preview` to dependencies for revokeObjectURL
+  } else { // Handle null file (deselection)
+    if (preview) URL.revokeObjectURL(preview); // Clean up previous preview
+    setSelectedMedia(null);
+    setPreview(null);
+    setIsVideo(false);
+    onMediaSelect(null);
+  }
+}, [maxSizeBytes, maxSizeMB, onError, onMediaSelect, preview]); // Added `preview` to dependencies for revokeObjectURL
   
   const handleBrowseClick = useCallback(() => {
     if (fileInputRef.current) {

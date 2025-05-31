@@ -26,6 +26,7 @@ interface WebcamRecorderProps {
 
 // Add FFmpeg core path constant (if not already globally available, define it here)
 const FFMPEG_CORE_BASE_URL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm'; // Or your self-hosted path
+const COMPRESSION_THRESHOLD_BYTES = 10 * 1024 * 1024; // 10MB
 
 const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   onRecordingComplete,
@@ -219,72 +220,86 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
 
   useEffect(() => {
     const processAndCompleteRecording = async (blob: Blob) => {
-      setIsCompressing(true);
-      setCompressionProgress(0);
-      onStatusUpdate?.('Compressing video...');
+      // --- Conditional Compression Logic ---
+      if (blob.size > COMPRESSION_THRESHOLD_BYTES) {
+        // console.log(`WebcamRecorder: Blob size (${blob.size} bytes) > threshold (${COMPRESSION_THRESHOLD_BYTES} bytes). Compressing.`);
+        setIsCompressing(true); // Show compression UI overlay
+        setCompressionProgress(0);
+        onStatusUpdate?.('Compressing video...');
 
-      const ffmpeg = ffmpegRef.current;
-      if (!ffmpeg.loaded) {
-        console.error('FFmpeg not loaded. Cannot compress.');
-        onWebcamError?.('Compression components not ready. Uploading original.');
-        onRecordingComplete(blob);
-        setIsCompressing(false);
-        onStatusUpdate?.(null);
-        return;
-      }
-
-      try {
-        ffmpeg.on('progress', ({ progress }) => {
-           setCompressionProgress(progress < 0 ? 0 : progress > 1 ? 1 : progress);
-        });
-
-        const inputFileName = "input.webm";
-        const outputFileName = "output_compressed.mp4";
-
-        await ffmpeg.writeFile(inputFileName, await fetchFile(blob));
-
-        const ffmpegCommand = [
-          '-i', inputFileName, // Typically "input.webm" or similar for webcam recordings
-          '-vf', "scale='if(gt(iw,ih),1280,-2)':'if(gt(iw,ih),-2,1280)'", // Updated scaling
-          '-c:v', 'libx264',
-          '-crf', '25', // New CRF
-          '-preset', 'ultrafast',
-          '-movflags', '+faststart',
-          '-loglevel', 'error',
-          outputFileName
-        ];
-        await ffmpeg.exec(ffmpegCommand);
-
-        const data: FileData = await ffmpeg.readFile(outputFileName);
-        let compressedBlob: Blob;
-
-        if (data instanceof Uint8Array) {
-          if (data.length === 0) {
-            console.error('FFmpeg (WebcamRecorder): Compression resulted in a zero-byte file. Using original.');
-            onWebcamError?.('Compression failed (empty file). Uploading original.');
-            compressedBlob = blob;
-          } else {
-            compressedBlob = new Blob([data.buffer], { type: 'video/mp4' });
-          }
-        } else {
-          console.error('FFmpeg (WebcamRecorder): Output was not Uint8Array. Using original.');
-          onWebcamError?.('Compression failed (unexpected format). Uploading original.');
-          compressedBlob = blob;
+        const ffmpeg = ffmpegRef.current;
+        if (!ffmpeg.loaded) {
+          console.error('FFmpeg not loaded (WebcamRecorder). Cannot compress.');
+          onWebcamError?.('Compression components not ready. Uploading original.');
+          onRecordingComplete(blob);
+          setIsCompressing(false); // Hide overlay
+          onStatusUpdate?.(null);
+          return;
         }
 
-        await ffmpeg.deleteFile(inputFileName);
-        await ffmpeg.deleteFile(outputFileName);
+        try {
+          ffmpeg.on('progress', ({ progress }) => {
+            setCompressionProgress(progress < 0 ? 0 : progress > 1 ? 1 : progress);
+          });
 
-        onRecordingComplete(compressedBlob);
+          const inputFileName = "input.webm";
+          const outputFileName = "output_compressed.mp4";
 
-      } catch (error) {
-        console.error('Error during video compression (WebcamRecorder):', error);
-        onWebcamError?.('Error during compression. Uploading original.');
-        onRecordingComplete(blob);
-      } finally {
+          await ffmpeg.writeFile(inputFileName, await fetchFile(blob));
+
+          const ffmpegCommand = [
+            '-i', inputFileName, // Typically "input.webm" or similar for webcam recordings
+            '-vf', "scale='if(gt(iw,ih),1280,-2)':'if(gt(iw,ih),-2,1280)'", // Updated scaling
+            '-c:v', 'libx264',
+            '-crf', '25', // New CRF
+            '-preset', 'ultrafast',
+            '-movflags', '+faststart',
+            '-loglevel', 'error',
+            outputFileName
+          ];
+          await ffmpeg.exec(ffmpegCommand);
+
+          const data: FileData = await ffmpeg.readFile(outputFileName);
+          let compressedBlobToUpload: Blob; // Renamed to avoid confusion with outer 'blob'
+
+          if (data instanceof Uint8Array) {
+            if (data.length === 0) {
+              console.error('FFmpeg (WebcamRecorder): Compression resulted in a zero-byte file. Using original.');
+              onWebcamError?.('Compression failed (empty file). Uploading original.');
+              compressedBlobToUpload = blob;
+            } else {
+              compressedBlobToUpload = new Blob([data.buffer], { type: 'video/mp4' });
+            }
+          } else {
+            console.error('FFmpeg (WebcamRecorder): Output was not Uint8Array. Using original.');
+            onWebcamError?.('Compression failed (unexpected format). Uploading original.');
+            compressedBlobToUpload = blob;
+          }
+
+          await ffmpeg.deleteFile(inputFileName);
+          await ffmpeg.deleteFile(outputFileName);
+
+          onRecordingComplete(compressedBlobToUpload); // Pass the actually compressed blob
+
+        } catch (error) {
+          console.error('Error during video compression (WebcamRecorder):', error);
+          onWebcamError?.('Error during compression. Uploading original.');
+          onRecordingComplete(blob); // Fallback to original blob
+        } finally {
+          setIsCompressing(false); // Hide overlay
+          setCompressionProgress(0);
+          onStatusUpdate?.(null);
+        }
+      } else {
+        // --- Blob size is <= threshold, bypass compression ---
+        // console.log(`WebcamRecorder: Blob size (${blob.size} bytes) <= threshold (${COMPRESSION_THRESHOLD_BYTES} bytes). Skipping compression.`);
+        onStatusUpdate?.('Processing complete. Uploading original...'); // Or some other appropriate message
+        onRecordingComplete(blob); // Pass original blob directly
+        // Ensure UI state is clean
         setIsCompressing(false);
         setCompressionProgress(0);
-        onStatusUpdate?.(null);
+        // Small delay for the status message if needed, then clear it
+        // setTimeout(() => onStatusUpdate?.(null), 2000); // Optional: clear status after a bit
       }
     };
 
