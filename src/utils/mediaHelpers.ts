@@ -250,3 +250,45 @@ export const requestMediaPermissions = async (
   export const isIOS = (): boolean => {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
   };
+
+  /**
+   * Get a transformed Cloudinary URL based on file size.
+   * Uses a smaller transformation for files under 10MB.
+   * @param originalUrl - The original Cloudinary URL
+   * @param fileSizeInBytes - The size of the file in bytes
+   * @returns The transformed Cloudinary URL
+   */
+  export const getTransformedCloudinaryUrl = (originalUrl: string, fileSizeInBytes: number): string => {
+    const smallFileTransformation = "f_auto";
+    const largeFileTransformation = "w_1280,c_limit,q_auto,f_auto";
+    const tenMBInBytes = 10 * 1024 * 1024;
+
+    const transformationString = fileSizeInBytes < tenMBInBytes ? smallFileTransformation : largeFileTransformation;
+
+    const urlParts = originalUrl.split('/upload/');
+
+    if (urlParts.length === 2) {
+      // Ensure that we don't add double slashes if the original URL already had a transformation
+      const base = urlParts[0];
+      let versionAndPublicId = urlParts[1];
+
+      // Check if versionAndPublicId already contains transformations (e.g., v12345/w_100,h_100/image.jpg)
+      // A simple check is to see if it contains a slash after the version number
+      const versionMatch = versionAndPublicId.match(/^v\d+\//);
+      if (versionMatch) {
+          const afterVersion = versionAndPublicId.substring(versionMatch[0].length);
+          if(afterVersion.includes('/')) {
+            // It already has a transformation, remove it before adding the new one.
+            // This assumes the existing transformation is the segment immediately after the version.
+            versionAndPublicId = versionMatch[0] + afterVersion.substring(afterVersion.indexOf('/') + 1);
+          }
+      }
+
+
+      return `${base}/upload/${transformationString}/${versionAndPublicId}`;
+    }
+
+    // Return original URL if it doesn't match the expected Cloudinary structure
+    console.warn('Original URL does not match expected Cloudinary structure. Returning original URL:', originalUrl);
+    return originalUrl;
+  };

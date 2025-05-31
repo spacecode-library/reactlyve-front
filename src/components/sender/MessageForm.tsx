@@ -340,6 +340,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
         formData.append('media', media);
         // Also send mediaType to help the backend
         formData.append('mediaType', mediaType || '');
+        formData.append('mediaSize', media.size.toString());
       }
       
       // Add passcode if enabled
