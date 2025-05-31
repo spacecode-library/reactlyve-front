@@ -43,6 +43,7 @@ export const normalizeMessage = (message: any) => {
 
 export const normalizeReaction = (reaction: any) => {
   if (!reaction) return reaction;
+  console.log('[normalizeReaction] Raw input:', JSON.stringify(reaction));
 
   return {
     ...reaction,
