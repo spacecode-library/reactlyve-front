@@ -611,15 +611,21 @@ const Message: React.FC = () => {
                           </p>
                         )
                       )}
-                      
+
                       {/* Replies */}
                       {reaction.replies && reaction.replies.length > 0 && (
                         <div className="mt-4 border-t pt-3 border-neutral-300 dark:border-neutral-600">
                           <h4 className="mb-1 text-sm font-semibold text-neutral-900 dark:text-white">Replies:</h4>
                           <ul className="space-y-1 text-sm text-neutral-700 dark:text-neutral-300">
                             {reaction.replies.map(reply => (
-                              <li key={reply.id} className="border-b pb-1 border-neutral-200 dark:border-neutral-600">
-                                "{reply.text}" <span className="text-xs text-neutral-500">({new Date(reply.createdAt).toLocaleString()})</span>
+                              <li
+                                key={reply.id}
+                                className="border-b pb-1 border-neutral-200 dark:border-neutral-600"
+                              >
+                                "{reply.text}"{' '}
+                                <span className="text-xs text-neutral-500">
+                                  ({new Date(reply.createdAt).toLocaleString()})
+                                </span>
                               </li>
                             ))}
                           </ul>
