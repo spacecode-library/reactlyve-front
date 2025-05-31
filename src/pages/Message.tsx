@@ -12,6 +12,7 @@ import Input from '@/components/common/Input'; // Added Input
 import toast from 'react-hot-toast';
 import type { Reaction } from '../types/reaction';
 import { normalizeMessage } from '../utils/normalizeKeys';
+import { getTransformedCloudinaryUrl } from '../utils/mediaHelpers';
 import { QRCodeSVG } from 'qrcode.react';
 import VideoPlayer from '../components/dashboard/VideoPlayer'; // Added VideoPlayer import
 
@@ -340,19 +341,30 @@ const Message: React.FC = () => {
             </div>
 
             {/* Media */}
-            {normalizedMessage.mediaType === 'image' && normalizedMessage.imageUrl && (
-              <div className="mb-6">
-                <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Image</h2>
-                <img src={normalizedMessage.imageUrl} alt="Message" className="w-full max-w-lg rounded object-cover" />
-              </div>
-            )}
-            {normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl && (
-              <div className="mb-6">
-                <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Video</h2>
-                <VideoPlayer
-                  src={normalizedMessage.videoUrl}
-                  poster={normalizedMessage.thumbnailUrl || undefined}
-                  className="w-full max-w-lg"
+            {(() => {
+              if (normalizedMessage.mediaType === 'image' && normalizedMessage.imageUrl) {
+                const transformedImgUrl = normalizedMessage.imageUrl ? getTransformedCloudinaryUrl(normalizedMessage.imageUrl, normalizedMessage.fileSizeInBytes || 0) : '';
+                console.log('[MessagePage] Image - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.imageUrl, 'Transformed URL:', transformedImgUrl);
+                return (
+                  <div className="mb-6">
+                    <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Image</h2>
+                    <img src={transformedImgUrl} alt="Message" className="w-full max-w-lg rounded object-cover" />
+                  </div>
+                );
+              }
+              return null;
+            })()}
+            {(() => {
+              if (normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl) {
+                const transformedVidUrl = normalizedMessage.videoUrl ? getTransformedCloudinaryUrl(normalizedMessage.videoUrl, normalizedMessage.fileSizeInBytes || 0) : '';
+                console.log('[MessagePage] Video - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.videoUrl, 'Transformed URL:', transformedVidUrl);
+                return (
+                  <div className="mb-6">
+                    <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Video</h2>
+                    <VideoPlayer
+                      src={transformedVidUrl}
+                      poster={normalizedMessage.thumbnailUrl || undefined}
+                      className="w-full max-w-lg"
                   autoPlay={false}
                 />
                 <div className="mt-3">
