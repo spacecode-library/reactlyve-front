@@ -619,7 +619,7 @@ const Message: React.FC = () => {
                           <ul className="space-y-1 text-sm text-neutral-700 dark:text-neutral-300">
                             {reaction.replies.map(reply => (
                               <li key={reply.id} className="border-b pb-1 border-neutral-200 dark:border-neutral-600">
-                                “{reply.text}” <span className="text-xs text-neutral-500">({new Date(reply.createdAt).toLocaleString()})</span>
+                                "{reply.text}" <span className="text-xs text-neutral-500">({new Date(reply.createdAt).toLocaleString()})</span>
                               </li>
                             ))}
                           </ul>
