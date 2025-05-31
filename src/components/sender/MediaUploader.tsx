@@ -78,7 +78,13 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           ffmpeg.on('progress', ({ progress }) => {
             setCompressionProgress(progress < 0 ? 0 : progress > 1 ? 1 : progress);
           });
-          // ffmpeg.on('log', (log) => { console.log('ffmpeg log:', log.message); });
+          ffmpeg.on('log', (logEntry) => {
+            // console.log(`FFmpeg internal log: ${logEntry.message}`);
+            // Check if message content indicates an error, as 'level' is not reliably typed
+            if (typeof logEntry.message === 'string' && logEntry.message.toLowerCase().includes('error')) {
+                console.error(`FFmpeg Error Log: ${logEntry.message}`);
+            }
+         });
 
           const inputFileName = file.name;
           // Sanitize filename for ffmpeg's virtual FS if necessary, though often not an issue with modern ffmpeg.wasm
@@ -88,31 +94,62 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           // console.log(`Writing file to FFmpeg FS: ${safeInputFileName}`);
           await ffmpeg.writeFile(safeInputFileName, await fetchFile(file));
 
-          // console.log('Executing FFmpeg command...');
-          await ffmpeg.exec(['-i', safeInputFileName, '-vf', 'scale=720:-1', '-c:v', 'libx264', '-crf', '28', '-preset', 'ultrafast', outputFileName]);
+          // console.log(`FFmpeg: Input file name for exec: ${safeInputFileName}`);
+          // console.log(`FFmpeg: Output file name for exec: ${outputFileName}`);
+          const ffmpegCommand = [
+            '-i', safeInputFileName,
+            '-vf', 'scale=720:-2', // Ensure height is even, often required by x264
+            '-c:v', 'libx264',
+            '-crf', '28',
+            '-preset', 'ultrafast',
+            '-movflags', '+faststart', // Added for better streamability
+            '-loglevel', 'error',     // Added to capture more detailed errors from FFmpeg
+            outputFileName
+          ];
+          // console.log('FFmpeg: Executing command:', ffmpegCommand.join(' '));
+          await ffmpeg.exec(ffmpegCommand);
           // console.log('FFmpeg command finished.');
 
           const fileData: FileData = await ffmpeg.readFile(outputFileName);
-          // console.log('Compressed file read from FFmpeg FS.');
+          // console.log('FFmpeg: readFile command finished.');
 
           let compressedFile: File;
           if (fileData instanceof Uint8Array) {
+            // console.log(`FFmpeg: Output fileData is Uint8Array. Length: ${fileData.length}`);
+            if (fileData.length === 0) {
+              console.error('FFmpeg: Critical Error - Output fileData is Uint8Array but its length is 0. This will result in an empty blob.');
+            }
             compressedFile = new File([fileData.buffer], file.name.replace(/\.[^/.]+$/, "_c.mp4"), { type: 'video/mp4' });
+            // console.log(`FFmpeg: Created compressedFile. Name: ${compressedFile.name}, Size: ${compressedFile.size}, Type: ${compressedFile.type}`);
           } else {
-            // This case should ideally not happen for binary video files.
-            // If it does, it's an error or unexpected data type.
-            console.error('FFmpeg readFile did not return Uint8Array for video file.');
-            // Fallback or error handling:
-            // Option 1: Throw an error to be caught by the main try/catch
+            console.error(`FFmpeg: Critical Error - Output fileData is NOT Uint8Array. Type: ${typeof fileData}. This is unexpected for video data.`);
+            // This will throw the error defined in the previous step, which is good.
             throw new Error('FFmpeg output was not in the expected format (Uint8Array).');
-            // Option 2: Try to upload original (if you prefer, but the error above is cleaner)
-            // onError('Unexpected error processing video. Uploading original.');
-            // setSelectedMedia(file); // original file
-            // onMediaSelect(file);
-            // setIsCompressing(false);
-            // return;
           }
 
+          if (compressedFile.size === 0) {
+            console.error('Compression resulted in a zero-byte file. Reverting to original file.');
+            onError('Video compression failed, resulting in an empty file. The original file will be used if you proceed.');
+
+            // Clean up potentially corrupted FFmpeg files
+            await ffmpeg.deleteFile(safeInputFileName);
+            await ffmpeg.deleteFile(outputFileName);
+
+            // Revoke URL from potentially empty compressed file preview
+            if (preview && preview.startsWith('blob:')) URL.revokeObjectURL(preview);
+
+            // Revert to original file for preview and upload
+            const originalPreviewUrl = URL.createObjectURL(file); // 'file' is the original input file
+            setPreview(originalPreviewUrl);
+            setSelectedMedia(file);
+            onMediaSelect(file); // Pass original file to parent
+            setIsVideo(true);
+            setIsCompressing(false); // Stop compression indication
+            setCompressionProgress(0);
+            return; // Exit further processing of compressed file
+          }
+
+          // console.log(`FFmpeg: Created compressedFile. Name: ${compressedFile.name}, Size: ${compressedFile.size}, Type: ${compressedFile.type}`);
           // Clean up virtual file system
           await ffmpeg.deleteFile(safeInputFileName);
           await ffmpeg.deleteFile(outputFileName);
