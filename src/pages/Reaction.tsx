@@ -151,7 +151,6 @@ const ReactionPage: React.FC = () => {
 
   const formattedDateDisplay = reaction?.createdAt ? format(new Date(reaction.createdAt), 'dd MMM yyyy, HH:mm') : 'Date not available';
 
-
   return (
     <MainLayout>
       <div className="mx-auto max-w-2xl px-4 py-8">
@@ -173,6 +172,7 @@ const ReactionPage: React.FC = () => {
             src={reaction.videoUrl}
             poster={reaction.thumbnailUrl || undefined}
             className="w-full aspect-video rounded-lg object-contain"
+            initialDurationSeconds={typeof reaction.duration === 'number' ? reaction.duration : undefined}
           />
           <button
             onClick={() => downloadVideo(reaction.videoUrl!, getDownloadFilename())}
