@@ -509,7 +509,7 @@ const Message: React.FC = () => {
                 </div>
                 <div className="grid gap-6 sm:grid-cols-2">
                   {hasReactions && normalizedMessage && normalizedMessage.reactions.map((reaction: Reaction & { name?: string; videoUrl?: string; thumbnailUrl?: string; duration?: number; replies?: { id: string; text: string; createdAt: string }[] }) => {
-                    console.log('[MessagePage] Reaction - ID:', reaction.id, 'videoUrl:', reaction.videoUrl, 'duration:', reaction.duration, 'thumbnailUrl:', reaction.thumbnailUrl); // This console.log now correctly uses reaction from normalizedMessage.reactions
+                    // console.log removed as per request
                     return (
                     <div key={reaction.id} className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
                       <div className="flex justify-between items-start mb-2">
