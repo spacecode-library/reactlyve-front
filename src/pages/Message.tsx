@@ -331,6 +331,7 @@ const Message: React.FC = () => {
                   poster={normalizedMessage.thumbnailUrl || undefined}
                   className="w-full max-w-lg"
                   autoPlay={false}
+                   initialDurationSeconds={typeof message.duration === 'number' ? message.duration : undefined}
               />
               <div className="mt-3">
                 <button
@@ -549,6 +550,7 @@ const Message: React.FC = () => {
                             poster={reaction.thumbnailUrl || undefined}
                             className="w-full rounded"
                             autoPlay={false}
+                             initialDurationSeconds={typeof reaction.duration === 'number' ? reaction.duration : undefined}
                           />
                           <button
                             onClick={() => {

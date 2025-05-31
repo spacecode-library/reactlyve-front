@@ -12,6 +12,7 @@ interface VideoPlayerProps {
   loop?: boolean;
   controls?: boolean;
   muted?: boolean;
+  initialDurationSeconds?: number;
 }
 
 const PLAYBACK_SPEED_OPTIONS = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
@@ -26,13 +27,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   loop = false,
   controls = true,
   muted = false,
+  initialDurationSeconds,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(autoPlay);
   const [isMuted, setIsMuted] = useState(muted);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [duration, setDuration] = useState(() => {
+    if (initialDurationSeconds && isFinite(initialDurationSeconds) && initialDurationSeconds > 0) {
+      return initialDurationSeconds * 1000; // Convert to milliseconds
+    }
+    return 0;
+  });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [volume, setVolume] = useState(1);
   const [currentPlaybackRate, setCurrentPlaybackRate] = useState(1.0);
@@ -47,10 +54,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   // Function to load metadata when video loads
   const handleLoadedMetadata = useCallback(() => {
     if (videoRef.current) {
-      setDuration(videoRef.current.duration * 1000);
+      const videoElementDuration = videoRef.current.duration;
+      if (isFinite(videoElementDuration) && videoElementDuration > 0) {
+        setDuration(videoElementDuration * 1000);
+      }
+      // If videoElementDuration is not valid, the duration state (potentially set by initialDurationSeconds)
+      // will not be overwritten by an invalid value from the video element.
       setIsLoading(false);
     }
-  }, []);
+  }, []); // No dependency on initialDurationSeconds here.
   
   // Function to update current time during playback
   const handleTimeUpdate = useCallback(() => {
