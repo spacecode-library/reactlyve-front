@@ -247,7 +247,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
           '-i', inputFileName, // Typically "input.webm" or similar for webcam recordings
           '-vf', "scale='if(gt(iw,ih),1280,-2)':'if(gt(iw,ih),-2,1280)'", // Updated scaling
           '-c:v', 'libx264',
-          '-crf', '23', // Updated CRF
+          '-crf', '25', // New CRF
           '-preset', 'ultrafast',
           '-movflags', '+faststart',
           '-loglevel', 'error',
@@ -461,9 +461,10 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
 
 
   return (
-    <div className={classNames('relative flex flex-col items-center justify-center text-center', className || '')}>
+    <> {/* Use a fragment if adding the overlay as a sibling to the main div */}
+      <div className={classNames('relative flex flex-col items-center justify-center text-center', className || '')}>
 
-      <h2 className="text-xl font-semibold mb-2">Record Your Lyve Reaction</h2>
+        <h2 className="text-xl font-semibold mb-2">Record Your Lyve Reaction</h2>
 
       {((showCountdown && !previewManuallyToggled) || showPreview) && (
         <div className="relative w-full max-w-md mt-2 mb-4 aspect-video">
@@ -484,31 +485,13 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
         </div>
       )}
 
-      {/* NEW: Compression Progress UI */}
-      {isCompressing && (
-        <div className="mt-4 w-full max-w-xs">
-          <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-            Compressing video...
-          </p>
-          <div className="w-full bg-neutral-200 rounded-full h-2.5 dark:bg-neutral-700">
-            <div
-              className="bg-primary-600 h-2.5 rounded-full transition-all duration-150"
-              style={{ width: `${Math.max(0, Math.min(100, Math.round(compressionProgress * 100)))}%` }}
-            ></div>
-          </div>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-            {Math.max(0, Math.min(100, Math.round(compressionProgress * 100)))}%
-          </p>
-        </div>
-      )}
-
-      {isRecording && !isCompressing && ( // Ensure not shown during compression
+      {isRecording && !isCompressing && (
         <p className="text-red-500 mt-2 text-sm font-medium">
           Recording... {recordingCountdown !== null ? `${recordingCountdown}s left` : ''}
         </p>
       )}
 
-      {recordingCompleted && !isCompressing && ( // Ensure not shown during compression
+      {recordingCompleted && !isCompressing && !isUploading && (
         <p className="text-green-600 mt-2">Recording complete!</p>
       )}
 
@@ -524,13 +507,31 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
         </button>
       )}
 
-      {isUploading && !hideUploadSpinner && !isCompressing && ( // Ensure not shown during compression
+      {isUploading && !hideUploadSpinner && !isCompressing && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
-
     </div>
+
+      {/* NEW Full-Screen Compression Overlay */}
+      {isCompressing && (
+        <div className="fixed inset-0 bg-black/70 flex flex-col items-center justify-center z-50">
+          <div className="h-16 w-16 animate-spin rounded-full border-8 border-neutral-300 border-t-primary-600 mb-4"></div>
+          <p className="text-white text-xl font-semibold">Compressing Video...</p>
+          <p className="text-neutral-200 text-md mb-2">Please wait a moment.</p>
+          <div className="w-3/4 max-w-xs sm:max-w-sm md:max-w-md bg-neutral-600 rounded-full h-2.5">
+            <div
+              className="bg-primary-500 h-2.5 rounded-full transition-all duration-150"
+              style={{ width: `${Math.max(0, Math.min(100, Math.round(compressionProgress * 100)))}%` }}
+            ></div>
+          </div>
+          <p className="text-neutral-100 text-sm mt-2">
+            {Math.max(0, Math.min(100, Math.round(compressionProgress * 100)))}%
+          </p>
+        </div>
+      )}
+    </>
   );
 };
 

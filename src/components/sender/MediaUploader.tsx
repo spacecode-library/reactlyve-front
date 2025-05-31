@@ -100,7 +100,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
             '-i', safeInputFileName,
             '-vf', "scale='if(gt(iw,ih),1280,-2)':'if(gt(iw,ih),-2,1280)'", // Updated scaling
             '-c:v', 'libx264',
-            '-crf', '23', // Updated CRF
+            '-crf', '25', // New CRF
             '-preset', 'ultrafast',
             '-movflags', '+faststart', // Added for better streamability
             '-loglevel', 'error',     // Added to capture more detailed errors from FFmpeg
