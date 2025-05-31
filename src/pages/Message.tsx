@@ -232,7 +232,7 @@ const Message: React.FC = () => {
     }
   };
   
-  const normalizedMessage = normalizeMessage(message);
+  const normalizedMessage = message ? normalizeMessage(message) : null;
   
   const copyToClipboard = (text: string | undefined, type: 'passcode' | 'link') => {
     if (!text) return;
@@ -298,12 +298,16 @@ const Message: React.FC = () => {
     );
   }
 
-  const { formattedDate, timeAgo } = formatDate(message.createdAt);
+  // Message is guaranteed to be non-null here due to the check above,
+  // so normalizedMessage will also be non-null.
+  const { formattedDate, timeAgo } = formatDate(normalizedMessage!.createdAt);
   
-  const hasReactions = message.reactions && message.reactions.length > 0;
+  const hasReactions = normalizedMessage && normalizedMessage.reactions && normalizedMessage.reactions.length > 0;
 
   let imageElement = null;
-  if (normalizedMessage.mediaType === 'image' && normalizedMessage.imageUrl) {
+  // normalizedMessage could be null if message was null, but the `if (error || !message)` block handles that.
+  // However, to be extremely safe, we can add a check for normalizedMessage here.
+  if (normalizedMessage && normalizedMessage.mediaType === 'image' && normalizedMessage.imageUrl) {
       const transformedImgUrl = normalizedMessage.imageUrl ? getTransformedCloudinaryUrl(normalizedMessage.imageUrl, normalizedMessage.fileSizeInBytes || 0) : '';
       // console.log('[MessagePage] Image - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.imageUrl, 'Transformed URL:', transformedImgUrl);
       imageElement = (
@@ -315,7 +319,8 @@ const Message: React.FC = () => {
   }
 
   let videoElement = null;
-  if (normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl) {
+  // Similar safety check for normalizedMessage
+  if (normalizedMessage && normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl) {
       const transformedVidUrl = normalizedMessage.videoUrl ? getTransformedCloudinaryUrl(normalizedMessage.videoUrl, normalizedMessage.fileSizeInBytes || 0) : '';
       // console.log('[MessagePage] Video - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.videoUrl, 'Transformed URL:', transformedVidUrl);
       videoElement = (
@@ -329,7 +334,7 @@ const Message: React.FC = () => {
               />
               <div className="mt-3">
                 <button
-                  onClick={() => downloadVideo(normalizedMessage.videoUrl!, 'message-video.mp4')}
+                  onClick={() => downloadVideo(normalizedMessage!.videoUrl!, 'message-video.mp4')}
                   className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                 >
                   <DownloadIcon size={16} />
@@ -465,12 +470,12 @@ const Message: React.FC = () => {
                 </div>
               )}
               {/* Reaction Length Display */}
-              {message && typeof message.reaction_length === 'number' && (
+              {normalizedMessage && typeof normalizedMessage.reaction_length === 'number' && (
                 <div>
                   <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Reaction Length</h2>
                   <div className="flex items-center justify-between gap-2 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
                     <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                      {message.reaction_length} seconds
+                      {normalizedMessage.reaction_length} seconds
                     </p>
                     <button
                       onClick={handleOpenReactionLengthModal}
@@ -493,7 +498,7 @@ const Message: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => setShowDeleteAllReactionsModal(true)}
-                    disabled={isDeletingAllReactions || !message?.reactions?.length}
+                    disabled={isDeletingAllReactions || !normalizedMessage?.reactions?.length}
                     isLoading={isDeletingAllReactions}
                     className="text-red-600 border-red-600 hover:bg-red-50 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-900/30"
                   >
@@ -502,8 +507,8 @@ const Message: React.FC = () => {
                   </Button>
                 </div>
                 <div className="grid gap-6 sm:grid-cols-2">
-                  {message.reactions.map((reaction: Reaction & { name?: string; videoUrl?: string; thumbnailUrl?: string; duration?: number; replies?: { id: string; text: string; createdAt: string }[] }) => {
-                    console.log('[MessagePage] Reaction - ID:', reaction.id, 'videoUrl:', reaction.videoUrl, 'duration:', reaction.duration, 'thumbnailUrl:', reaction.thumbnailUrl); // Ensure semicolon here
+                  {hasReactions && normalizedMessage && normalizedMessage.reactions.map((reaction: Reaction & { name?: string; videoUrl?: string; thumbnailUrl?: string; duration?: number; replies?: { id: string; text: string; createdAt: string }[] }) => {
+                    console.log('[MessagePage] Reaction - ID:', reaction.id, 'videoUrl:', reaction.videoUrl, 'duration:', reaction.duration, 'thumbnailUrl:', reaction.thumbnailUrl); // This console.log now correctly uses reaction from normalizedMessage.reactions
                     return (
                     <div key={reaction.id} className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
                       <div className="flex justify-between items-start mb-2">
