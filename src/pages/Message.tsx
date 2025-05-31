@@ -305,7 +305,7 @@ const Message: React.FC = () => {
   let imageElement = null;
   if (normalizedMessage.mediaType === 'image' && normalizedMessage.imageUrl) {
       const transformedImgUrl = normalizedMessage.imageUrl ? getTransformedCloudinaryUrl(normalizedMessage.imageUrl, normalizedMessage.fileSizeInBytes || 0) : '';
-      console.log('[MessagePage] Image - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.imageUrl, 'Transformed URL:', transformedImgUrl);
+      // console.log('[MessagePage] Image - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.imageUrl, 'Transformed URL:', transformedImgUrl);
       imageElement = (
           <div className="mb-6">
               <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Image</h2>
@@ -317,7 +317,7 @@ const Message: React.FC = () => {
   let videoElement = null;
   if (normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl) {
       const transformedVidUrl = normalizedMessage.videoUrl ? getTransformedCloudinaryUrl(normalizedMessage.videoUrl, normalizedMessage.fileSizeInBytes || 0) : '';
-      console.log('[MessagePage] Video - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.videoUrl, 'Transformed URL:', transformedVidUrl);
+      // console.log('[MessagePage] Video - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.videoUrl, 'Transformed URL:', transformedVidUrl);
       videoElement = (
           <div className="mb-6">
               <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Video</h2>
@@ -502,7 +502,9 @@ const Message: React.FC = () => {
                   </Button>
                 </div>
                 <div className="grid gap-6 sm:grid-cols-2">
-                  {message.reactions.map((reaction: Reaction & { name?: string; videourl?: string; thumbnailurl?: string; replies?: { id: string; text: string; createdAt: string }[] }) => (
+                  {message.reactions.map((reaction: Reaction & { name?: string; videoUrl?: string; thumbnailUrl?: string; duration?: number; replies?: { id: string; text: string; createdAt: string }[] }) => {
+                    console.log('[MessagePage] Reaction - ID:', reaction.id, 'videoUrl:', reaction.videoUrl, 'duration:', reaction.duration, 'thumbnailUrl:', reaction.thumbnailUrl);
+                    return (
                     <div key={reaction.id} className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
                       <div className="flex justify-between items-start mb-2">
                         <div>
@@ -535,18 +537,18 @@ const Message: React.FC = () => {
                         </Button>
                       </div>
 
-                      {reaction.videourl ? (
+                      {reaction.videoUrl ? (
                         <>
                           <VideoPlayer
-                            src={reaction.videourl}
-                            poster={reaction.thumbnailurl || undefined}
+                            src={reaction.videoUrl}
+                            poster={reaction.thumbnailUrl || undefined}
                             className="w-full rounded"
                             autoPlay={false}
                           />
                           <button
                             onClick={() => {
-                              if (!reaction.videourl) {
-                                console.error("Download clicked but no videourl present for reaction:", reaction.id);
+                              if (!reaction.videoUrl) {
+                                console.error("Download clicked but no videoUrl present for reaction:", reaction.id);
                                 return;
                               }
 
@@ -575,7 +577,7 @@ const Message: React.FC = () => {
                               // 5. File Extension Part
                               let extension = "video"; // Default extension
                               try {
-                                const urlPath = new URL(reaction.videourl).pathname;
+                                const urlPath = new URL(reaction.videoUrl).pathname;
                                 const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
                                 if (lastSegment.includes('.')) {
                                   const ext = lastSegment.split('.').pop();
@@ -589,13 +591,18 @@ const Message: React.FC = () => {
                               const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
                               const finalFilename = `${sanitizedName}.${extension}`;
 
-                              downloadVideo(reaction.videourl, finalFilename);
+                              downloadVideo(reaction.videoUrl, finalFilename);
                             }}
                             className="mt-3 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                           >
                             <DownloadIcon size={16} />
                             Download Reaction
                           </button>
+                          {reaction.duration && (
+                            <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                              Duration: {Math.floor(reaction.duration / 60)}:{(reaction.duration % 60).toString().padStart(2, '0')}
+                            </p>
+                          )}
                         </>
                       ) : (
                         (!reaction.replies || reaction.replies.length === 0) && (

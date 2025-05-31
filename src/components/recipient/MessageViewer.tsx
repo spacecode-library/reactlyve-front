@@ -220,7 +220,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       {(() => {
         if (normalizedMessage.mediaType === 'image' && normalizedMessage.imageUrl) {
           const transformedImgUrl = normalizedMessage.imageUrl ? getTransformedCloudinaryUrl(normalizedMessage.imageUrl, normalizedMessage.fileSizeInBytes || 0) + `?retry=${imageRetryCount}` : '';
-          console.log('[MessageViewer] Image - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.imageUrl, 'Transformed URL:', transformedImgUrl);
+          // console.log('[MessageViewer] Image - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.imageUrl, 'Transformed URL:', transformedImgUrl);
           return (
             <div className="mt-4 rounded-lg overflow-hidden">
               {imageError && imageRetryCount < MAX_RETRIES ? (
@@ -256,7 +256,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       {(() => {
         if (normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl) {
           const transformedVidUrl = normalizedMessage.videoUrl ? getTransformedCloudinaryUrl(normalizedMessage.videoUrl, normalizedMessage.fileSizeInBytes || 0) + `?retry=${videoRetryCount}` : '';
-          console.log('[MessageViewer] Video - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.videoUrl, 'Transformed URL:', transformedVidUrl);
+          // console.log('[MessageViewer] Video - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.videoUrl, 'Transformed URL:', transformedVidUrl);
           return (
             <div className="mt-4 rounded-lg overflow-hidden">
               {videoError && videoRetryCount < MAX_RETRIES ? (

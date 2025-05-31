@@ -52,6 +52,7 @@ export const normalizeReaction = (reaction: any) => {
     updatedAt: reaction.updatedAt || reaction.updatedat,
     videoUrl: reaction.videoUrl || reaction.videourl,
     thumbnailUrl: reaction.thumbnailUrl || reaction.thumbnailurl,
+    duration: reaction.duration || reaction.videoDuration || reaction.video_duration || undefined,
     replies: reaction.replies || [],
   };
 };
