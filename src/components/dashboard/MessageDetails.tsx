@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Message } from '../../types/message';
 import ReactionViewer from './ReactionViewer';
 import { formatDate } from '../../utils/formatters';
@@ -16,7 +16,9 @@ interface MessageDetailsProps {
 }
 
 const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReaction, onMessageUpdate }) => {
-  const normalizedMessage = normalizeMessage(message);
+  const normalizedMessage = useMemo(() => {
+    return normalizeMessage(message);
+  }, [message]);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showQrCode, setShowQrCode] = useState(false);
 
