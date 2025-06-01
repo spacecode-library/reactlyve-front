@@ -337,7 +337,9 @@ const Message: React.FC = () => {
                 <button
                   onClick={() => {
                     if (transformedVidUrl) {
-                      downloadVideo(transformedVidUrl, 'message-video.mp4');
+                      const extension = transformedVidUrl?.split('.').pop()?.split('?')[0] || 'mp4';
+                      const filename = `message-video.${extension}`;
+                      downloadVideo(transformedVidUrl, filename);
                     } else {
                       // Optionally, provide feedback to the user or log this case
                       console.warn('Download button clicked, but transformedVidUrl is not available.');
@@ -590,16 +592,16 @@ const Message: React.FC = () => {
                                         console.error("Error formatting date for filename:", e);
                                       }
                                     }
-                                    let extension = "video";
+                                    let extension = "video"; // Default fallback
                                     try {
                                       const urlPath = new URL(transformedReactionVideoUrl).pathname;
                                       const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
                                       if (lastSegment.includes('.')) {
-                                        const ext = lastSegment.split('.').pop();
+                                        const ext = lastSegment.split('.').pop()?.split('?')[0];
                                         if (ext) extension = ext;
                                       }
                                     } catch (e) {
-                                      console.error("Could not parse video URL for extension:", e);
+                                      console.error("Could not parse transformed reaction video URL for extension:", e);
                                     }
                                     const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
                                     const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');

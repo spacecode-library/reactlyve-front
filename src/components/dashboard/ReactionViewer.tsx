@@ -66,7 +66,7 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
 
               <a
                 href={transformedVideoUrl || '#'}
-                download={`reaction-${reaction.id}.${transformedVideoUrl?.split('.').pop() || 'webm'}`}
+                download={`reaction-${reaction.id}.${transformedVideoUrl?.split('.').pop()?.split('?')[0] || 'webm'}`}
                 className={classNames(
                   "btn btn-outline btn-sm",
                   !transformedVideoUrl && "btn-disabled opacity-50 cursor-not-allowed"
