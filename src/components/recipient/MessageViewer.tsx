@@ -155,11 +155,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     try {
       const currentSessionId = String(sessionId); // Ensure it's a string
       // The console log should use currentSessionId too
-      console.log('Attempting to initialize reaction. Parameters:', {
-        messageId: message.id,
-        sessionId: currentSessionId,
-        name: recipientName || undefined
-      });
       const res = await reactionsApi.init(message.id, currentSessionId, recipientName || undefined);
       if (res.data.reactionId) {
         setReactionId(res.data.reactionId);
