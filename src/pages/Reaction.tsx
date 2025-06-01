@@ -150,6 +150,8 @@ const ReactionPage: React.FC = () => {
             onClick={() => {
               if (processedVideoUrl) {
                 const prefix = "Reactlyve";
+                console.log('parentMessage at download:', parentMessage);
+                console.log('parentMessage?.content at download:', parentMessage?.content);
                 let titlePart = "video";
                 if (parentMessage && parentMessage.content) {
                   titlePart = parentMessage.content.replace(/\s+/g, '_').substring(0, 5);
