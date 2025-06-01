@@ -1,5 +1,8 @@
 // src/utils/mediaHelpers.ts
 
+export const SMALL_FILE_OVERLAY = "f_auto,q_auto,l_reactlyve:81ad2da14e6d70f29418ba02a7d2aa96,w_0.1,g_south_east,x_10,y_10,fl_layer_apply";
+export const LARGE_FILE_OVERLAY = "w_1280,c_limit,q_auto,f_auto,l_reactlyve:81ad2da14e6d70f29418ba02a7d2aa96,w_0.1,g_south_east,x_10,y_10,fl_layer_apply";
+
 /**
  * Request camera and microphone permissions
  * @param video - Video constraints
@@ -243,11 +246,9 @@ export const isIOS = (): boolean => {
 export const getTransformedCloudinaryUrl = (originalUrl: string, fileSizeInBytes: number): string => {
   console.log(`[getTransformedCloudinaryUrl] Input - Original URL: "${originalUrl}", Size: ${fileSizeInBytes} bytes`);
 
-  const smallFileTransformation = "f_auto"; // Automatically select format
-  const largeFileTransformation = "w_1280,c_limit,q_auto,f_auto"; // Limit width, auto quality, auto format
   const tenMBInBytes = 10 * 1024 * 1024; // 10MB threshold
 
-  const transformationString = fileSizeInBytes < tenMBInBytes ? smallFileTransformation : largeFileTransformation;
+  const transformationString = fileSizeInBytes < tenMBInBytes ? SMALL_FILE_OVERLAY : LARGE_FILE_OVERLAY;
 
   const uploadMarker = '/upload/';
   const parts = originalUrl.split(uploadMarker);
