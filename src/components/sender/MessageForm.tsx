@@ -99,7 +99,7 @@
       
 //       for (const key of possibleLinkKeys) {
 //         if (response.data[key]) {
-//           console.log(`Found shareable link with key "${key}":`, response.data[key]);
+//           //console.log(`Found shareable link with key "${key}":`, response.data[key]);
 //           setShareableLink(response.data[key]);
 //           linkFound = true;
 //           break;
@@ -351,7 +351,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
       // Add reaction length
       formData.append('reaction_length', data.reaction_length.toString());
       
-      console.log('Form data being sent:', Object.fromEntries(formData.entries()));
+      //console.log('Form data being sent:', Object.fromEntries(formData.entries()));
       
       // Call API to create message with FormData
       const response = await messagesApi.createWithFormData(formData);
