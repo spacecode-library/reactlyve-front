@@ -161,19 +161,35 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
   }, [facingMode, width, height, audio, checkPermission]); // checkPermission is a dependency of startWebcam
 
   const stopWebcam = useCallback(() => {
+    console.log('[useWebcam] stopWebcam called.'); // New Log
     if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      setStream(null);
+        console.log('[useWebcam] Stream found, stopping tracks.'); // New Log
+        const tracks = stream.getTracks();
+        console.log(`[useWebcam] Found ${tracks.length} tracks to stop.`); // New Log
+        tracks.forEach((track, index) => {
+            console.log(`[useWebcam] Stopping track ${index}: ${track.kind} - ${track.label}`); // New Log
+            track.stop();
+        });
+        setStream(null); // Set stream to null after stopping tracks
+        console.log('[useWebcam] Stream tracks stopped and stream state set to null.'); // New Log
+    } else {
+        console.log('[useWebcam] No active stream to stop.'); // New Log
     }
+
     if (videoRef.current) {
-      videoRef.current.srcObject = null;
-      try {
-        videoRef.current.pause();
-      } catch {
-        // no-op
-      }
+        console.log('[useWebcam] videoRef found, clearing srcObject and pausing.'); // New Log
+        videoRef.current.srcObject = null;
+        try {
+            videoRef.current.pause(); // It's good practice to pause it as well
+            console.log('[useWebcam] videoRef paused.'); // New Log
+        } catch (e) {
+            console.warn('[useWebcam] Error pausing videoRef:', e); // New Log
+        }
+    } else {
+        console.log('[useWebcam] No videoRef to clear.'); // New Log
     }
-  }, [stream]);
+    console.log('[useWebcam] stopWebcam finished.'); // New Log
+  }, [stream, videoRef]); // videoRef should be stable, but include if it's part of hook's context
 
   return {
     stream,

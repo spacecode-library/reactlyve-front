@@ -221,26 +221,24 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   useEffect(() => {
     const processAndCompleteRecording = async (blob: Blob) => {
       let blobToUpload = blob;
-      if (blob.size > COMPRESSION_THRESHOLD_BYTES) {
-        setIsCompressing(true);
-        setCompressionProgress(0);
-        onStatusUpdate?.('Compressing video...');
+      let processingError: Error | null = null;
 
-        const ffmpeg = ffmpegRef.current;
-        if (!ffmpeg.loaded) {
-          console.error('FFmpeg not loaded (WebcamRecorder). Cannot compress.');
-          onWebcamError?.('Compression components not ready. Uploading original.');
-          // No onRecordingComplete here yet, will be called after stopWebcam
-        } else {
+      // Outer try/finally to ensure webcam is stopped once processing is attempted.
+      try {
+        if (blob.size > COMPRESSION_THRESHOLD_BYTES && ffmpegRef.current.loaded) {
+          setIsCompressing(true);
+          onStatusUpdate?.('Compressing video...');
+          console.log('[WebcamRecorder] Starting video compression.'); // New Log
+
           try {
-            ffmpeg.on('progress', ({ progress }) => {
+            ffmpegRef.current.on('progress', ({ progress }) => {
               setCompressionProgress(progress < 0 ? 0 : progress > 1 ? 1 : progress);
             });
 
             const inputFileName = "input.webm";
             const outputFileName = "output_compressed.mp4";
 
-            await ffmpeg.writeFile(inputFileName, await fetchFile(blob));
+            await ffmpegRef.current.writeFile(inputFileName, await fetchFile(blob));
 
             const ffmpegCommand = [
               '-i', inputFileName,
@@ -252,39 +250,56 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
               '-loglevel', 'error',
               outputFileName
             ];
-            await ffmpeg.exec(ffmpegCommand);
+            await ffmpegRef.current.exec(ffmpegCommand);
 
-            const data: FileData = await ffmpeg.readFile(outputFileName);
+            const data: FileData = await ffmpegRef.current.readFile(outputFileName);
             if (data instanceof Uint8Array && data.length > 0) {
               blobToUpload = new Blob([data.buffer], { type: 'video/mp4' });
             } else {
               console.error('FFmpeg (WebcamRecorder): Compression resulted in a zero-byte or non-Uint8Array file. Using original.');
               onWebcamError?.('Compression failed. Uploading original.');
-              // blobToUpload remains the original blob
+              blobToUpload = blob; // Ensure original blob is used
             }
-            await ffmpeg.deleteFile(inputFileName);
-            await ffmpeg.deleteFile(outputFileName);
+            await ffmpegRef.current.deleteFile(inputFileName);
+            await ffmpegRef.current.deleteFile(outputFileName);
+            console.log('[WebcamRecorder] Video compression finished.'); // New Log
           } catch (error) {
             console.error('Error during video compression (WebcamRecorder):', error);
             onWebcamError?.('Error during compression. Uploading original.');
-            // blobToUpload remains the original blob
+            processingError = error as Error; // Store error, will upload original
+            blobToUpload = blob; // Fallback to original blob
+          } finally {
+            setIsCompressing(false);
+            setCompressionProgress(0);
+            onStatusUpdate?.(null);
           }
+        } else {
+          if (blob.size > COMPRESSION_THRESHOLD_BYTES && !ffmpegRef.current.loaded) {
+            console.warn('[WebcamRecorder] FFmpeg not loaded. Skipping compression.');
+            onWebcamError?.('Compression components not ready. Uploading original.');
+          }
+          // console.log('[WebcamRecorder] Skipping compression.'); // Optional log
         }
-        setIsCompressing(false);
-        setCompressionProgress(0);
-        onStatusUpdate?.(null);
-      } else {
-        onStatusUpdate?.('Processing complete. Uploading original...');
-        // blobToUpload is already the original blob
-        // Small delay for the status message if needed, then clear it
-        // setTimeout(() => onStatusUpdate?.(null), 2000); // Optional: clear status after a bit
+      } catch (error) {
+        // Catch any unexpected errors during the decision/setup for compression
+        console.error('[WebcamRecorder] Error in processing logic:', error);
+        processingError = error as Error;
+        blobToUpload = blob; // Ensure blobToUpload is the original blob
+      } finally {
+        console.log('[WebcamRecorder] Calling stopWebcam() in processAndCompleteRecording finally block.'); // New Log
+        stopWebcam(); // Ensure webcam is stopped regardless of processing success/failure.
       }
 
-      stopWebcam(); // Stop webcam BEFORE calling onRecordingComplete
-
-      // setIsRecording(false); // This is handled by the calling useEffect
-
-      onRecordingComplete(blobToUpload); // Upload callback, not awaited here
+      // Now that webcam is stopped, call the completion callback.
+      // This happens outside the try/finally for stopping the webcam.
+      if (processingError) {
+        // If there was a processing error, onRecordingComplete still needs to be called
+        // so the application flow can continue (e.g. upload original, show error message)
+        console.log('[WebcamRecorder] Processing error occurred, calling onRecordingComplete with original blob.');
+      } else {
+        console.log('[WebcamRecorder] Processing complete, calling onRecordingComplete.');
+      }
+      onRecordingComplete(blobToUpload);
     };
 
     if (recordingStatus === 'stopped' && recordedBlob && !recordingCompleted) {
@@ -299,6 +314,20 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       // Removed stopWebcam() and videoRef cleanup from here
     }
   }, [recordingStatus, recordedBlob, recordingCompleted, onRecordingComplete, stopWebcam, onWebcamError, onStatusUpdate]);
+
+  // Add this new useEffect for failsafe cleanup:
+  useEffect(() => {
+    // This effect runs once on mount and returns a cleanup function.
+    console.log('[WebcamRecorder] Mount or dependency change, registering cleanup effect.'); // New Log
+
+    return () => {
+        console.log('[WebcamRecorder] Unmounting or dependency change, calling stopWebcam from cleanup effect.'); // New Log
+        // Call the stopWebcam function from the useWebcam hook.
+        // This ensures that if the component unmounts for any reason,
+        // an attempt is made to stop the webcam.
+        stopWebcam();
+    };
+  }, [stopWebcam]); // `stopWebcam` is a dependency. It's a stable function from useCallback in useWebcam.
 
 
 
