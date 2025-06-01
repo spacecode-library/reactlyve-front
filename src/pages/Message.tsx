@@ -546,11 +546,9 @@ const Message: React.FC = () => {
                       {reaction.videoUrl ? (
                         <>
                           {(() => {
-                            // TODO: Confirm if reaction.fileSizeInBytes is consistently available.
-                            // If not, the default of 0 for getTransformedCloudinaryUrl might always use the small file overlay.
                             let transformedReactionVideoUrl = reaction.videoUrl;
                             if (reaction.videoUrl) {
-                              transformedReactionVideoUrl = getTransformedCloudinaryUrl(reaction.videoUrl, reaction.fileSizeInBytes || 0);
+                              transformedReactionVideoUrl = getTransformedCloudinaryUrl(reaction.videoUrl, 0);
                             }
                             return (
                               <VideoPlayer
