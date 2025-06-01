@@ -9,7 +9,7 @@ const AuthCallback = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
-  console.log(token,"token")
+  //console.log(token,"token")
   
   useEffect(() => {
     if (token) {
