@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { CopyIcon } from 'lucide-react';
@@ -96,7 +96,9 @@ const MessageList: React.FC<MessageListProps> = ({
     );
   }
 
-const normalizedMessages = messages.map(normalizeMessage);
+  const normalizedMessages = useMemo(() => {
+    return messages.map(normalizeMessage);
+  }, [messages]);
 
   return (
     <div className={className}>

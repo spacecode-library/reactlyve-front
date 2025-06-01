@@ -30,31 +30,74 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
   const [error, setError] = useState<Error | null>(null);
   const [permissionState, setPermissionState] = useState<PermissionState | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const permissionListenersRef = useRef<{
+    cam?: { obj: PermissionStatus; lis: () => void };
+    mic?: { obj: PermissionStatus; lis: () => void };
+  } | null>(null);
 
   const checkPermission = useCallback(async () => {
     try {
       if (navigator.permissions?.query) {
-        const cam = await navigator.permissions.query({ name: 'camera' as PermissionName });
-        const mic = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        const camPermission = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        const micPermission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
 
-        setPermissionState(
-          cam.state === 'granted' && mic.state === 'granted' ? 'granted' : cam.state
-        );
+        // Define listener functions
+        const updateCombinedPermissionState = () => {
+          if (camPermission.state === 'granted' && micPermission.state === 'granted') {
+            setPermissionState('granted');
+          } else if (camPermission.state === 'denied' || micPermission.state === 'denied') {
+            setPermissionState('denied');
+          } else {
+            setPermissionState('prompt');
+          }
+        };
 
-        cam.addEventListener('change', () => setPermissionState(cam.state));
-        mic.addEventListener('change', () => setPermissionState(mic.state));
+        const camListener = () => updateCombinedPermissionState();
+        const micListener = () => updateCombinedPermissionState();
+
+        // Remove old listeners before adding new ones
+        if (permissionListenersRef.current?.cam) {
+          permissionListenersRef.current.cam.obj.removeEventListener('change', permissionListenersRef.current.cam.lis);
+        }
+        if (permissionListenersRef.current?.mic) {
+          permissionListenersRef.current.mic.obj.removeEventListener('change', permissionListenersRef.current.mic.lis);
+        }
+
+        // Add new listeners
+        camPermission.addEventListener('change', camListener);
+        micPermission.addEventListener('change', micListener);
+
+        // Store new listeners and permission objects for cleanup and future removals
+        permissionListenersRef.current = {
+          cam: { obj: camPermission, lis: camListener },
+          mic: { obj: micPermission, lis: micListener },
+        };
+
+        // Set initial combined state
+        updateCombinedPermissionState();
       }
     } catch (err) {
       console.warn('Permission check failed:', err);
+      // Optionally set an error state or a specific permission state indicating failure
+      setPermissionState(null); // Or 'denied' or some error state
     }
-  }, []);
+  }, [setPermissionState]); // setPermissionState is stable, but good to list if directly used like this.
 
   useEffect(() => {
     checkPermission();
+
     return () => {
       stopWebcam();
+      // Remove listeners on cleanup
+      if (permissionListenersRef.current?.cam) {
+        permissionListenersRef.current.cam.obj.removeEventListener('change', permissionListenersRef.current.cam.lis);
+      }
+      if (permissionListenersRef.current?.mic) {
+        permissionListenersRef.current.mic.obj.removeEventListener('change', permissionListenersRef.current.mic.lis);
+      }
+      permissionListenersRef.current = null;
     };
-  }, [checkPermission]);
+  }, [checkPermission]); // Removed stopWebcam from here as it's defined below and doesn't change
 
   const withTimeout = async <T>(promise: Promise<T>, ms: number): Promise<T> => {
     let timeout: ReturnType<typeof setTimeout> | undefined; // ✅ FIXED: safely defined
@@ -115,7 +158,7 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
     } finally {
       setIsLoading(false);
     }
-  }, [facingMode, width, height, audio, checkPermission]);
+  }, [facingMode, width, height, audio, checkPermission]); // checkPermission is a dependency of startWebcam
 
   const stopWebcam = useCallback(() => {
     if (stream) {

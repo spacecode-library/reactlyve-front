@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom'; // Import Link
 import WebcamRecorder from './WebcamRecorder';
 import PermissionRequest from './PermissionRequest';
@@ -61,6 +61,18 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
     : '';
 
+  const transformedImgUrl = useMemo(() => {
+    return normalizedMessage.imageUrl
+      ? getTransformedCloudinaryUrl(normalizedMessage.imageUrl, normalizedMessage.fileSizeInBytes || 0) + `?retry=${imageRetryCount}`
+      : '';
+  }, [normalizedMessage.imageUrl, normalizedMessage.fileSizeInBytes, imageRetryCount]);
+
+  const transformedVidUrl = useMemo(() => {
+    return normalizedMessage.videoUrl
+      ? getTransformedCloudinaryUrl(normalizedMessage.videoUrl, normalizedMessage.fileSizeInBytes || 0) + `?retry=${videoRetryCount}`
+      : '';
+  }, [normalizedMessage.videoUrl, normalizedMessage.fileSizeInBytes, videoRetryCount]);
+
   const [sessionId] = useState(() => {
     const id = uuidv4();
     sessionStorage.setItem(`reaction-session-${message.id}`, JSON.stringify({ id, createdAt: Date.now() }));
@@ -91,11 +103,12 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     setVideoRetryCount(prev => prev + 1);
   }, []);
 
-  const handleReactionComplete = async (blob: Blob) => {
+  const handleReactionComplete = useCallback(async (blob: Blob) => {
     setIsUploading(true); 
     try {
       if (!reactionId) throw new Error('Missing reaction ID');
       onLocalRecordingComplete?.();
+      // Assuming reactionsApi.uploadVideoToReaction is stable or doesn't need to be a dependency
       await reactionsApi.uploadVideoToReaction(reactionId, blob);
       await onRecordReaction(message.id, blob);
       setIsReactionRecorded(true);
@@ -107,7 +120,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     } finally {
       setIsUploading(false); 
     }
-  };
+  }, [reactionId, onLocalRecordingComplete, onRecordReaction, message.id]);
 
   const handleSendReply = async () => {
     const text = replyText.trim();
@@ -218,8 +231,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       </div>
 
       {(() => {
-        if (normalizedMessage.mediaType === 'image' && normalizedMessage.imageUrl) {
-          const transformedImgUrl = normalizedMessage.imageUrl ? getTransformedCloudinaryUrl(normalizedMessage.imageUrl, normalizedMessage.fileSizeInBytes || 0) + `?retry=${imageRetryCount}` : '';
+        if (normalizedMessage.mediaType === 'image' && transformedImgUrl) {
           // console.log('[MessageViewer] Image - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.imageUrl, 'Transformed URL:', transformedImgUrl);
           return (
             <div className="mt-4 rounded-lg overflow-hidden">
@@ -254,8 +266,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       })()}
 
       {(() => {
-        if (normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl) {
-          const transformedVidUrl = normalizedMessage.videoUrl ? getTransformedCloudinaryUrl(normalizedMessage.videoUrl, normalizedMessage.fileSizeInBytes || 0) + `?retry=${videoRetryCount}` : '';
+        if (normalizedMessage.mediaType === 'video' && transformedVidUrl) {
           // console.log('[MessageViewer] Video - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.videoUrl, 'Transformed URL:', transformedVidUrl);
           return (
             <div className="mt-4 rounded-lg overflow-hidden">
