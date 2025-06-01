@@ -36,18 +36,12 @@ const ReactionPage: React.FC = () => {
         const rawReactionData = reactionRes.data;
         if (rawReactionData) {
           const normalizedReactionData = normalizeReaction(rawReactionData);
-          console.log('useEffect: normalizedReactionData:', normalizedReactionData);
-          console.log('useEffect: normalizedReactionData.messageid:', normalizedReactionData?.messageid);
           setReaction(normalizedReactionData);
 
           // Fetch the parent message if available
           if (normalizedReactionData?.messageid) {
-            console.log('useEffect: Fetching parent message with ID:', normalizedReactionData.messageid);
             const messageRes = await messagesApi.getById(normalizedReactionData.messageid);
-            console.log('useEffect: Parent message API response (messageRes):', messageRes);
             const fetchedParentMessage = messageRes.data;
-            console.log('useEffect: Fetched parent message data (fetchedParentMessage):', fetchedParentMessage);
-            console.log('useEffect: Attempting to set parentMessage state with:', fetchedParentMessage);
             setParentMessage(fetchedParentMessage);
 
             if (fetchedParentMessage?.reactions) {
@@ -156,8 +150,6 @@ const ReactionPage: React.FC = () => {
             onClick={() => {
               if (processedVideoUrl) {
                 const prefix = "Reactlyve";
-                console.log('parentMessage at download:', parentMessage);
-                console.log('parentMessage?.content at download:', parentMessage?.content);
                 let titlePart = "video";
                 if (parentMessage && parentMessage.content) {
                   titlePart = parentMessage.content.replace(/\s+/g, '_').substring(0, 5);
