@@ -36,12 +36,18 @@ const ReactionPage: React.FC = () => {
         const rawReactionData = reactionRes.data;
         if (rawReactionData) {
           const normalizedReactionData = normalizeReaction(rawReactionData);
+          console.log('useEffect: normalizedReactionData:', normalizedReactionData);
+          console.log('useEffect: normalizedReactionData.messageId:', normalizedReactionData?.messageId);
           setReaction(normalizedReactionData);
 
           // Fetch the parent message if available
           if (normalizedReactionData?.messageId) {
+            console.log('useEffect: Fetching parent message with ID:', normalizedReactionData.messageId);
             const messageRes = await messagesApi.getById(normalizedReactionData.messageId);
+            console.log('useEffect: Parent message API response (messageRes):', messageRes);
             const fetchedParentMessage = messageRes.data;
+            console.log('useEffect: Fetched parent message data (fetchedParentMessage):', fetchedParentMessage);
+            console.log('useEffect: Attempting to set parentMessage state with:', fetchedParentMessage);
             setParentMessage(fetchedParentMessage);
 
             if (fetchedParentMessage?.reactions) {
