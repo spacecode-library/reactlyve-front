@@ -46,6 +46,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   hideUploadSpinner = false, // Destructured new prop
 }) => {
   const ffmpegRef = useRef(new FFmpeg()); // Added
+  const stopWebcamRef = useRef<() => void>();
   const [isCompressing, setIsCompressing] = useState<boolean>(false); // Added
   const [compressionProgress, setCompressionProgress] = useState<number>(0); // Added
   const [showCountdown, setShowCountdown] = useState(false);
@@ -317,17 +318,19 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
 
   // Add this new useEffect for failsafe cleanup:
   useEffect(() => {
-    // This effect runs once on mount and returns a cleanup function.
-    console.log('[WebcamRecorder] Mount or dependency change, registering cleanup effect.'); // New Log
+    stopWebcamRef.current = stopWebcam;
+  }, [stopWebcam]);
 
+  // Modify the cleanup useEffect:
+  useEffect(() => {
+    console.log('[WebcamRecorder] Component did mount, registering unmount cleanup effect.'); // Updated Log
     return () => {
-        console.log('[WebcamRecorder] Unmounting or dependency change, calling stopWebcam from cleanup effect.'); // New Log
-        // Call the stopWebcam function from the useWebcam hook.
-        // This ensures that if the component unmounts for any reason,
-        // an attempt is made to stop the webcam.
-        stopWebcam();
+        console.log('[WebcamRecorder] Component will unmount, calling stopWebcam via ref from cleanup effect.'); // Updated Log
+        if (stopWebcamRef.current) {
+            stopWebcamRef.current();
+        }
     };
-  }, [stopWebcam]); // `stopWebcam` is a dependency. It's a stable function from useCallback in useWebcam.
+  }, []); // Empty dependency array means this effect runs only on mount and cleans up only on unmount.
 
 
 
