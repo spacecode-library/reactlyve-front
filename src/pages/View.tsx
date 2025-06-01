@@ -25,7 +25,6 @@ const View: React.FC = () => {
   const handleInitReactionId = (id: string) => {
     reactionIdRef.current = id;
     sessionStartTimeRef.current = Date.now();
-    console.log('✅ Initialised reactionId:', id);
   };
 
   useEffect(() => {

@@ -112,13 +112,14 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       await reactionsApi.uploadVideoToReaction(reactionId, blob);
       await onRecordReaction(message.id, blob);
       setIsReactionRecorded(true);
-      setShowRecorder(false);
+      // setShowRecorder(false); // Moved to finally
       toast.success('Reaction uploaded successfully!');
     } catch (error) {
       console.error('Reaction save error:', error);
       setPermissionError('An error occurred while saving your reaction. Please try again.');
     } finally {
-      setIsUploading(false); 
+      setIsUploading(false);
+      setShowRecorder(false); // Ensure this is here
     }
   }, [reactionId, onLocalRecordingComplete, onRecordReaction, message.id]);
 
