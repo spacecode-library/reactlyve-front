@@ -229,7 +229,6 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
         if (blob.size > COMPRESSION_THRESHOLD_BYTES && ffmpegRef.current.loaded) {
           setIsCompressing(true);
           onStatusUpdate?.('Compressing video...');
-          console.log('[WebcamRecorder] Starting video compression.'); // New Log
 
           try {
             ffmpegRef.current.on('progress', ({ progress }) => {
@@ -263,7 +262,6 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
             }
             await ffmpegRef.current.deleteFile(inputFileName);
             await ffmpegRef.current.deleteFile(outputFileName);
-            console.log('[WebcamRecorder] Video compression finished.'); // New Log
           } catch (error) {
             console.error('Error during video compression (WebcamRecorder):', error);
             onWebcamError?.('Error during compression. Uploading original.');
@@ -276,7 +274,6 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
           }
         } else {
           if (blob.size > COMPRESSION_THRESHOLD_BYTES && !ffmpegRef.current.loaded) {
-            console.warn('[WebcamRecorder] FFmpeg not loaded. Skipping compression.');
             onWebcamError?.('Compression components not ready. Uploading original.');
           }
           // console.log('[WebcamRecorder] Skipping compression.'); // Optional log
@@ -287,7 +284,6 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
         processingError = error as Error;
         blobToUpload = blob; // Ensure blobToUpload is the original blob
       } finally {
-        console.log('[WebcamRecorder] Calling stopWebcam() in processAndCompleteRecording finally block.'); // New Log
         stopWebcam(); // Ensure webcam is stopped regardless of processing success/failure.
       }
 
@@ -296,9 +292,9 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       if (processingError) {
         // If there was a processing error, onRecordingComplete still needs to be called
         // so the application flow can continue (e.g. upload original, show error message)
-        console.log('[WebcamRecorder] Processing error occurred, calling onRecordingComplete with original blob.');
+        // console.log('[WebcamRecorder] Processing error occurred, calling onRecordingComplete with original blob.'); // Removed
       } else {
-        console.log('[WebcamRecorder] Processing complete, calling onRecordingComplete.');
+        // console.log('[WebcamRecorder] Processing complete, calling onRecordingComplete.'); // Removed
       }
       onRecordingComplete(blobToUpload);
     };
@@ -323,9 +319,9 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
 
   // Modify the cleanup useEffect:
   useEffect(() => {
-    console.log('[WebcamRecorder] Component did mount, registering unmount cleanup effect.'); // Updated Log
+    // console.log('[WebcamRecorder] Component did mount, registering unmount cleanup effect.'); // Removed
     return () => {
-        console.log('[WebcamRecorder] Component will unmount, calling stopWebcam via ref from cleanup effect.'); // Updated Log
+        // console.log('[WebcamRecorder] Component will unmount, calling stopWebcam via ref from cleanup effect.'); // Removed
         if (stopWebcamRef.current) {
             stopWebcamRef.current();
         }
