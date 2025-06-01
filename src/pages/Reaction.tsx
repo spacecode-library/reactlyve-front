@@ -94,46 +94,7 @@ const ReactionPage: React.FC = () => {
     }
   };
 
-  const getDownloadFilename = () => {
-    const prefix = "Reactlyve";
-
-    let titlePart = "video";
-    if (parentMessage && parentMessage.content) {
-      titlePart = parentMessage.content.replace(/\s+/g, '_').substring(0, 5);
-    }
-    
-    const responderNamePart = reaction?.name ? reaction.name.replace(/\s+/g, '_') : "UnknownResponder";
-
-    let dateTimePart = "timestamp";
-    if (reaction?.createdAt) {
-      try {
-        dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
-      } catch (e) {
-        console.error("Error formatting date for filename:", e);
-      }
-    }
-
-    // Use processedVideoUrl for extension derivation
-    let extension = "mp4"; // Default to mp4
-    if (processedVideoUrl) {
-      try {
-        const urlPath = new URL(processedVideoUrl).pathname;
-        const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
-        if (lastSegment.includes('.')) {
-          const ext = lastSegment.split('.').pop()?.split('?')[0]; // Remove query params from extension
-          if (ext) extension = ext;
-        }
-      } catch (e) {
-        console.error("Could not parse processed video URL for extension:", e);
-      }
-    }
-
-    const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
-    const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
-    const finalFilename = `${sanitizedName}.${extension}`;
-    
-    return finalFilename;
-  };
+  // getDownloadFilename function is removed
 
   if (loading) {
     return (
@@ -188,7 +149,37 @@ const ReactionPage: React.FC = () => {
           <button
             onClick={() => {
               if (processedVideoUrl) {
-                downloadVideo(processedVideoUrl, getDownloadFilename());
+                const prefix = "Reactlyve";
+                let titlePart = "video";
+                if (parentMessage && parentMessage.content) {
+                  titlePart = parentMessage.content.replace(/\s+/g, '_').substring(0, 5);
+                }
+                const responderNamePart = reaction?.name ? reaction.name.replace(/\s+/g, '_') : "UnknownResponder";
+                let dateTimePart = "timestamp";
+                if (reaction?.createdAt) {
+                  try {
+                    dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
+                  } catch (e) {
+                    console.error("Error formatting date for filename:", e);
+                  }
+                }
+                let extension = "mp4"; // Default to mp4
+                if (processedVideoUrl) { // Redundant check, but safe
+                  try {
+                    const urlPath = new URL(processedVideoUrl).pathname;
+                    const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
+                    if (lastSegment.includes('.')) {
+                      const ext = lastSegment.split('.').pop()?.split('?')[0];
+                      if (ext) extension = ext;
+                    }
+                  } catch (e) {
+                    console.error("Could not parse processed video URL for extension:", e);
+                  }
+                }
+                const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
+                const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+                const finalFilename = `${sanitizedName}.${extension}`;
+                downloadVideo(processedVideoUrl, finalFilename);
               } else {
                 toast.error("Download URL is not available.");
               }
