@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Reaction } from '../../types/reaction';
 import { formatDate, formatDuration, truncateString } from '../../utils/formatters';
+import { getTransformedCloudinaryUrl } from '../../utils/mediaHelpers';
 import { classNames } from '../../utils/classNames';
 import VideoPlayer from './VideoPlayer';
 import Button from '../common/Button';
@@ -24,6 +25,11 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
 }) => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  let transformedVideoUrl = reaction.videoUrl;
+  if (reaction.videoUrl) {
+    transformedVideoUrl = getTransformedCloudinaryUrl(reaction.videoUrl, 0);
+  }
 
   const handlePlayToggle = () => {
     setIsPlaying((prev) => !prev);
@@ -59,9 +65,13 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
               </Button>
 
               <a
-                href={reaction.videoUrl}
-                download={`reaction-${reaction.id}.${reaction.videoUrl.split('.').pop() || 'webm'}`}
-                className="btn btn-outline btn-sm"
+                href={transformedVideoUrl || '#'}
+                download={`reaction-${reaction.id}.${transformedVideoUrl?.split('.').pop() || 'webm'}`}
+                className={classNames(
+                  "btn btn-outline btn-sm",
+                  !transformedVideoUrl && "btn-disabled opacity-50 cursor-not-allowed"
+                )}
+                aria-disabled={!transformedVideoUrl}
               >
                 Download
               </a>
@@ -93,7 +103,7 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
       {reaction.videoUrl ? (
         <div className="overflow-hidden rounded-md">
           <VideoPlayer
-            src={reaction.videoUrl}
+            src={transformedVideoUrl || ''}
             poster={reaction.thumbnailUrl}
             autoPlay={isPlaying}
             onError={(err) => console.error('Video error:', err)}
