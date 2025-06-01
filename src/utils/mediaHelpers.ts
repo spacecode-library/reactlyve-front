@@ -1,7 +1,7 @@
 // src/utils/mediaHelpers.ts
 
-export const SMALL_FILE_OVERLAY = "f_auto,q_auto,l_Reactlyve_Logo_bi78md/fl_layer_apply,w_0.5,g_south_east,x_10,y_10";
-export const LARGE_FILE_OVERLAY = "w_1280,c_limit,q_auto,f_auto,l_Reactlyve_Logo_bi78md/fl_layer_apply,w_0.5,g_south_east,x_10,y_10";
+export const SMALL_FILE_TRANSFORM_WITH_OVERLAY = "f_auto,q_auto,l_Reactlyve_Logo_bi78md/fl_layer_apply,w_0.3,g_south_east,x_10,y_10";
+export const LARGE_FILE_TRANSFORM_WITH_OVERLAY = "w_1280,c_limit,q_auto,f_auto,l_Reactlyve_Logo_bi78md/fl_layer_apply,w_0.3,g_south_east,x_10,y_10";
 
 /**
  * Request camera and microphone permissions
@@ -243,12 +243,19 @@ export const isIOS = (): boolean => {
  * @param fileSizeInBytes - The size of the file in bytes
  * @returns The transformed Cloudinary URL
  */
-export const getTransformedCloudinaryUrl = (originalUrl: string, fileSizeInBytes: number): string => {
-  console.log(`[getTransformedCloudinaryUrl] Input - Original URL: "${originalUrl}", Size: ${fileSizeInBytes} bytes`);
+export const getTransformedCloudinaryUrl = (
+  originalUrl: string,
+  fileSizeInBytes: number
+): string => {
+  console.log(
+    `[getTransformedCloudinaryUrl] Input - Original URL: "${originalUrl}", Size: ${fileSizeInBytes} bytes`
+  );
 
   const tenMBInBytes = 10 * 1024 * 1024; // 10MB threshold
 
-  const transformationString = fileSizeInBytes < tenMBInBytes ? SMALL_FILE_OVERLAY : LARGE_FILE_OVERLAY;
+  const transformationString = fileSizeInBytes < tenMBInBytes
+    ? SMALL_FILE_TRANSFORM_WITH_OVERLAY
+    : LARGE_FILE_TRANSFORM_WITH_OVERLAY;
 
   const uploadMarker = '/upload/';
   const parts = originalUrl.split(uploadMarker);

@@ -545,15 +545,26 @@ const Message: React.FC = () => {
 
                       {reaction.videoUrl ? (
                         <>
-                          <VideoPlayer
-                            src={reaction.videoUrl}
-                            poster={reaction.thumbnailUrl || undefined}
-                            className="w-full rounded"
-                            autoPlay={false}
-                             initialDurationSeconds={typeof reaction.duration === 'number' ? reaction.duration : undefined}
-                          />
+                          {(() => {
+                            // TODO: Confirm if reaction.fileSizeInBytes is consistently available.
+                            // If not, the default of 0 for getTransformedCloudinaryUrl might always use the small file overlay.
+                            let transformedReactionVideoUrl = reaction.videoUrl;
+                            if (reaction.videoUrl) {
+                              transformedReactionVideoUrl = getTransformedCloudinaryUrl(reaction.videoUrl, reaction.fileSizeInBytes || 0);
+                            }
+                            return (
+                              <VideoPlayer
+                                src={transformedReactionVideoUrl}
+                                poster={reaction.thumbnailUrl || undefined}
+                                className="w-full rounded"
+                                autoPlay={false}
+                                initialDurationSeconds={typeof reaction.duration === 'number' ? reaction.duration : undefined}
+                              />
+                            );
+                          })()}
                           <button
                             onClick={() => {
+                              // For downloading, always use the original, untransformed URL
                               if (!reaction.videoUrl) {
                                 console.error("Download clicked but no videoUrl present for reaction:", reaction.id);
                                 return;
