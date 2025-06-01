@@ -1,299 +1,71 @@
-/**
- * Request camera and microphone permissions
- * @param video - Video constraints
- * @param audio - Audio constraints
- * @returns Promise that resolves to a MediaStream or rejects with an error
- */
-export const requestMediaPermissions = async (
-    video: boolean | MediaTrackConstraints = true,
-    audio: boolean | MediaTrackConstraints = true
-  ): Promise<MediaStream> => {
-    try {
-      return await navigator.mediaDevices.getUserMedia({ video, audio });
-    } catch (error) {
-      console.error('Error requesting media permissions:', error);
-      throw error;
-    }
-  };
-  
-  /**
-   * Check camera permission status
-   * @returns Promise that resolves to the permission state or null if not supported
-   */
-  export const checkCameraPermission = async (): Promise<PermissionState | null> => {
-    if (!navigator.permissions || !navigator.permissions.query) {
-      return null;
-    }
-    
-    try {
-      const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
-      return result.state;
-    } catch (error) {
-      console.error('Error checking camera permission:', error);
-      return null;
-    }
-  };
-  
-  /**
-   * Create a video thumbnail from a blob
-   * @param videoBlob - Video blob to create thumbnail from
-   * @param seekTime - Time to seek to in seconds (default: 1)
-   * @returns Promise that resolves to a data URL of the thumbnail
-   */
-  export const createVideoThumbnail = async (
-    videoBlob: Blob,
-    seekTime: number = 1
-  ): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const video = document.createElement('video');
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
-      
-      if (!context) {
-        reject(new Error('Could not get canvas context'));
-        return;
-      }
-      
-      video.autoplay = false;
-      video.muted = true;
-      video.src = URL.createObjectURL(videoBlob);
-      
-      // Wait for video metadata to load
-      video.onloadedmetadata = () => {
-        // Set canvas dimensions to video dimensions
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        
-        // Seek to specified time
-        video.currentTime = Math.min(seekTime, video.duration);
-      };
-      
-      // Once seeked to the desired time
-      video.onseeked = () => {
-        // Draw video frame on canvas
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        // Convert canvas to data URL
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-        
-        // Clean up
-        URL.revokeObjectURL(video.src);
-        video.remove();
-        
-        resolve(dataUrl);
-      };
-      
-      video.onerror = () => {
-        URL.revokeObjectURL(video.src);
-        reject(new Error('Error loading video'));
-      };
-    });
-  };
-  
-  /**
-   * Compress an image file to reduce size
-   * @param file - Image file to compress
-   * @param maxWidthOrHeight - Maximum width or height in pixels
-   * @param quality - JPEG quality (0-1)
-   * @returns Promise that resolves to a compressed image blob
-   */
-  export const compressImage = async (
-    file: File,
-    maxWidthOrHeight: number = 1200,
-    quality: number = 0.8
-  ): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      
-      reader.onload = event => {
-        const img = new Image();
-        img.src = event.target?.result as string;
-        
-        img.onload = () => {
-          // Calculate new dimensions while maintaining aspect ratio
-          let width = img.width;
-          let height = img.height;
-          
-          if (width > height) {
-            if (width > maxWidthOrHeight) {
-              height = Math.round((height * maxWidthOrHeight) / width);
-              width = maxWidthOrHeight;
-            }
-          } else {
-            if (height > maxWidthOrHeight) {
-              width = Math.round((width * maxWidthOrHeight) / height);
-              height = maxWidthOrHeight;
-            }
-          }
-          
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          
-          const ctx = canvas.getContext('2d');
-          if (!ctx) {
-            reject(new Error('Could not get canvas context'));
-            return;
-          }
-          
-          ctx.drawImage(img, 0, 0, width, height);
-          
-          // Convert to blob
-          canvas.toBlob(
-            blob => {
-              if (blob) {
-                resolve(blob);
-              } else {
-                reject(new Error('Failed to create image blob'));
-              }
-            },
-            file.type,
-            quality
-          );
-        };
-        
-        img.onerror = () => {
-          reject(new Error('Error loading image'));
-        };
-      };
-      
-      reader.onerror = () => {
-        reject(new Error('Error reading file'));
-      };
-    });
-  };
-  
-  /**
-   * Convert a blob to a data URL
-   * @param blob - Blob to convert
-   * @returns Promise that resolves to a data URL
-   */
-  export const blobToDataUrl = (blob: Blob): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  };
-  
-  /**
-   * Convert a data URL to a blob
-   * @param dataUrl - Data URL to convert
-   * @returns Blob created from the data URL
-   */
-  export const dataUrlToBlob = (dataUrl: string): Blob => {
-    const arr = dataUrl.split(',');
-    const mime = arr[0].match(/:(.*?);/)?.[1] || '';
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    
-    return new Blob([u8arr], { type: mime });
-  };
-  
-  /**
-   * Download a blob as a file
-   * @param blob - Blob to download
-   * @param filename - Name for the downloaded file
-   */
-  export const downloadBlob = (blob: Blob, filename: string): void => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    
-    // Clean up
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 100);
-  };
-  
-  /**
-   * Get supported video MIME types for recording
-   * @returns Array of supported video MIME types
-   */
-  export const getSupportedVideoMimeTypes = (): string[] => {
-    const types = [
-      'video/webm',
-      'video/webm;codecs=vp9',
-      'video/webm;codecs=vp8',
-      'video/webm;codecs=h264',
-      'video/mp4',
-      'video/mp4;codecs=h264',
-    ];
-    
-    return types.filter(type => MediaRecorder.isTypeSupported(type));
-  };
-  
-  /**
-   * Get the best supported video MIME type for recording
-   * @returns The best supported MIME type or empty string if none supported
-   */
-  export const getBestSupportedVideoMimeType = (): string => {
-    const supportedTypes = getSupportedVideoMimeTypes();
-    return supportedTypes.length > 0 ? supportedTypes[0] : '';
-  };
-  
-  /**
-   * Check if the device is iOS
-   * @returns True if iOS device, false otherwise
-   */
-  export const isIOS = (): boolean => {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-  };
+export const getTransformedCloudinaryUrl = (originalUrl: string, fileSizeInBytes: number): string => {
+  console.log(`[getTransformedCloudinaryUrl] Input - Original URL: "${originalUrl}", Size: ${fileSizeInBytes} bytes`);
 
-  /**
-   * Get a transformed Cloudinary URL based on file size.
-   * Uses a smaller transformation for files under 10MB.
-   * @param originalUrl - The original Cloudinary URL
-   * @param fileSizeInBytes - The size of the file in bytes
-   * @returns The transformed Cloudinary URL
-   */
-  export const getTransformedCloudinaryUrl = (originalUrl: string, fileSizeInBytes: number): string => {
-    const smallFileTransformation = "f_auto";
-    const largeFileTransformation = "w_1280,c_limit,q_auto,f_auto";
-    const tenMBInBytes = 10 * 1024 * 1024;
+  const smallFileTransformation = "f_auto"; // Automatically select format
+  const largeFileTransformation = "w_1280,c_limit,q_auto,f_auto"; // Limit width, auto quality, auto format
+  const tenMBInBytes = 10 * 1024 * 1024; // 10MB threshold
 
-    // Determine the transformation string based on file size
-    const transformationString = fileSizeInBytes < tenMBInBytes ? smallFileTransformation : largeFileTransformation;
+  // Determine the transformation string based on file size
+  const transformationString = fileSizeInBytes < tenMBInBytes ? smallFileTransformation : largeFileTransformation;
 
-    const parts = originalUrl.split('/upload/');
+  const uploadMarker = '/upload/';
+  const parts = originalUrl.split(uploadMarker);
 
-    if (parts.length === 2) {
-      const baseUrl = parts[0]; // e.g., https://res.cloudinary.com/cloud_name/resource_type
-      let pathWithVersionAndPublicId = parts[1]; // This part contains version, public_id, and might contain existing transformations
+  if (parts.length === 2) {
+    const baseUrl = parts[0]; // e.g., https://res.cloudinary.com/cloud_name/resource_type
+    let pathAfterUpload = parts[1]; // This part contains potential old transformations, version, and public_id
 
-      // Check if pathWithVersionAndPublicId starts directly with a version number (e.g., "v12345/folder/image.jpg")
-      // Or if it starts with a transformation string (e.g., "w_100,h_100/v12345/folder/image.jpg")
-      if (/^v\d+\//.test(pathWithVersionAndPublicId)) {
-        // No existing transformation string found before the version number.
-        // pathWithVersionAndPublicId is already in the form "v123/folder/file.ext"
-        // We can directly prepend the new transformation.
-      } else {
-        // An existing transformation string is present before the version number.
-        // e.g., pathWithVersionAndPublicId is "old_transform/v123/folder/file.ext"
-        // We need to strip "old_transform/" to get "v123/folder/file.ext"
-        const firstSlashIndex = pathWithVersionAndPublicId.indexOf('/');
-        if (firstSlashIndex !== -1) {
-          pathWithVersionAndPublicId = pathWithVersionAndPublicId.substring(firstSlashIndex + 1);
-        } else {
-          // This case implies the URL part after /upload/ is malformed if it's not a version and has no slash.
-          // Log a warning and proceed, though the resulting URL might be incorrect.
-          console.warn('[getTransformedCloudinaryUrl] Could not reliably strip existing transformation. Original path part:', pathWithVersionAndPublicId);
+    // Regex explanation:
+    // ^                    - Start of the string (pathAfterUpload)
+    // (?:                  - Start of a non-capturing group for old transformations
+    //   (.*\/)             - Group 1: Captures any characters followed by a slash (greedy). This is the potential old transformation string.
+    // )?                   - End of non-capturing group, makes the old transformation optional.
+    // (v\d+\/.*)           - Group 2: Captures a version string (v followed by digits and a slash) and everything after it. This is the asset path starting with a version.
+    // |                    - OR
+    // (.*)                 - Group 3: Captures everything if the version string pattern is not met. This is the asset path if no version string.
+    // $                    - End of the string
+    const regex = /^(?:(.*?\/)(v\d+\/.*)|(.*))$/;
+    const match = pathAfterUpload.match(regex);
+
+    let publicPath = ''; // This will be the path part like "v123/folder/image.jpg" or "folder/image.jpg"
+
+    if (match) {
+      if (match[2]) { // Case 1: Version string found (e.g., "v12345/folder/image.jpg")
+        publicPath = match[2]; // This is "v12345/folder/image.jpg"
+        const oldTransformations = match[1] || ''; // This is "w_200,h_100/" or empty if no transform before version
+        if (oldTransformations) {
+          console.log(`[getTransformedCloudinaryUrl] Info: Stripped old transformations "${oldTransformations}" from path "${pathAfterUpload}" because a version string was found.`);
         }
+      } else if (match[3]) { // Case 2: No version string found (e.g., "folder/image.jpg" or "old_transform/image.jpg")
+        publicPath = match[3]; // This is the entire path after "/upload/"
+
+        const pathSegments = publicPath.split('/');
+        const finalSegment = pathSegments[pathSegments.length - 1];
+        const leadingPath = pathSegments.slice(0, -1).join('/');
+
+        if (pathSegments.length > 1 && /[a-z_]+,/.test(leadingPath) && !leadingPath.includes('.')) { // Heuristic: looks like a transformation
+             console.warn(`[getTransformedCloudinaryUrl] Warning: No version string found in path "${pathAfterUpload}". The path "${leadingPath}" before the final segment "${finalSegment}" looks like it might contain transformations. Prepending new transformation "${transformationString}". This could lead to nested transformations like "${transformationString}/${publicPath}". Original URL: "${originalUrl}"`);
+        } else if (pathSegments.length > 1) {
+             console.log(`[getTransformedCloudinaryUrl] Info: No version string found in path "${pathAfterUpload}". Path contains folders. Applying transformation "${transformationString}" before full path "${publicPath}". Original URL: "${originalUrl}"`);
+        } else {
+             console.log(`[getTransformedCloudinaryUrl] Info: No version string found in path "${pathAfterUpload}". Path is a simple public_id. Applying transformation "${transformationString}" before public_id "${publicPath}". Original URL: "${originalUrl}"`);
+        }
+      } else {
+        // This case should ideally not be reached if the regex is comprehensive.
+        publicPath = pathAfterUpload;
+        console.warn(`[getTransformedCloudinaryUrl] Warning: Could not reliably parse path "${pathAfterUpload}" using regex. Using full path. Original URL: "${originalUrl}"`);
       }
-      return `${baseUrl}/upload/${transformationString}/${pathWithVersionAndPublicId}`;
+    } else {
+      // Regex failed to match at all, which is highly unexpected.
+      publicPath = pathAfterUpload;
+      console.error(`[getTransformedCloudinaryUrl] CRITICAL: Regex failed to match path "${pathAfterUpload}". This indicates a flaw in the regex or an unexpected URL structure. Using full path. Original URL: "${originalUrl}"`);
     }
 
-    console.warn('[getTransformedCloudinaryUrl] Original URL does not match expected Cloudinary structure. Returning original URL:', originalUrl);
-    return originalUrl;
-  };
+    const newUrl = `${baseUrl}${uploadMarker}${transformationString}/${publicPath}`;
+    console.log(`[getTransformedCloudinaryUrl] Output - New URL: "${newUrl}"`);
+    return newUrl;
+  }
+
+  console.warn(`[getTransformedCloudinaryUrl] Warning: Original URL "${originalUrl}" does not seem to be a valid Cloudinary URL (missing "${uploadMarker}" marker). Returning original URL.`);
+  return originalUrl;
+};
