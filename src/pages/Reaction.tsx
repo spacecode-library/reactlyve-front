@@ -8,7 +8,7 @@ import VideoPlayer from '../components/dashboard/VideoPlayer';
 import type { MessageWithReactions } from '@/types/message';
 import type { Reaction } from '@/types/reaction';
 import { normalizeReaction } from '../utils/normalizeKeys';
-import { getTransformedCloudinaryUrl } from '../../utils/mediaHelpers';
+import { getTransformedCloudinaryUrl } from '../utils/mediaHelpers';
 import toast from 'react-hot-toast'; // For user feedback
 
 const ReactionPage: React.FC = () => {
