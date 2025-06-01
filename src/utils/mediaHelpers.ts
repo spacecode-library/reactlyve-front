@@ -1,7 +1,7 @@
 // src/utils/mediaHelpers.ts
 
-export const SMALL_FILE_OVERLAY = "f_auto,q_auto,l_reactlyve:81ad2da14e6d70f29418ba02a7d2aa96,w_0.1,g_south_east,x_10,y_10,fl_layer_apply";
-export const LARGE_FILE_OVERLAY = "w_1280,c_limit,q_auto,f_auto,l_reactlyve:81ad2da14e6d70f29418ba02a7d2aa96,w_0.1,g_south_east,x_10,y_10,fl_layer_apply";
+export const SMALL_FILE_OVERLAY = "f_auto,q_auto,l_Reactlyve_Logo_bi78md/fl_layer_apply,w_0.5,g_south_east,x_10,y_10";
+export const LARGE_FILE_OVERLAY = "w_1280,c_limit,q_auto,f_auto,l_Reactlyve_Logo_bi78md/fl_layer_apply,w_0.5,g_south_east,x_10,y_10";
 
 /**
  * Request camera and microphone permissions
