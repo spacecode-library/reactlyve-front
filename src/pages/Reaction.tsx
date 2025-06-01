@@ -8,6 +8,8 @@ import VideoPlayer from '../components/dashboard/VideoPlayer';
 import type { MessageWithReactions } from '@/types/message';
 import type { Reaction } from '@/types/reaction';
 import { normalizeReaction } from '../utils/normalizeKeys';
+import { getTransformedCloudinaryUrl } from '../utils/mediaHelpers';
+import toast from 'react-hot-toast'; // For user feedback
 
 const ReactionPage: React.FC = () => {
   const { reactionId } = useParams<{ reactionId: string }>();
@@ -15,6 +17,14 @@ const ReactionPage: React.FC = () => {
   const [parentMessage, setParentMessage] = useState<MessageWithReactions | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Define processedVideoUrl
+  let processedVideoUrl: string | null | undefined = null;
+  if (reaction?.videoUrl) {
+    processedVideoUrl = getTransformedCloudinaryUrl(reaction.videoUrl, 0);
+  } else {
+    processedVideoUrl = reaction?.videoUrl; // Could be null or undefined
+  }
 
   useEffect(() => {
     const fetchReactionAndMessage = async () => {
@@ -29,8 +39,8 @@ const ReactionPage: React.FC = () => {
           setReaction(normalizedReactionData);
 
           // Fetch the parent message if available
-          if (normalizedReactionData?.messageId) {
-            const messageRes = await messagesApi.getById(normalizedReactionData.messageId);
+          if (normalizedReactionData?.messageid) {
+            const messageRes = await messagesApi.getById(normalizedReactionData.messageid);
             const fetchedParentMessage = messageRes.data;
             setParentMessage(fetchedParentMessage);
 
@@ -84,45 +94,7 @@ const ReactionPage: React.FC = () => {
     }
   };
 
-  const getDownloadFilename = () => {
-    const prefix = "Reactlyve";
-
-    let titlePart = "video";
-    if (parentMessage && parentMessage.content) {
-      titlePart = parentMessage.content.replace(/\s+/g, '_').substring(0, 5);
-    }
-    
-    const responderNamePart = reaction?.name ? reaction.name.replace(/\s+/g, '_') : "UnknownResponder";
-
-    let dateTimePart = "timestamp";
-    if (reaction?.createdAt) {
-      try {
-        dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
-      } catch (e) {
-        console.error("Error formatting date for filename:", e);
-      }
-    }
-
-    let extension = "mp4"; // Default to mp4 as per instruction refinement
-    if (reaction?.videoUrl) {
-      try {
-        const urlPath = new URL(reaction.videoUrl).pathname;
-        const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
-        if (lastSegment.includes('.')) {
-          const ext = lastSegment.split('.').pop();
-          if (ext) extension = ext;
-        }
-      } catch (e) {
-        console.error("Could not parse video URL for extension:", e);
-      }
-    }
-
-    const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
-    const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
-    const finalFilename = `${sanitizedName}.${extension}`;
-    
-    return finalFilename;
-  };
+  // getDownloadFilename function is removed
 
   if (loading) {
     return (
@@ -166,17 +138,54 @@ const ReactionPage: React.FC = () => {
         </div>
       </div>
 
-      {reaction?.videoUrl ? (
+      {processedVideoUrl ? (
         <div className="px-4 py-8">
           <VideoPlayer
-            src={reaction.videoUrl}
-            poster={reaction.thumbnailUrl || undefined}
+            src={processedVideoUrl || ''}
+            poster={reaction?.thumbnailUrl || undefined}
             className="w-full aspect-video rounded-lg object-contain"
-            initialDurationSeconds={typeof reaction.duration === 'number' ? reaction.duration : undefined}
+            initialDurationSeconds={typeof reaction?.duration === 'number' ? reaction.duration : undefined}
           />
           <button
-            onClick={() => downloadVideo(reaction.videoUrl!, getDownloadFilename())}
+            onClick={() => {
+              if (processedVideoUrl) {
+                const prefix = "Reactlyve";
+                let titlePart = "video";
+                if (parentMessage && parentMessage.content) {
+                  titlePart = parentMessage.content.replace(/\s+/g, '_').substring(0, 5);
+                }
+                const responderNamePart = reaction?.name ? reaction.name.replace(/\s+/g, '_') : "UnknownResponder";
+                let dateTimePart = "timestamp";
+                if (reaction?.createdAt) {
+                  try {
+                    dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
+                  } catch (e) {
+                    console.error("Error formatting date for filename:", e);
+                  }
+                }
+                let extension = "mp4"; // Default to mp4
+                if (processedVideoUrl) { // Redundant check, but safe
+                  try {
+                    const urlPath = new URL(processedVideoUrl).pathname;
+                    const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
+                    if (lastSegment.includes('.')) {
+                      const ext = lastSegment.split('.').pop()?.split('?')[0];
+                      if (ext) extension = ext;
+                    }
+                  } catch (e) {
+                    console.error("Could not parse processed video URL for extension:", e);
+                  }
+                }
+                const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
+                const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+                const finalFilename = `${sanitizedName}.${extension}`;
+                downloadVideo(processedVideoUrl, finalFilename);
+              } else {
+                toast.error("Download URL is not available.");
+              }
+            }}
             className="mt-4 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            disabled={!processedVideoUrl}
           >
             <DownloadIcon size={16} />
             Download Video

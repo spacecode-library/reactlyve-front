@@ -335,8 +335,19 @@ const Message: React.FC = () => {
               />
               <div className="mt-3">
                 <button
-                  onClick={() => downloadVideo(normalizedMessage!.videoUrl!, 'message-video.mp4')}
+                  onClick={() => {
+                    if (transformedVidUrl) {
+                      const extension = transformedVidUrl?.split('.').pop()?.split('?')[0] || 'mp4';
+                      const filename = `message-video.${extension}`;
+                      downloadVideo(transformedVidUrl, filename);
+                    } else {
+                      // Optionally, provide feedback to the user or log this case
+                      console.warn('Download button clicked, but transformedVidUrl is not available.');
+                      toast.error('Video URL is not available for download.');
+                    }
+                  }}
                   className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                  disabled={!transformedVidUrl} // Disable button if URL is not available
                 >
                   <DownloadIcon size={16} />
                   Download Video
@@ -545,15 +556,71 @@ const Message: React.FC = () => {
 
                       {reaction.videoUrl ? (
                         <>
-                          <VideoPlayer
-                            src={reaction.videoUrl}
-                            poster={reaction.thumbnailUrl || undefined}
-                            className="w-full rounded"
-                            autoPlay={false}
-                             initialDurationSeconds={typeof reaction.duration === 'number' ? reaction.duration : undefined}
-                          />
-                          <button
+                          {(() => {
+                            let transformedReactionVideoUrl = reaction.videoUrl;
+                            if (reaction.videoUrl) {
+                              transformedReactionVideoUrl = getTransformedCloudinaryUrl(reaction.videoUrl, 0);
+                            }
+                            return (
+                              <>
+                                <VideoPlayer
+                                  src={transformedReactionVideoUrl}
+                                  poster={reaction.thumbnailUrl || undefined}
+                                  className="w-full rounded"
+                                  autoPlay={false}
+                                  initialDurationSeconds={typeof reaction.duration === 'number' ? reaction.duration : undefined}
+                                />
+                                <button
+                                  onClick={() => {
+                                    if (!transformedReactionVideoUrl) {
+                                      console.error("Download clicked but no transformedReactionVideoUrl present for reaction:", reaction.id);
+                                      toast.error('Video URL is not available for download.');
+                                      return;
+                                    }
+                                    // Construct filename (existing logic)
+                                    const prefix = "Reactlyve";
+                                    let titlePart = "video";
+                                    if (message && message.content) {
+                                      titlePart = message.content.replace(/\s+/g, '_').substring(0, 5);
+                                    }
+                                    const responderNamePart = reaction.name ? reaction.name.replace(/\s+/g, '_') : "UnknownResponder";
+                                    let dateTimePart = "timestamp";
+                                    if (reaction.createdAt) {
+                                      try {
+                                        dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
+                                      } catch (e) {
+                                        console.error("Error formatting date for filename:", e);
+                                      }
+                                    }
+                                    let extension = "video"; // Default fallback
+                                    try {
+                                      const urlPath = new URL(transformedReactionVideoUrl).pathname;
+                                      const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
+                                      if (lastSegment.includes('.')) {
+                                        const ext = lastSegment.split('.').pop()?.split('?')[0];
+                                        if (ext) extension = ext;
+                                      }
+                                    } catch (e) {
+                                      console.error("Could not parse transformed reaction video URL for extension:", e);
+                                    }
+                                    const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
+                                    const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+                                    const finalFilename = `${sanitizedName}.${extension}`;
+                                    downloadVideo(transformedReactionVideoUrl, finalFilename);
+                                  }}
+                                  className="mt-3 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                                  disabled={!transformedReactionVideoUrl}
+                                >
+                                  <DownloadIcon size={16} />
+                                  Download Reaction
+                                </button>
+                              </>
+                            );
+                          })()}
+                          {/* This button is now part of the self-invoking function above to access transformedReactionVideoUrl */}
+                          {/* <button
                             onClick={() => {
+                              // For downloading, always use the original, untransformed URL
                               if (!reaction.videoUrl) {
                                 console.error("Download clicked but no videoUrl present for reaction:", reaction.id);
                                 return;
@@ -592,7 +659,7 @@ const Message: React.FC = () => {
                           >
                             <DownloadIcon size={16} />
                             Download Reaction
-                          </button>
+                          </button> */}
                           {reaction.duration && (
                             <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                               Duration: {Math.floor(reaction.duration / 60)}:{(reaction.duration % 60).toString().padStart(2, '0')}

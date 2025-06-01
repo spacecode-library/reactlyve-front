@@ -162,18 +162,22 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
 
   const stopWebcam = useCallback(() => {
     if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      setStream(null);
+        const tracks = stream.getTracks();
+        tracks.forEach((track) => {
+            track.stop();
+        });
+        setStream(null);
     }
+
     if (videoRef.current) {
-      videoRef.current.srcObject = null;
-      try {
-        videoRef.current.pause();
-      } catch {
-        // no-op
-      }
+        videoRef.current.srcObject = null;
+        try {
+            videoRef.current.pause();
+        } catch (e) {
+            console.warn('[useWebcam] Error pausing videoRef:', e);
+        }
     }
-  }, [stream]);
+  }, [stream, videoRef]);
 
   return {
     stream,

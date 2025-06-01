@@ -1,5 +1,8 @@
 // src/utils/mediaHelpers.ts
 
+export const SMALL_FILE_TRANSFORM_WITH_OVERLAY = "f_auto,q_auto,l_Reactlyve_Logo_bi78md/fl_layer_apply,w_0.3,g_south_east,x_10,y_10";
+export const LARGE_FILE_TRANSFORM_WITH_OVERLAY = "w_1280,c_limit,q_auto,f_auto,l_Reactlyve_Logo_bi78md/fl_layer_apply,w_0.3,g_south_east,x_10,y_10";
+
 /**
  * Request camera and microphone permissions
  * @param video - Video constraints
@@ -240,14 +243,15 @@ export const isIOS = (): boolean => {
  * @param fileSizeInBytes - The size of the file in bytes
  * @returns The transformed Cloudinary URL
  */
-export const getTransformedCloudinaryUrl = (originalUrl: string, fileSizeInBytes: number): string => {
-  console.log(`[getTransformedCloudinaryUrl] Input - Original URL: "${originalUrl}", Size: ${fileSizeInBytes} bytes`);
-
-  const smallFileTransformation = "f_auto"; // Automatically select format
-  const largeFileTransformation = "w_1280,c_limit,q_auto,f_auto"; // Limit width, auto quality, auto format
+export const getTransformedCloudinaryUrl = (
+  originalUrl: string,
+  fileSizeInBytes: number
+): string => {
   const tenMBInBytes = 10 * 1024 * 1024; // 10MB threshold
 
-  const transformationString = fileSizeInBytes < tenMBInBytes ? smallFileTransformation : largeFileTransformation;
+  const transformationString = fileSizeInBytes < tenMBInBytes
+    ? SMALL_FILE_TRANSFORM_WITH_OVERLAY
+    : LARGE_FILE_TRANSFORM_WITH_OVERLAY;
 
   const uploadMarker = '/upload/';
   const parts = originalUrl.split(uploadMarker);
@@ -263,37 +267,37 @@ export const getTransformedCloudinaryUrl = (originalUrl: string, fileSizeInBytes
     if (match) {
       if (match[2]) {
         publicPath = match[2];
-        const oldTransformations = match[1] || '';
-        if (oldTransformations) {
-          console.log(`[getTransformedCloudinaryUrl] Info: Stripped old transformations "${oldTransformations}" from path "${pathAfterUpload}" because a version string was found.`);
-        }
+        // const oldTransformations = match[1] || ''; // Removed console.log related
+        // if (oldTransformations) { // Removed console.log related
+          // console.log(`[getTransformedCloudinaryUrl] Info: Stripped old transformations "${oldTransformations}" from path "${pathAfterUpload}" because a version string was found.`); // Removed
+        // } // Removed console.log related
       } else if (match[3]) {
         publicPath = match[3];
-        const pathSegments = publicPath.split('/');
-        const finalSegment = pathSegments[pathSegments.length - 1];
-        const leadingPath = pathSegments.slice(0, -1).join('/');
+        // const pathSegments = publicPath.split('/'); // Removed console.log related
+        // const finalSegment = pathSegments[pathSegments.length - 1]; // Removed console.log related
+        // const leadingPath = pathSegments.slice(0, -1).join('/'); // Removed console.log related
 
-        if (pathSegments.length > 1 && /[a-z_]+,/.test(leadingPath) && !leadingPath.includes('.')) {
-             console.warn(`[getTransformedCloudinaryUrl] Warning: No version string found in path "${pathAfterUpload}". The path "${leadingPath}" before the final segment "${finalSegment}" looks like it might contain transformations. Prepending new transformation "${transformationString}". This could lead to nested transformations like "${transformationString}/${publicPath}". Original URL: "${originalUrl}"`);
-        } else if (pathSegments.length > 1) {
-             console.log(`[getTransformedCloudinaryUrl] Info: No version string found in path "${pathAfterUpload}". Path contains folders. Applying transformation "${transformationString}" before full path "${publicPath}". Original URL: "${originalUrl}"`);
-        } else {
-             console.log(`[getTransformedCloudinaryUrl] Info: No version string found in path "${pathAfterUpload}". Path is a simple public_id. Applying transformation "${transformationString}" before public_id "${publicPath}". Original URL: "${originalUrl}"`);
-        }
+        // if (pathSegments.length > 1 && /[a-z_]+,/.test(leadingPath) && !leadingPath.includes('.')) { // Removed console.log related
+             // console.warn(`[getTransformedCloudinaryUrl] Warning: No version string found in path "${pathAfterUpload}". The path "${leadingPath}" before the final segment "${finalSegment}" looks like it might contain transformations. Prepending new transformation "${transformationString}". This could lead to nested transformations like "${transformationString}/${publicPath}". Original URL: "${originalUrl}"`); // Removed
+        // } else if (pathSegments.length > 1) { // Removed console.log related
+             // console.log(`[getTransformedCloudinaryUrl] Info: No version string found in path "${pathAfterUpload}". Path contains folders. Applying transformation "${transformationString}" before full path "${publicPath}". Original URL: "${originalUrl}"`); // Removed
+        // } else { // Removed console.log related
+             // console.log(`[getTransformedCloudinaryUrl] Info: No version string found in path "${pathAfterUpload}". Path is a simple public_id. Applying transformation "${transformationString}" before public_id "${publicPath}". Original URL: "${originalUrl}"`); // Removed
+        // } // Removed console.log related
       } else {
         publicPath = pathAfterUpload;
-        console.warn(`[getTransformedCloudinaryUrl] Warning: Could not reliably parse path "${pathAfterUpload}" using regex. Using full path. Original URL: "${originalUrl}"`);
+        // console.warn(`[getTransformedCloudinaryUrl] Warning: Could not reliably parse path "${pathAfterUpload}" using regex. Using full path. Original URL: "${originalUrl}"`); // Removed
       }
     } else {
       publicPath = pathAfterUpload;
-      console.error(`[getTransformedCloudinaryUrl] CRITICAL: Regex failed to match path "${pathAfterUpload}". This indicates a flaw in the regex or an unexpected URL structure. Using full path. Original URL: "${originalUrl}"`);
+      // console.error(`[getTransformedCloudinaryUrl] CRITICAL: Regex failed to match path "${pathAfterUpload}". This indicates a flaw in the regex or an unexpected URL structure. Using full path. Original URL: "${originalUrl}"`); // Removed
     }
 
     const newUrl = `${baseUrl}${uploadMarker}${transformationString}/${publicPath}`;
-    console.log(`[getTransformedCloudinaryUrl] Output - New URL: "${newUrl}"`);
+    // console.log(`[getTransformedCloudinaryUrl] Output - New URL: "${newUrl}"`); // Removed
     return newUrl;
   }
 
-  console.warn(`[getTransformedCloudinaryUrl] Warning: Original URL "${originalUrl}" does not seem to be a valid Cloudinary URL (missing "${uploadMarker}" marker). Returning original URL.`);
+  // console.warn(`[getTransformedCloudinaryUrl] Warning: Original URL "${originalUrl}" does not seem to be a valid Cloudinary URL (missing "${uploadMarker}" marker). Returning original URL.`); // Removed
   return originalUrl;
 };

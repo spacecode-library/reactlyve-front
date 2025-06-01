@@ -112,13 +112,14 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       await reactionsApi.uploadVideoToReaction(reactionId, blob);
       await onRecordReaction(message.id, blob);
       setIsReactionRecorded(true);
-      setShowRecorder(false);
+      // setShowRecorder(false); // Moved to finally
       toast.success('Reaction uploaded successfully!');
     } catch (error) {
       console.error('Reaction save error:', error);
       setPermissionError('An error occurred while saving your reaction. Please try again.');
     } finally {
-      setIsUploading(false); 
+      setIsUploading(false);
+      setShowRecorder(false); // Ensure this is here
     }
   }, [reactionId, onLocalRecordingComplete, onRecordReaction, message.id]);
 
@@ -154,11 +155,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     try {
       const currentSessionId = String(sessionId); // Ensure it's a string
       // The console log should use currentSessionId too
-      console.log('Attempting to initialize reaction. Parameters:', {
-        messageId: message.id,
-        sessionId: currentSessionId,
-        name: recipientName || undefined
-      });
       const res = await reactionsApi.init(message.id, currentSessionId, recipientName || undefined);
       if (res.data.reactionId) {
         setReactionId(res.data.reactionId);
