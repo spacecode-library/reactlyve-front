@@ -22,7 +22,12 @@ jest.mock('@ffmpeg/util', () => ({
 }));
 
 // Mock createObjectURL and revokeObjectURL
-global.URL.createObjectURL = jest.fn((file) => `blob:http://localhost/${file?.name || 'mock-url'}`);
+global.URL.createObjectURL = jest.fn((blob: Blob | MediaSource) => {
+  if (blob instanceof File) {
+    return `blob:http://localhost/${blob.name}`;
+  }
+  return 'blob:http://localhost/mock-url';
+});
 global.URL.revokeObjectURL = jest.fn();
 
 describe('MediaUploader', () => {
@@ -73,17 +78,22 @@ describe('MediaUploader', () => {
 
     durationSpy.mockReturnValue(duration);
 
-    loadedMetadataSpy.mockImplementation(function(this: HTMLVideoElement, callback) {
-      if (typeof callback === 'function') {
-        // Simulate async loading of metadata by calling the callback
-        // 'this' refers to the video element instance
-        setTimeout(() => callback.call(this), 0);
+    loadedMetadataSpy.mockImplementation(function(this: HTMLMediaElement, handler: ((this: HTMLMediaElement, ev: Event) => any) | null) {
+      // The 'handler' is the function like video.onloadedmetadata = () => { ... } from MediaUploader.tsx
+      // We simulate its invocation. Since the actual handler in MediaUploader doesn't use event args,
+      // calling it without an event arg is fine.
+      if (typeof handler === 'function') {
+        const videoElement = this; // Capture 'this'
+        setTimeout(() => handler.call(videoElement, new Event('loadedmetadata') as Event), 0);
       }
     });
 
     // Default error spy, can be overridden in specific tests
-    errorSpy.mockImplementation(function(this: HTMLVideoElement, callback) {
-      // Do nothing by default, or can be set to call the error handler
+    errorSpy.mockImplementation(function(this: HTMLMediaElement, handler: OnErrorEventHandler | null) {
+      if (typeof handler === 'function') {
+        const videoElement = this; // Capture 'this'
+        setTimeout(() => handler.call(videoElement, new Event('error') as Event), 0);
+      }
     });
 
     // Fire event on the passed inputElement
@@ -134,16 +144,17 @@ describe('MediaUploader', () => {
 
     // Override the error spy for this specific test case
     jest.spyOn(window.HTMLMediaElement.prototype, 'onerror', 'set')
-      .mockImplementation(function(this: HTMLVideoElement, callback) {
-        if (typeof callback === 'function') {
-          setTimeout(() => callback.call(this), 0); // Simulate error event
+      .mockImplementation(function(this: HTMLMediaElement, handler: OnErrorEventHandler | null) {
+        if (typeof handler === 'function') {
+          const videoElement = this;
+          setTimeout(() => handler.call(videoElement, new Event('error') as Event), 0); // Simulate error event
         }
       });
 
     // Ensure onloadedmetadata does *not* call its callback for this test
     jest.spyOn(window.HTMLMediaElement.prototype, 'onloadedmetadata', 'set')
-      .mockImplementation(function(this: HTMLVideoElement, callback) {
-        // Do nothing with the callback to simulate it never loading
+      .mockImplementation(function(this: HTMLMediaElement, handler: ((this: HTMLMediaElement, ev: Event) => any) | null) {
+        // Do nothing with the handler to simulate it never loading
       });
 
     const file = new File([new ArrayBuffer(1024)], "error_video.mp4", { type: "video/mp4" });
