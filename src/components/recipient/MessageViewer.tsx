@@ -36,7 +36,10 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   onLocalRecordingComplete,
 }) => {
   const { user } = useAuth();
-  const isReactionLimitReached = !!(user && user.max_reactions_per_month !== null && user.current_reactions_this_month >= user.max_reactions_per_month);
+  const isReactionLimitReached = !!(user &&
+    user.max_reactions_per_month !== null &&
+    (user.current_reactions_this_month ?? 0) >= user.max_reactions_per_month
+  );
 
   const normalizedMessage = normalizeMessage(message);
   const [reactionId, setReactionId] = useState<string | null>(null);
