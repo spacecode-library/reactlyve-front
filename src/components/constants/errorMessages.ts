@@ -32,6 +32,7 @@ export const GENERAL_ERRORS = {
     PASSCODE_TOO_SHORT: 'Passcode must be at least 4 characters long.',
     REACTION_LENGTH_MIN: 'Reaction recording length must be at least 10 seconds.',
     REACTION_LENGTH_MAX: 'Reaction recording length can be at most 30 seconds.',
+    VIDEO_DURATION_EXCEEDED: "Video duration cannot exceed 30 seconds.",
   };
   
   // Message error messages

@@ -11,6 +11,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    "esModuleInterop": true,
     "strict": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
@@ -24,9 +25,7 @@
   "include": ["src"],
   "exclude": [
     "node_modules",
-    "dist",
-    "**/*.test.tsx",
-    "**/*.spec.tsx"
+    "dist"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
