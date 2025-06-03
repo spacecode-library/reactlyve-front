@@ -57,8 +57,45 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
 
       const isVideoFile = file.type.startsWith('video/');
       const ffmpeg = ffmpegRef.current;
-      
+
       if (isVideoFile) {
+        // --- Video Duration Check ---
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        const videoUrl = URL.createObjectURL(file);
+
+        try {
+          await new Promise<void>((resolve, reject) => {
+            video.onloadedmetadata = () => {
+              URL.revokeObjectURL(videoUrl); // Clean up object URL
+              if (video.duration > 30) {
+                onError('Video duration cannot exceed 30 seconds.');
+                // Clean up selected file state if duration check fails
+                setSelectedMedia(null);
+                setPreview(null);
+                setIsVideo(false);
+                onMediaSelect(null);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = ''; // Reset file input
+                }
+                reject(new Error('Video too long'));
+              } else {
+                resolve();
+              }
+            };
+            video.onerror = () => {
+              URL.revokeObjectURL(videoUrl);
+              onError('Could not read video metadata.');
+              reject(new Error('Error loading video metadata'));
+            };
+            video.src = videoUrl;
+          });
+        } catch (error) {
+          // console.error("Video duration check error:", error);
+          return; // Stop processing if duration check fails or errors out
+        }
+        // --- End Video Duration Check ---
+
         // --- Conditional Compression Logic ---
         if (file.size > COMPRESSION_THRESHOLD_BYTES) {
           // console.log(`MediaUploader: File size (${file.size} bytes) > threshold (${COMPRESSION_THRESHOLD_BYTES} bytes). Compressing.`);
