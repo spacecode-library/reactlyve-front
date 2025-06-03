@@ -148,13 +148,20 @@ export const repliesApi = {
 // (e.g., user.googleId, user.createdAt)
 export const adminApi = {
   getUsers: () => api.get('/admin/users'),
-  updateUserRole: (userId: string, role: 'user' | 'admin') =>
+  updateUserRole: (userId: string, role: User['role']) =>
     // Backend expects { role: "value" } (lowercase)
     api.put(`/admin/users/${userId}/role`, { role }),
   deleteUser: (userId: string) => api.delete(`/admin/users/${userId}`),
   getStats: () => api.get('/admin/stats'), // Assuming this endpoint returns data; check its casing if complex.
   getUserDetails: (userId: string) => api.get(`/admin/users/${userId}/details`),
-  updateUserLimits: (userId: string, limits: Partial<Pick<User, 'max_messages_per_month' | 'max_reactions_per_month' | 'max_reactions_per_message'>>) =>
+  updateUserLimits: (userId: string, limits: Partial<Pick<User,
+    'max_messages_per_month' |
+    'max_reactions_per_month' |
+    'max_reactions_per_message' |
+    'current_messages_this_month' |
+    'current_reactions_this_month' |
+    'last_usage_reset_date'
+  >>) =>
     api.put(`/admin/users/${userId}/limits`, limits),
 };
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
+import { useAuth } from '../context/AuthContext'; // Adjust path if necessary
 import { formatDistance, format } from 'date-fns'; // Added format
 import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon, Trash2Icon, Edit3Icon } from 'lucide-react';
 import api, { messagesApi, reactionsApi } from '@/services/api';
@@ -31,6 +32,9 @@ const Message: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState({ passcode: false, link: false });
   const [showQrCode, setShowQrCode] = useState(false);
+
+  const { user: loggedInUser } = useAuth();
+  const isGuestUser = loggedInUser?.role === 'guest';
 
   // State for Passcode Edit Modal
   const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
@@ -510,9 +514,10 @@ const Message: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => setShowDeleteAllReactionsModal(true)}
-                    disabled={isDeletingAllReactions || !normalizedMessage?.reactions?.length}
+                    disabled={isGuestUser || isDeletingAllReactions || !normalizedMessage?.reactions?.length}
                     isLoading={isDeletingAllReactions}
                     className="text-red-600 border-red-600 hover:bg-red-50 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-900/30"
+                    title={isGuestUser ? "Guests cannot clear all reactions." : undefined}
                   >
                     <Trash2Icon size={16} className="mr-1" />
                     Clear All Reactions
@@ -546,9 +551,9 @@ const Message: React.FC = () => {
                           size="sm"
                           onClick={() => openDeleteReactionModal(reaction.id)}
                           className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 dark:text-neutral-400 dark:hover:text-red-500 dark:hover:bg-red-900/30"
-                          disabled={isDeletingReaction && reactionToDeleteId === reaction.id}
+                          disabled={isGuestUser || (isDeletingReaction && reactionToDeleteId === reaction.id)}
                           isLoading={isDeletingReaction && reactionToDeleteId === reaction.id}
-                          title="Delete Reaction"
+                          title={isGuestUser ? "Guests cannot delete reactions." : "Delete Reaction"}
                         >
                           <Trash2Icon size={16} />
                         </Button>

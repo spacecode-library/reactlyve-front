@@ -10,8 +10,8 @@ import DashboardLayout from '../layouts/DashboardLayout'; // Import DashboardLay
 import Input from '../components/common/Input'; // Import Input component
 
 // Define the available roles for the select dropdown
-type SettableUserRole = 'user' | 'admin';
-const ROLES_FOR_SELECT: SettableUserRole[] = ['user', 'admin'];
+// type SettableUserRole = 'user' | 'admin'; // No longer strictly needed here
+const ROLES_FOR_SELECT: User['role'][] = ['user', 'admin', 'guest'];
 
 interface UserToDelete {
   id: string;
@@ -22,6 +22,7 @@ interface UserLimitInputs {
   max_messages_per_month: string;
   max_reactions_per_month: string;
   max_reactions_per_message: string;
+  last_usage_reset_date: string; // Added
 }
 
 const AdminPortalPage: React.FC = () => {
@@ -42,6 +43,7 @@ const AdminPortalPage: React.FC = () => {
     max_messages_per_month: '',
     max_reactions_per_month: '',
     max_reactions_per_message: '',
+    last_usage_reset_date: '', // Added
   });
   const [isLoadingUserDetails, setIsLoadingUserDetails] = useState(false);
   const [isUpdatingLimits, setIsUpdatingLimits] = useState(false);
@@ -89,9 +91,11 @@ const AdminPortalPage: React.FC = () => {
       max_messages_per_month: parseInput(limitInputs.max_messages_per_month),
       max_reactions_per_month: parseInput(limitInputs.max_reactions_per_month),
       max_reactions_per_message: parseInput(limitInputs.max_reactions_per_message),
+      last_usage_reset_date: limitInputs.last_usage_reset_date === '' ? null : limitInputs.last_usage_reset_date,
     };
 
     try {
+      // Assuming adminApi.updateUserLimits can handle all fields in payload due to prior step update
       await adminApi.updateUserLimits(selectedUserForLimits.id, payload);
       setUsers(prevUsers => prevUsers.map(u =>
         u.id === selectedUserForLimits.id
@@ -100,9 +104,8 @@ const AdminPortalPage: React.FC = () => {
             max_messages_per_month: payload.max_messages_per_month,
             max_reactions_per_month: payload.max_reactions_per_month,
             max_reactions_per_message: payload.max_reactions_per_message,
-            // Note: current_... values and last_usage_reset_date are not updated by this call directly,
-            // they are modified by actual usage or a cron job.
-            // If API returns updated user, spread that instead.
+            last_usage_reset_date: payload.last_usage_reset_date,
+            // current_ values are not directly set here, they reflect actual usage
           }
           : u
       ));
@@ -117,16 +120,63 @@ const AdminPortalPage: React.FC = () => {
     }
   };
 
-  const handleRoleChange = async (userId: string, newRole: SettableUserRole) => {
+  const handleRoleChange = async (userId: string, newRole: User['role']) => {
     setUpdatingRoleId(userId);
     try {
+      // The API already expects User['role'] from a previous change.
+      // This function's local type change is to align with ROLES_FOR_SELECT.
       await adminApi.updateUserRole(userId, newRole);
-      setUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user.id === userId ? { ...user, role: newRole } : user
+      // Original optimistic update is removed, will be handled by more comprehensive logic later in this function
+      // setUsers((prevUsers) =>
+      //   prevUsers.map((user) =>
+      //     user.id === userId ? { ...user, role: newRole } : user
+      //   )
+      // );
+      toast.success(`User ${userId} role updated to ${newRole}.`);
+      // Logic for guest limits will be added in the next step here.
+      // For now, just ensuring the signature and basic call is updated.
+      // The full logic for handleRoleChange including guest limits will be applied in a subsequent diff.
+      // This step only focuses on changing ROLES_FOR_SELECT and the signature.
+      // A placeholder for the more complex logic to be inserted:
+      // setUsers(prevUsers => prevUsers.map(user =>
+      //   user.id === userId ? { ...user, role: newRole } : user
+      // ));
+      // --- Start of new comprehensive logic for handleRoleChange ---
+      let finalUserUpdate: Partial<User> = { role: newRole };
+
+      if (newRole === 'guest') {
+        const guestLimitsPayload: Partial<Pick<User,
+          'max_messages_per_month' |
+          'max_reactions_per_month' |
+          'max_reactions_per_message' |
+          'current_messages_this_month' |
+          'current_reactions_this_month' |
+          'last_usage_reset_date'
+        >> = {
+          max_messages_per_month: 3,
+          max_reactions_per_month: 9,
+          max_reactions_per_message: 3,
+          last_usage_reset_date: "2999-01-19", // Far future date as a convention
+          current_messages_this_month: 0,    // Reset current usage
+          current_reactions_this_month: 0    // Reset current usage
+        };
+        try {
+          await adminApi.updateUserLimits(userId, guestLimitsPayload);
+          toast.success(`User ${userId} limits reset to guest defaults.`);
+          finalUserUpdate = { ...finalUserUpdate, ...guestLimitsPayload };
+        } catch (limitErr) {
+          console.error('Failed to set guest limits:', limitErr);
+          toast.error('Role set to guest, but failed to reset limits. Manual limit adjustment might be needed.');
+        }
+      }
+
+      // Update local state with all changes
+      setUsers(prevUsers =>
+        prevUsers.map(user =>
+          user.id === userId ? { ...user, ...finalUserUpdate } : user
         )
       );
-      toast.success(`User ${userId} role updated to ${newRole}.`);
+      // --- End of new comprehensive logic for handleRoleChange ---
     } catch (err) {
       console.error('Update role error:', err);
       toast.error(
@@ -247,15 +297,12 @@ const AdminPortalPage: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
                       <select
-                        value={user.role} // Keep displaying the actual current role
-                        onChange={(e) => handleRoleChange(user.id, e.target.value as SettableUserRole)}
+                        value={user.role}
+                        onChange={(e) => handleRoleChange(user.id, e.target.value as User['role'])}
                         disabled={updatingRoleId === user.id || isLoading}
                         className="block w-auto pl-3 pr-10 py-1.5 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-neutral-700 dark:border-neutral-600 dark:text-white disabled:opacity-50"
                       >
-                        {/* Add a disabled option for 'guest' if it's the current role, as it's not settable */}
-                        {user.role === 'guest' && (
-                          <option value="guest" disabled>Guest (Current)</option>
-                        )}
+                        {/* 'guest' is now a settable option, so no special disabled option needed if it's current. */}
                         {ROLES_FOR_SELECT.map((role) => (
                           <option key={role} value={role}>
                             {role.charAt(0).toUpperCase() + role.slice(1)}
@@ -263,7 +310,7 @@ const AdminPortalPage: React.FC = () => {
                         ))}
                       </select>
                       <Button 
-                        variant="danger" 
+                        variant="danger"
                         size="sm" 
                         onClick={() => {
                           setUserToDelete({ id: user.id, name: user.name });
@@ -282,10 +329,22 @@ const AdminPortalPage: React.FC = () => {
                           try {
                             const response = await adminApi.getUserDetails(user.id);
                             setSelectedUserForLimits(response.data);
+                            const dateValue = response.data.last_usage_reset_date;
+                            let formattedDateForInput = '';
+                            if (dateValue) {
+                              try {
+                                // Ensure it's a valid date and format to YYYY-MM-DD for <input type="date">
+                                formattedDateForInput = new Date(dateValue).toISOString().split('T')[0];
+                              } catch (e) {
+                                console.error("Error parsing last_usage_reset_date for input: ", dateValue);
+                                // Keep it empty if parsing fails, or handle as appropriate
+                              }
+                            }
                             setLimitInputs({
                               max_messages_per_month: response.data.max_messages_per_month?.toString() || '',
                               max_reactions_per_month: response.data.max_reactions_per_month?.toString() || '',
                               max_reactions_per_message: response.data.max_reactions_per_message?.toString() || '',
+                              last_usage_reset_date: formattedDateForInput,
                             });
                             setIsEditLimitsModalOpen(true);
                           } catch (err) {
@@ -428,6 +487,21 @@ const AdminPortalPage: React.FC = () => {
                   className="mt-1"
                   placeholder="e.g., 5"
                   min="0"
+                  disabled={isUpdatingLimits}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="last_usage_reset_date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Last Usage Reset Date (YYYY-MM-DD, empty to clear)
+                </label>
+                <Input
+                  type="date"
+                  name="last_usage_reset_date"
+                  id="last_usage_reset_date"
+                  value={limitInputs.last_usage_reset_date}
+                  onChange={handleLimitInputChange}
+                  className="mt-1"
                   disabled={isUpdatingLimits}
                 />
               </div>

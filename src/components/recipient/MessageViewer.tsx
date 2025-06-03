@@ -183,11 +183,17 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     } catch (err) {
       console.error('❌ Failed to initialize reaction:', err);
       if (err instanceof AxiosError && err.response) {
-        // Assume global interceptor in api.ts handled the toast.
-        // The global handler uses err.response.data.error.
-        // We can still set a local error state if needed for UI changes.
-        const backendErrorMessage = err.response?.data?.error || 'Failed to initialize reaction session.';
-        setPermissionError(backendErrorMessage); // Update UI with specific or generic error
+        const backendError = err.response?.data?.error;
+        // TODO: Replace "SENDER_MESSAGE_REACTION_LIMIT_REACHED" with the actual error string/code from backend
+        if (backendError && typeof backendError === 'string' && backendError.includes("SENDER_MESSAGE_REACTION_LIMIT_REACHED")) {
+          setPermissionError("Unable to add your Reaction, please ask the sender to increase their Reaction limits");
+          // Do not show a toast here, as setPermissionError will display it via PermissionRequest component
+        } else {
+          // Default handling for other Axios errors
+          const backendErrorMessage = backendError || 'Failed to initialize reaction session.';
+          setPermissionError(backendErrorMessage);
+          // The global interceptor in api.ts should handle toasting for these generic backend errors.
+        }
       } else {
         // Handle non-Axios errors or Axios errors without a response
         let genericMessage = 'Unable to start a reaction session. Please refresh and try again.';
