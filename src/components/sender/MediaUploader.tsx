@@ -8,6 +8,7 @@ interface MediaUploaderProps {
   onMediaSelect: (file: File | null) => void;
   onError: (message: string) => void;
   maxSizeMB?: number;
+  disabled?: boolean; // Add this line
 }
 
 const FFMPEG_CORE_BASE_URL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
@@ -17,6 +18,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   onMediaSelect,
   onError,
   maxSizeMB = 100, // Default max size is 100MB
+  disabled = false, // Add this and default to false
 }) => {
   const ffmpegRef = useRef(new FFmpeg());
   const [isCompressing, setIsCompressing] = useState<boolean>(false);
@@ -325,6 +327,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         accept="image/*,video/*"
         className="hidden"
         name="media"
+        disabled={disabled} // Add this
       />
 
       {isCompressing ? (
@@ -352,17 +355,19 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         <div
           className={classNames(
             'flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors',
-            isDragging
-              ? 'border-primary-500 bg-primary-50 dark:border-primary-400 dark:bg-neutral-800'
-              : 'border-neutral-300 hover:border-primary-400 dark:border-neutral-700 dark:hover:border-primary-600'
+            disabled
+              ? 'border-neutral-300 bg-neutral-100 opacity-50 cursor-not-allowed dark:border-neutral-700 dark:bg-neutral-800'
+              : isDragging
+                ? 'border-primary-500 bg-primary-50 dark:border-primary-400 dark:bg-neutral-800'
+                : 'border-neutral-300 hover:border-primary-400 dark:border-neutral-700 dark:hover:border-primary-600'
           )}
-          onClick={handleBrowseClick}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          role="button"
-          tabIndex={0}
+          onClick={disabled ? undefined : handleBrowseClick}
+          onDragEnter={disabled ? undefined : handleDragEnter}
+          onDragLeave={disabled ? undefined : handleDragLeave}
+          onDragOver={disabled ? undefined : handleDragOver}
+          onDrop={disabled ? undefined : handleDrop}
+          role={disabled ? undefined : "button"}
+          tabIndex={disabled ? -1 : 0}
         >
           <Upload
             className="mb-3 h-10 w-10 text-neutral-400 dark:text-neutral-500"
@@ -408,7 +413,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
             type="button"
             onClick={handleRemove}
             className="absolute right-2 top-2 rounded-full bg-neutral-100 p-1 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-500 dark:bg-neutral-800 dark:text-neutral-500 dark:hover:bg-neutral-700 dark:hover:text-neutral-400"
-            disabled={isCompressing} // Disable remove button during compression
+            disabled={isCompressing || disabled} // Modify this
           >
             <X className="h-4 w-4" aria-hidden="true" />
             <span className="sr-only">Remove</span>

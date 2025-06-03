@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom'; // Import Link
 import { AxiosError } from 'axios';
+import { useAuth } from '../../context/AuthContext';
 import WebcamRecorder from './WebcamRecorder';
 import PermissionRequest from './PermissionRequest';
 import PasscodeEntry from './PasscodeEntry';
@@ -34,6 +35,9 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   onInitReactionId,
   onLocalRecordingComplete,
 }) => {
+  const { user } = useAuth();
+  const isReactionLimitReached = !!(user && user.max_reactions_per_month !== null && user.current_reactions_this_month >= user.max_reactions_per_month);
+
   const normalizedMessage = normalizeMessage(message);
   const [reactionId, setReactionId] = useState<string | null>(null);
   const [recipientName, setRecipientName] = useState<string>('');
@@ -390,6 +394,11 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         )}
         {showRecorder && !isNameSubmitted && ( 
           <div className="mb-4 w-full max-w-md mx-auto">
+            {isReactionLimitReached && (
+              <div className="p-3 my-2 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800" role="alert">
+                You have reached your monthly reaction limit. You won't be able to react more this month.
+              </div>
+            )}
             <label htmlFor="recipientName" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1 text-center">
               Say hello with your name
             </label>
@@ -400,12 +409,13 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
               onChange={(e) => setRecipientName(e.target.value)}
               placeholder="Enter your name"
               className="w-full p-2 border border-neutral-300 rounded-md dark:bg-neutral-700 dark:border-neutral-600 dark:text-white"
-              disabled={isNameSubmitted} 
+              disabled={isNameSubmitted || isReactionLimitReached} // Modify this
             />
             <button
               onClick={handleStartReaction} 
-              disabled={!recipientName.trim() || isNameSubmitted}
+              disabled={!recipientName.trim() || isNameSubmitted || isReactionLimitReached} // Modify this
               className="btn btn-primary w-full mt-2" 
+              title={isReactionLimitReached ? "You have reached your monthly reaction limit." : undefined} // Add tooltip
             >
               Start Reaction
             </button>

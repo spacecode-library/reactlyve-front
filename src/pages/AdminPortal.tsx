@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { newAdminApi } from '../services/api';
+import { adminApi } from '../services/api';
 import { User } from '../types/user';
 import { formatDate, formatDateTime } from '../utils/formatters'; // Import formatDateTime
 import Button from '../components/common/Button';
@@ -32,7 +32,7 @@ const AdminPortalPage: React.FC = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await newAdminApi.getAdminUsers();
+        const response = await adminApi.getUsers();
         setUsers(response.data.users || response.data);
       } catch (err) {
         setError('Failed to fetch users. Please try again later.');
@@ -49,7 +49,7 @@ const AdminPortalPage: React.FC = () => {
   const handleRoleChange = async (userId: string, newRole: User['role']) => {
     setUpdatingRoleId(userId);
     try {
-      await newAdminApi.updateAdminUserRole(userId, newRole);
+      await adminApi.updateUserRole(userId, newRole);
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
           user.id === userId ? { ...user, role: newRole } : user
@@ -72,7 +72,7 @@ const AdminPortalPage: React.FC = () => {
 
     setIsDeletingUser(true);
     try {
-      await newAdminApi.deleteAdminUser(userToDelete.id);
+      await adminApi.deleteUser(userToDelete.id);
       setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userToDelete.id));
       toast.success(`User ${userToDelete.name} (ID: ${userToDelete.id}) deleted successfully.`);
       setIsDeleteUserModalOpen(false);

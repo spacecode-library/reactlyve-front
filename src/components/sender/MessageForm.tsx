@@ -267,7 +267,7 @@ interface MessageFormProps {
 const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
   const { user } = useAuth(); // Get user from AuthContext
 
-  const isMessageLimitReached = user && user.max_messages_per_month !== null && user.current_messages_this_month >= user.max_messages_per_month;
+  const isMessageLimitReached = !!(user && user.max_messages_per_month !== null && user.current_messages_this_month >= user.max_messages_per_month);
 
   const [media, setMedia] = useState<File | null>(null);
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
