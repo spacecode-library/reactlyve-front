@@ -141,13 +141,13 @@ const ProfilePage: React.FC = () => {
           <div>
             <span className="font-semibold">Messages This Month:</span>
             <span className="ml-2">
-              {profileData.current_messages_this_month} / {profileData.max_messages_per_month !== null ? profileData.max_messages_per_month : 'Unlimited'}
+              {(profileData.current_messages_this_month ?? 0)} / {profileData.max_messages_per_month !== null ? profileData.max_messages_per_month : 'Unlimited'}
             </span>
           </div>
           <div>
             <span className="font-semibold">Reactions This Month:</span>
             <span className="ml-2">
-              {profileData.current_reactions_this_month} / {profileData.max_reactions_per_month !== null ? profileData.max_reactions_per_month : 'Unlimited'}
+              {(profileData.current_reactions_this_month ?? 0)} / {profileData.max_reactions_per_month !== null ? profileData.max_reactions_per_month : 'Unlimited'}
             </span>
           </div>
           <div>
@@ -156,12 +156,14 @@ const ProfilePage: React.FC = () => {
               {profileData.max_reactions_per_message !== null ? profileData.max_reactions_per_message : 'Unlimited'}
             </span>
           </div>
-          <div>
-            <span className="font-semibold">Usage Resets On:</span>
-            <span className="ml-2">
-              {profileData.last_usage_reset_date ? formatDate(profileData.last_usage_reset_date) : 'N/A'}
-            </span>
-          </div>
+          {profileData.role !== 'guest' && (
+            <div>
+              <span className="font-semibold">Usage Resets On:</span>
+              <span className="ml-2">
+                {profileData.last_usage_reset_date ? formatDate(profileData.last_usage_reset_date) : 'N/A'}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 

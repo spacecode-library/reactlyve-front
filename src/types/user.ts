@@ -9,9 +9,9 @@ export interface User {
     createdAt?: string;
     updatedAt?: string;
     max_messages_per_month: number | null;
-    current_messages_this_month: number;
+    current_messages_this_month: number | null;
     max_reactions_per_month: number | null;
-    current_reactions_this_month: number;
+    current_reactions_this_month: number | null;
     last_usage_reset_date: string | null;
     max_reactions_per_message: number | null;
   }
