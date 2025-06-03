@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom'; // Import Link
+import { AxiosError } from 'axios';
 import WebcamRecorder from './WebcamRecorder';
 import PermissionRequest from './PermissionRequest';
 import PasscodeEntry from './PasscodeEntry';
@@ -116,7 +117,17 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       toast.success('Reaction uploaded successfully!');
     } catch (error) {
       console.error('Reaction save error:', error);
-      setPermissionError('An error occurred while saving your reaction. Please try again.');
+      if (error instanceof AxiosError && error.response) {
+        // Assume global interceptor in api.ts handled the toast.
+        // Optionally, set a generic error state if needed for UI changes beyond a toast.
+        // For now, we'll just log and let the global handler show the toast.
+        // If a specific UI state change is needed for API errors, set it here.
+        // For example, setPermissionError('Failed to save reaction. Please check notifications.');
+      } else {
+        // Handle non-Axios errors or Axios errors without a response (e.g., network issues)
+        setPermissionError('An error occurred while saving your reaction. Please try again.');
+        toast.error('An error occurred while saving your reaction. Please try again.'); // Show toast for non-API errors
+      }
     } finally {
       setIsUploading(false);
       setShowRecorder(false); // Ensure this is here
@@ -167,12 +178,24 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       }
     } catch (err) {
       console.error('❌ Failed to initialize reaction:', err);
-      let errorMessage = 'Unable to start a reaction session. Please refresh and try again.';
-      if (err instanceof Error && err.message && (err.message.includes('session') || err.message.includes('name'))) {
-          errorMessage = err.message;
+      if (err instanceof AxiosError && err.response) {
+        // Assume global interceptor in api.ts handled the toast.
+        // The global handler uses err.response.data.error.
+        // We can still set a local error state if needed for UI changes.
+        const backendErrorMessage = err.response?.data?.error || 'Failed to initialize reaction session.';
+        setPermissionError(backendErrorMessage); // Update UI with specific or generic error
+      } else {
+        // Handle non-Axios errors or Axios errors without a response
+        let genericMessage = 'Unable to start a reaction session. Please refresh and try again.';
+        if (err instanceof Error && err.message) { // Try to get a bit more specific for non-API errors
+            // Avoid showing generic Axios messages like "Request failed with status code 403"
+            if (!String(err.message).toLowerCase().includes("status code")) {
+                genericMessage = err.message;
+            }
+        }
+        setPermissionError(genericMessage);
+        toast.error(genericMessage); // Show toast for non-API errors
       }
-      setPermissionError(errorMessage);
-      toast.error(errorMessage); 
       setIsNameSubmitted(false); 
       setTriggerCountdown(false); 
     }

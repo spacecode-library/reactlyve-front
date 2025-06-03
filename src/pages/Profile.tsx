@@ -134,6 +134,37 @@ const ProfilePage: React.FC = () => {
         </div>
       </div>
 
+      {/* Usage and Limits Section */}
+      <div className="bg-white dark:bg-neutral-800 shadow rounded-lg p-6 mt-6">
+        <h3 className="text-xl font-semibold mb-4">Usage and Limits</h3>
+        <div className="space-y-3">
+          <div>
+            <span className="font-semibold">Messages This Month:</span>
+            <span className="ml-2">
+              {profileData.current_messages_this_month} / {profileData.max_messages_per_month !== null ? profileData.max_messages_per_month : 'Unlimited'}
+            </span>
+          </div>
+          <div>
+            <span className="font-semibold">Reactions This Month:</span>
+            <span className="ml-2">
+              {profileData.current_reactions_this_month} / {profileData.max_reactions_per_month !== null ? profileData.max_reactions_per_month : 'Unlimited'}
+            </span>
+          </div>
+          <div>
+            <span className="font-semibold">Max Reactions Per Message:</span>
+            <span className="ml-2">
+              {profileData.max_reactions_per_message !== null ? profileData.max_reactions_per_message : 'Unlimited'}
+            </span>
+          </div>
+          <div>
+            <span className="font-semibold">Usage Resets On:</span>
+            <span className="ml-2">
+              {profileData.last_usage_reset_date ? formatDate(profileData.last_usage_reset_date) : 'N/A'}
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div className="mt-8">
         <h3 className="text-xl font-semibold mb-3">Account Management</h3>
         <Button 

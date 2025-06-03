@@ -153,6 +153,9 @@ export const adminApi = {
     api.put(`/admin/users/${userId}/role`, { role }),
   deleteUser: (userId: string) => api.delete(`/admin/users/${userId}`),
   getStats: () => api.get('/admin/stats'), // Assuming this endpoint returns data; check its casing if complex.
+  getUserDetails: (userId: string) => api.get(`/admin/users/${userId}/details`),
+  updateUserLimits: (userId: string, limits: Partial<Pick<User, 'max_messages_per_month' | 'max_reactions_per_month' | 'max_reactions_per_message'>>) =>
+    api.put(`/admin/users/${userId}/limits`, limits),
 };
 
 // ------------------ PROFILE API ------------------
@@ -161,15 +164,6 @@ export const adminApi = {
 export const profileApi = {
   getProfileMe: () => api.get('/profile/me'),
   deleteProfileMe: () => api.delete('/profile/me'),
-};
-
-// ------------------ NEW ADMIN API FUNCTIONS ------------------
-// These are duplicates of adminApi; same casing considerations apply.
-export const newAdminApi = {
-  getAdminUsers: () => api.get('/admin/users'),
-  updateAdminUserRole: (userId: string, role: User['role']) =>
-    api.put(`/admin/users/${userId}/role`, { role }),
-  deleteAdminUser: (userId: string) => api.delete(`/admin/users/${userId}`),
 };
 
 export default api;
