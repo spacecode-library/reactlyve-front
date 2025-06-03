@@ -7,13 +7,21 @@ import toast from 'react-hot-toast';
 import Modal from '../components/common/Modal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import DashboardLayout from '../layouts/DashboardLayout'; // Import DashboardLayout
+import Input from '../components/common/Input'; // Import Input component
 
 // Define the available roles for the select dropdown
-const ROLES: User['role'][] = ['user', 'admin', 'guest'];
+type SettableUserRole = 'user' | 'admin';
+const ROLES_FOR_SELECT: SettableUserRole[] = ['user', 'admin'];
 
 interface UserToDelete {
   id: string;
   name: string;
+}
+
+interface UserLimitInputs {
+  max_messages_per_month: string;
+  max_reactions_per_month: string;
+  max_reactions_per_message: string;
 }
 
 const AdminPortalPage: React.FC = () => {
@@ -26,6 +34,17 @@ const AdminPortalPage: React.FC = () => {
   const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<UserToDelete | null>(null);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
+
+  // State for Edit Limits Modal
+  const [isEditLimitsModalOpen, setIsEditLimitsModalOpen] = useState(false);
+  const [selectedUserForLimits, setSelectedUserForLimits] = useState<User | null>(null);
+  const [limitInputs, setLimitInputs] = useState<UserLimitInputs>({
+    max_messages_per_month: '',
+    max_reactions_per_month: '',
+    max_reactions_per_message: '',
+  });
+  const [isLoadingUserDetails, setIsLoadingUserDetails] = useState(false);
+  const [isUpdatingLimits, setIsUpdatingLimits] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -46,7 +65,59 @@ const AdminPortalPage: React.FC = () => {
     fetchUsers();
   }, []);
 
-  const handleRoleChange = async (userId: string, newRole: User['role']) => {
+  const handleLimitInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (e.target.type === 'number' && value !== '' && !/^\d+$/.test(value) && value !== '-') {
+      // Allow only numbers, empty string, or a single hyphen for potential negative (though we use min="0")
+      return;
+    }
+    setLimitInputs(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveLimits = async () => {
+    if (!selectedUserForLimits) return;
+
+    setIsUpdatingLimits(true);
+
+    const parseInput = (value: string): number | null => {
+      if (value === '') return null;
+      const num = parseInt(value, 10);
+      return isNaN(num) ? null : num; // Convert NaN (from invalid parse like "abc") to null
+    };
+
+    const payload = {
+      max_messages_per_month: parseInput(limitInputs.max_messages_per_month),
+      max_reactions_per_month: parseInput(limitInputs.max_reactions_per_month),
+      max_reactions_per_message: parseInput(limitInputs.max_reactions_per_message),
+    };
+
+    try {
+      await adminApi.updateUserLimits(selectedUserForLimits.id, payload);
+      setUsers(prevUsers => prevUsers.map(u =>
+        u.id === selectedUserForLimits.id
+          ? {
+            ...u,
+            max_messages_per_month: payload.max_messages_per_month,
+            max_reactions_per_month: payload.max_reactions_per_month,
+            max_reactions_per_message: payload.max_reactions_per_message,
+            // Note: current_... values and last_usage_reset_date are not updated by this call directly,
+            // they are modified by actual usage or a cron job.
+            // If API returns updated user, spread that instead.
+          }
+          : u
+      ));
+      toast.success('Limits updated successfully!');
+      setIsEditLimitsModalOpen(false);
+      setSelectedUserForLimits(null);
+    } catch (err) {
+      toast.error('Failed to update limits.');
+      console.error("Update limits error:", err);
+    } finally {
+      setIsUpdatingLimits(false);
+    }
+  };
+
+  const handleRoleChange = async (userId: string, newRole: SettableUserRole) => {
     setUpdatingRoleId(userId);
     try {
       await adminApi.updateUserRole(userId, newRole);
@@ -176,12 +247,16 @@ const AdminPortalPage: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
                       <select
-                        value={user.role}
-                        onChange={(e) => handleRoleChange(user.id, e.target.value as User['role'])}
+                        value={user.role} // Keep displaying the actual current role
+                        onChange={(e) => handleRoleChange(user.id, e.target.value as SettableUserRole)}
                         disabled={updatingRoleId === user.id || isLoading}
                         className="block w-auto pl-3 pr-10 py-1.5 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-neutral-700 dark:border-neutral-600 dark:text-white disabled:opacity-50"
                       >
-                        {ROLES.map((role) => (
+                        {/* Add a disabled option for 'guest' if it's the current role, as it's not settable */}
+                        {user.role === 'guest' && (
+                          <option value="guest" disabled>Guest (Current)</option>
+                        )}
+                        {ROLES_FOR_SELECT.map((role) => (
                           <option key={role} value={role}>
                             {role.charAt(0).toUpperCase() + role.slice(1)}
                           </option>
@@ -197,6 +272,34 @@ const AdminPortalPage: React.FC = () => {
                         disabled={isLoading || !!updatingRoleId || isDeletingUser}
                       >
                         Delete User
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          setSelectedUserForLimits(user);
+                          setIsLoadingUserDetails(true);
+                          try {
+                            const response = await adminApi.getUserDetails(user.id);
+                            setSelectedUserForLimits(response.data);
+                            setLimitInputs({
+                              max_messages_per_month: response.data.max_messages_per_month?.toString() || '',
+                              max_reactions_per_month: response.data.max_reactions_per_month?.toString() || '',
+                              max_reactions_per_message: response.data.max_reactions_per_message?.toString() || '',
+                            });
+                            setIsEditLimitsModalOpen(true);
+                          } catch (err) {
+                            toast.error('Failed to fetch user details.');
+                            console.error("Fetch user details error:", err);
+                            setSelectedUserForLimits(null); // Clear optimistic set if fetch fails
+                          } finally {
+                            setIsLoadingUserDetails(false);
+                          }
+                        }}
+                        disabled={(isLoadingUserDetails && selectedUserForLimits?.id === user.id) || (isEditLimitsModalOpen && selectedUserForLimits?.id !== user.id) || !!updatingRoleId || isDeletingUser}
+                        isLoading={isLoadingUserDetails && selectedUserForLimits?.id === user.id}
+                      >
+                        Manage Limits
                       </Button>
                     </div>
                   </td>
@@ -245,6 +348,108 @@ const AdminPortalPage: React.FC = () => {
                 disabled={isDeletingUser}
               >
                 Confirm Delete
+              </Button>
+            </div>
+          </Modal>
+        )}
+
+        {/* Edit Limits Modal */}
+        {isEditLimitsModalOpen && selectedUserForLimits && (
+          <Modal
+            isOpen={isEditLimitsModalOpen}
+            onClose={() => {
+              if (isUpdatingLimits) return;
+              setIsEditLimitsModalOpen(false);
+              setSelectedUserForLimits(null);
+            }}
+            title={`Manage Limits for ${selectedUserForLimits.name}`}
+            size="lg" // Consider 'lg' or 'xl' for more content
+          >
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-md font-semibold mb-1">Current Usage:</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Messages This Month: {selectedUserForLimits.current_messages_this_month ?? 0} / {selectedUserForLimits.max_messages_per_month !== null ? selectedUserForLimits.max_messages_per_month : 'Unlimited'}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Reactions This Month: {selectedUserForLimits.current_reactions_this_month ?? 0} / {selectedUserForLimits.max_reactions_per_month !== null ? selectedUserForLimits.max_reactions_per_month : 'Unlimited'}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Last Usage Reset Date: {selectedUserForLimits.last_usage_reset_date ? formatDate(selectedUserForLimits.last_usage_reset_date) : 'N/A'}
+                </p>
+              </div>
+
+              <hr className="dark:border-neutral-700"/>
+
+              <div>
+                <label htmlFor="max_messages_per_month" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Max Messages/Month (empty for unlimited)
+                </label>
+                <Input
+                  type="number"
+                  name="max_messages_per_month"
+                  id="max_messages_per_month"
+                  value={limitInputs.max_messages_per_month}
+                  onChange={handleLimitInputChange}
+                  className="mt-1"
+                  placeholder="e.g., 100"
+                  min="0"
+                  disabled={isUpdatingLimits}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="max_reactions_per_month" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Max Reactions/Month (empty for unlimited)
+                </label>
+                <Input
+                  type="number"
+                  name="max_reactions_per_month"
+                  id="max_reactions_per_month"
+                  value={limitInputs.max_reactions_per_month}
+                  onChange={handleLimitInputChange}
+                  className="mt-1"
+                  placeholder="e.g., 500"
+                  min="0"
+                  disabled={isUpdatingLimits}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="max_reactions_per_message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Max Reactions/Message (empty for unlimited)
+                </label>
+                <Input
+                  type="number"
+                  name="max_reactions_per_message"
+                  id="max_reactions_per_message"
+                  value={limitInputs.max_reactions_per_message}
+                  onChange={handleLimitInputChange}
+                  className="mt-1"
+                  placeholder="e.g., 5"
+                  min="0"
+                  disabled={isUpdatingLimits}
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsEditLimitsModalOpen(false);
+                  setSelectedUserForLimits(null);
+                }}
+                disabled={isUpdatingLimits}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary" // Changed from danger to primary for save action
+                onClick={handleSaveLimits}
+                isLoading={isUpdatingLimits}
+                disabled={isUpdatingLimits}
+              >
+                Save Limits
               </Button>
             </div>
           </Modal>
