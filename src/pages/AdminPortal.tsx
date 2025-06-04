@@ -150,7 +150,7 @@ const AdminPortalPage: React.FC = () => {
           'max_reactions_per_month' |
           'max_reactions_per_message' |
           'current_messages_this_month' |
-          'current_reactions_this_month' |
+          'reactions_received_this_month' | // Changed
           'last_usage_reset_date'
         >> = {
           max_messages_per_month: 3,
@@ -158,7 +158,7 @@ const AdminPortalPage: React.FC = () => {
           max_reactions_per_message: 3,
           last_usage_reset_date: "2999-01-19", // Far future date as a convention
           current_messages_this_month: 0,    // Reset current usage
-          current_reactions_this_month: 0    // Reset current usage
+          reactions_received_this_month: 0    // Changed
         };
         try {
           await adminApi.updateUserLimits(userId, guestLimitsPayload);
@@ -431,7 +431,7 @@ const AdminPortalPage: React.FC = () => {
                   Messages This Month: {selectedUserForLimits.current_messages_this_month ?? 0} / {selectedUserForLimits.max_messages_per_month !== null ? selectedUserForLimits.max_messages_per_month : 'Unlimited'}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Reactions This Month: {selectedUserForLimits.current_reactions_this_month ?? 0} / {selectedUserForLimits.max_reactions_per_month !== null ? selectedUserForLimits.max_reactions_per_month : 'Unlimited'}
+                  Reactions Received This Month: {selectedUserForLimits.reactions_received_this_month ?? 0} / {selectedUserForLimits.max_reactions_per_month !== null ? selectedUserForLimits.max_reactions_per_month : 'Unlimited'}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
                   Last Usage Reset Date: {selectedUserForLimits.last_usage_reset_date ? formatDate(selectedUserForLimits.last_usage_reset_date) : 'N/A'}

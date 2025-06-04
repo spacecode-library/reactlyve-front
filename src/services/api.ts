@@ -159,7 +159,7 @@ export const adminApi = {
     'max_reactions_per_month' |
     'max_reactions_per_message' |
     'current_messages_this_month' |
-    'current_reactions_this_month' |
+    'reactions_received_this_month' | // Changed
     'last_usage_reset_date'
   >>) =>
     api.put(`/admin/users/${userId}/limits`, limits),
