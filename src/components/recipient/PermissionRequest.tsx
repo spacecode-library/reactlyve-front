@@ -193,12 +193,14 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
           Refresh Page
         </button>
         
-        <button
-          onClick={onCancel}
-          className="btn btn-outline"
-        >
-          Go Back
-        </button>
+        {!errorMessage && (
+          <button
+            onClick={onCancel}
+            className="btn btn-outline"
+          >
+            Go Back
+          </button>
+        )}
       </div>
     </div>
   );
