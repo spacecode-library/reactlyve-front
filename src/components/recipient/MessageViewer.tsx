@@ -13,6 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
 import VideoPlayer from '../dashboard/VideoPlayer'; // Added VideoPlayer import
 import { getTransformedCloudinaryUrl } from '../../utils/mediaHelpers';
+import { REACTION_ERRORS } from '../../components/constants/errorMessages';
 
 interface MessageViewerProps {
   message: Message;
@@ -50,6 +51,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const [videoRetryCount, setVideoRetryCount] = useState(0);
   const MAX_RETRIES = 3;
 
+  const [showReactionLimitContactMessage, setShowReactionLimitContactMessage] = useState<boolean>(false);
   const [isNameSubmitted, setIsNameSubmitted] = useState(false);
   const [triggerCountdown, setTriggerCountdown] = useState(false);
   const [webcamStatusMessage, setWebcamStatusMessage] = useState<string | null>(null);
@@ -187,30 +189,36 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       console.error('❌ Failed to initialize reaction:', err);
       if (err instanceof AxiosError && err.response) {
         const backendError = err.response?.data?.error;
-        // TODO: Replace "SENDER_MESSAGE_REACTION_LIMIT_REACHED" with the actual error string/code from backend
-        if (backendError && typeof backendError === 'string' && backendError.includes("SENDER_MESSAGE_REACTION_LIMIT_REACHED")) {
-          setPermissionError("Unable to add your Reaction, please ask the sender to increase their Reaction limits");
-          // Do not show a toast here, as setPermissionError will display it via PermissionRequest component
+        // Check for the specific reaction limit error
+        if (backendError && typeof backendError === 'string' && backendError.includes('SENDER_MESSAGE_REACTION_LIMIT_REACHED')) { // Or use the exact error code/string from backend
+          setShowReactionLimitContactMessage(true); // Set the new state to true
+          // DO NOT call setPermissionError for this case.
+          // Ensure UI is reset as needed
+          setIsNameSubmitted(false);
+          setTriggerCountdown(false);
         } else {
           // Default handling for other Axios errors
           const backendErrorMessage = backendError || 'Failed to initialize reaction session.';
           setPermissionError(backendErrorMessage);
           // The global interceptor in api.ts should handle toasting for these generic backend errors.
+          // Reset UI state for other errors too
+          setIsNameSubmitted(false);
+          setTriggerCountdown(false);
         }
       } else {
         // Handle non-Axios errors or Axios errors without a response
         let genericMessage = 'Unable to start a reaction session. Please refresh and try again.';
-        if (err instanceof Error && err.message) { // Try to get a bit more specific for non-API errors
-            // Avoid showing generic Axios messages like "Request failed with status code 403"
+        if (err instanceof Error && err.message) {
             if (!String(err.message).toLowerCase().includes("status code")) {
                 genericMessage = err.message;
             }
         }
         setPermissionError(genericMessage);
-        toast.error(genericMessage); // Show toast for non-API errors
+        toast.error(genericMessage);
+        // Reset UI state
+        setIsNameSubmitted(false);
+        setTriggerCountdown(false);
       }
-      setIsNameSubmitted(false); 
-      setTriggerCountdown(false); 
     }
   };
 
@@ -222,6 +230,25 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
         <PasscodeEntry onSubmitPasscode={handlePasscodeSubmit} />
+      </div>
+    );
+  }
+
+  if (showReactionLimitContactMessage) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-4 py-12 dark:bg-neutral-900 text-center">
+        <div className="max-w-md">
+          <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">Reaction Limit Reached</h2>
+          <p className="mt-3 text-md text-neutral-600 dark:text-neutral-300">
+            {REACTION_ERRORS.REACTION_LIMIT_CONTACT_SENDER}
+          </p>
+          <Link
+            to="/" // Or another appropriate link, like back to the home page
+            className="mt-6 inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:bg-primary-700 dark:hover:bg-primary-600"
+          >
+            Go to Homepage
+          </Link>
+        </div>
       </div>
     );
   }
