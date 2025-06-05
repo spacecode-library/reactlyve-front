@@ -148,11 +148,13 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
       </div>
       
       <h3 className="mt-4 text-lg font-medium text-neutral-900 dark:text-white">
-        {permissionType === 'camera'
-          ? 'Camera Permission Required'
-          : permissionType === 'microphone'
-            ? 'Microphone Permission Required'
-            : 'Camera & Microphone Permissions Required'}
+        {isReactionLimitError
+          ? 'Reaction Limit Reached'
+          : permissionType === 'camera'
+            ? 'Camera Permission Required'
+            : permissionType === 'microphone'
+              ? 'Microphone Permission Required'
+              : 'Camera & Microphone Permissions Required'}
       </h3>
       
       {!isReactionLimitError && (
