@@ -232,6 +232,7 @@ import React, { useState, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useAuth } from '../../context/AuthContext'; // Added useAuth import
 import { messagesApi } from '../../services/api';
 import { AxiosError } from 'axios'; // Added import
 import { VALIDATION_ERRORS } from '../constants/errorMessages';
@@ -264,6 +265,13 @@ interface MessageFormProps {
 }
 
 const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
+  const { user } = useAuth(); // Get user from AuthContext
+
+  const isMessageLimitReached = !!(user &&
+    user.max_messages_per_month !== null &&
+    (user.current_messages_this_month ?? 0) >= user.max_messages_per_month
+  );
+
   const [media, setMedia] = useState<File | null>(null);
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -405,9 +413,15 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
   }
   
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className={classNames('space-y-6', className || '')}
+    <>
+      {isMessageLimitReached && (
+        <div className="p-3 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800" role="alert">
+          You have reached your monthly message limit. You will be able to send more messages next month.
+        </div>
+      )}
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className={classNames('space-y-6', className || '')}
       encType="multipart/form-data"
     >
       {/* Message input */}
@@ -432,6 +446,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
                   'block w-full rounded-md border border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white sm:text-sm',
                   errors.message ? 'border-red-300 dark:border-red-700' : ''
                 )}
+                disabled={isMessageLimitReached} // Disable textarea
               />
             )}
           />
@@ -463,6 +478,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
           <MediaUploader
             onMediaSelect={handleMediaSelect}
             onError={(error) => showToast({ message: error, type: 'error' })}
+            disabled={isMessageLimitReached} // Disable MediaUploader
           />
           {media && (
             <p className="mt-2 text-sm text-green-600">
@@ -479,6 +495,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
           onTogglePasscode={handleTogglePasscode}
           onPasscodeChange={handlePasscodeChange}
           enabled={hasPasscode}
+          disabled={isMessageLimitReached} // Disable PasscodeCreator
         />
       </div>
 
@@ -503,6 +520,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
               max="30"
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-primary-600"
               onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+              disabled={isMessageLimitReached} // Disable range slider
             />
           )}
         />
@@ -519,12 +537,14 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
           type="submit"
           variant="primary"
           isLoading={isSubmitting}
-          disabled={isSubmitting || !isValid}
+          disabled={isSubmitting || !isValid || isMessageLimitReached} // Modify disabled state
+          title={isMessageLimitReached ? "You have reached your monthly message limit." : undefined} // Add tooltip
         >
           {isSubmitting ? 'Creating Message...' : 'Create Message'}
         </Button>
       </div>
     </form>
+    </>
   );
 };
 

@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom'; // Import Link
+import { AxiosError } from 'axios';
+import { useAuth } from '../../context/AuthContext';
 import WebcamRecorder from './WebcamRecorder';
 import PermissionRequest from './PermissionRequest';
 import PasscodeEntry from './PasscodeEntry';
@@ -11,6 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
 import VideoPlayer from '../dashboard/VideoPlayer'; // Added VideoPlayer import
 import { getTransformedCloudinaryUrl } from '../../utils/mediaHelpers';
+import { REACTION_ERRORS } from '../../components/constants/errorMessages';
 
 interface MessageViewerProps {
   message: Message;
@@ -33,6 +36,12 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   onInitReactionId,
   onLocalRecordingComplete,
 }) => {
+  const { user } = useAuth();
+  // const isReactionLimitReached = !!(user &&
+  //   user.max_reactions_per_month !== null &&
+  //   (user.current_reactions_this_month ?? 0) >= user.max_reactions_per_month
+  // ); // Removed
+
   const normalizedMessage = normalizeMessage(message);
   const [reactionId, setReactionId] = useState<string | null>(null);
   const [recipientName, setRecipientName] = useState<string>('');
@@ -42,6 +51,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const [videoRetryCount, setVideoRetryCount] = useState(0);
   const MAX_RETRIES = 3;
 
+  const [showReactionLimitContactMessage, setShowReactionLimitContactMessage] = useState<boolean>(false);
   const [isNameSubmitted, setIsNameSubmitted] = useState(false);
   const [triggerCountdown, setTriggerCountdown] = useState(false);
   const [webcamStatusMessage, setWebcamStatusMessage] = useState<string | null>(null);
@@ -116,7 +126,17 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       toast.success('Reaction uploaded successfully!');
     } catch (error) {
       console.error('Reaction save error:', error);
-      setPermissionError('An error occurred while saving your reaction. Please try again.');
+      if (error instanceof AxiosError && error.response) {
+        // Assume global interceptor in api.ts handled the toast.
+        // Optionally, set a generic error state if needed for UI changes beyond a toast.
+        // For now, we'll just log and let the global handler show the toast.
+        // If a specific UI state change is needed for API errors, set it here.
+        // For example, setPermissionError('Failed to save reaction. Please check notifications.');
+      } else {
+        // Handle non-Axios errors or Axios errors without a response (e.g., network issues)
+        setPermissionError('An error occurred while saving your reaction. Please try again.');
+        toast.error('An error occurred while saving your reaction. Please try again.'); // Show toast for non-API errors
+      }
     } finally {
       setIsUploading(false);
       setShowRecorder(false); // Ensure this is here
@@ -167,14 +187,38 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       }
     } catch (err) {
       console.error('❌ Failed to initialize reaction:', err);
-      let errorMessage = 'Unable to start a reaction session. Please refresh and try again.';
-      if (err instanceof Error && err.message && (err.message.includes('session') || err.message.includes('name'))) {
-          errorMessage = err.message;
+      if (err instanceof AxiosError && err.response) {
+        const backendError = err.response?.data?.error;
+        // Check for the specific reaction limit error
+        if (backendError && typeof backendError === 'string' && backendError.includes('SENDER_MESSAGE_REACTION_LIMIT_REACHED')) { // Or use the exact error code/string from backend
+          setShowReactionLimitContactMessage(true); // Set the new state to true
+          // DO NOT call setPermissionError for this case.
+          // Ensure UI is reset as needed
+          setIsNameSubmitted(false);
+          setTriggerCountdown(false);
+        } else {
+          // Default handling for other Axios errors
+          const backendErrorMessage = backendError || 'Failed to initialize reaction session.';
+          setPermissionError(backendErrorMessage);
+          // The global interceptor in api.ts should handle toasting for these generic backend errors.
+          // Reset UI state for other errors too
+          setIsNameSubmitted(false);
+          setTriggerCountdown(false);
+        }
+      } else {
+        // Handle non-Axios errors or Axios errors without a response
+        let genericMessage = 'Unable to start a reaction session. Please refresh and try again.';
+        if (err instanceof Error && err.message) {
+            if (!String(err.message).toLowerCase().includes("status code")) {
+                genericMessage = err.message;
+            }
+        }
+        setPermissionError(genericMessage);
+        toast.error(genericMessage);
+        // Reset UI state
+        setIsNameSubmitted(false);
+        setTriggerCountdown(false);
       }
-      setPermissionError(errorMessage);
-      toast.error(errorMessage); 
-      setIsNameSubmitted(false); 
-      setTriggerCountdown(false); 
     }
   };
 
@@ -186,6 +230,25 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
         <PasscodeEntry onSubmitPasscode={handlePasscodeSubmit} />
+      </div>
+    );
+  }
+
+  if (showReactionLimitContactMessage) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-4 py-12 dark:bg-neutral-900 text-center">
+        <div className="max-w-md">
+          <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">Reaction Limit Reached</h2>
+          <p className="mt-3 text-md text-neutral-600 dark:text-neutral-300">
+            {REACTION_ERRORS.REACTION_LIMIT_CONTACT_SENDER}
+          </p>
+          <Link
+            to="/" // Or another appropriate link, like back to the home page
+            className="mt-6 inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:bg-primary-700 dark:hover:bg-primary-600"
+          >
+            Go to Homepage
+          </Link>
+        </div>
       </div>
     );
   }
@@ -367,6 +430,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         )}
         {showRecorder && !isNameSubmitted && ( 
           <div className="mb-4 w-full max-w-md mx-auto">
+            {/* Removed isReactionLimitReached conditional message */}
             <label htmlFor="recipientName" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1 text-center">
               Say hello with your name
             </label>
@@ -377,12 +441,13 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
               onChange={(e) => setRecipientName(e.target.value)}
               placeholder="Enter your name"
               className="w-full p-2 border border-neutral-300 rounded-md dark:bg-neutral-700 dark:border-neutral-600 dark:text-white"
-              disabled={isNameSubmitted} 
+              disabled={isNameSubmitted}
             />
             <button
               onClick={handleStartReaction} 
               disabled={!recipientName.trim() || isNameSubmitted}
               className="btn btn-primary w-full mt-2" 
+              title={undefined} // Removed reaction limit specific title
             >
               Start Reaction
             </button>

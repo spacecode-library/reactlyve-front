@@ -22,6 +22,7 @@ export interface Message {
   mediaType?: 'image' | 'video';
   duration?: number;
   reaction_length?: number;
+  max_reactions_allowed?: number | null; // Add this line
   isreply?: string;
   sender?: {
     name: string;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { newAdminApi } from '../services/api';
+import { adminApi } from '../services/api';
 import { User } from '../types/user';
 import { formatDate, formatDateTime } from '../utils/formatters'; // Import formatDateTime
 import Button from '../components/common/Button';
@@ -7,13 +7,22 @@ import toast from 'react-hot-toast';
 import Modal from '../components/common/Modal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import DashboardLayout from '../layouts/DashboardLayout'; // Import DashboardLayout
+import Input from '../components/common/Input'; // Import Input component
 
 // Define the available roles for the select dropdown
-const ROLES: User['role'][] = ['user', 'admin', 'guest'];
+// type SettableUserRole = 'user' | 'admin'; // No longer strictly needed here
+const ROLES_FOR_SELECT: User['role'][] = ['user', 'admin', 'guest'];
 
 interface UserToDelete {
   id: string;
   name: string;
+}
+
+interface UserLimitInputs {
+  max_messages_per_month: string;
+  max_reactions_per_month: string;
+  max_reactions_per_message: string;
+  last_usage_reset_date: string; // Added
 }
 
 const AdminPortalPage: React.FC = () => {
@@ -27,12 +36,24 @@ const AdminPortalPage: React.FC = () => {
   const [userToDelete, setUserToDelete] = useState<UserToDelete | null>(null);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
 
+  // State for Edit Limits Modal
+  const [isEditLimitsModalOpen, setIsEditLimitsModalOpen] = useState(false);
+  const [selectedUserForLimits, setSelectedUserForLimits] = useState<User | null>(null);
+  const [limitInputs, setLimitInputs] = useState<UserLimitInputs>({
+    max_messages_per_month: '',
+    max_reactions_per_month: '',
+    max_reactions_per_message: '',
+    last_usage_reset_date: '', // Added
+  });
+  const [isLoadingUserDetails, setIsLoadingUserDetails] = useState(false);
+  const [isUpdatingLimits, setIsUpdatingLimits] = useState(false);
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await newAdminApi.getAdminUsers();
+        const response = await adminApi.getUsers();
         setUsers(response.data.users || response.data);
       } catch (err) {
         setError('Failed to fetch users. Please try again later.');
@@ -46,16 +67,116 @@ const AdminPortalPage: React.FC = () => {
     fetchUsers();
   }, []);
 
+  const handleLimitInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (e.target.type === 'number' && value !== '' && !/^\d+$/.test(value) && value !== '-') {
+      // Allow only numbers, empty string, or a single hyphen for potential negative (though we use min="0")
+      return;
+    }
+    setLimitInputs(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveLimits = async () => {
+    if (!selectedUserForLimits) return;
+
+    setIsUpdatingLimits(true);
+
+    const parseInput = (value: string): number | null => {
+      if (value === '') return null;
+      const num = parseInt(value, 10);
+      return isNaN(num) ? null : num; // Convert NaN (from invalid parse like "abc") to null
+    };
+
+    const payload = {
+      max_messages_per_month: parseInput(limitInputs.max_messages_per_month),
+      max_reactions_per_month: parseInput(limitInputs.max_reactions_per_month),
+      max_reactions_per_message: parseInput(limitInputs.max_reactions_per_message),
+      last_usage_reset_date: limitInputs.last_usage_reset_date === '' ? null : limitInputs.last_usage_reset_date,
+    };
+
+    try {
+      // Assuming adminApi.updateUserLimits can handle all fields in payload due to prior step update
+      await adminApi.updateUserLimits(selectedUserForLimits.id, payload);
+      setUsers(prevUsers => prevUsers.map(u =>
+        u.id === selectedUserForLimits.id
+          ? {
+            ...u,
+            max_messages_per_month: payload.max_messages_per_month,
+            max_reactions_per_month: payload.max_reactions_per_month,
+            max_reactions_per_message: payload.max_reactions_per_message,
+            last_usage_reset_date: payload.last_usage_reset_date,
+            // current_ values are not directly set here, they reflect actual usage
+          }
+          : u
+      ));
+      toast.success('Limits updated successfully!');
+      setIsEditLimitsModalOpen(false);
+      setSelectedUserForLimits(null);
+    } catch (err) {
+      toast.error('Failed to update limits.');
+      console.error("Update limits error:", err);
+    } finally {
+      setIsUpdatingLimits(false);
+    }
+  };
+
   const handleRoleChange = async (userId: string, newRole: User['role']) => {
     setUpdatingRoleId(userId);
     try {
-      await newAdminApi.updateAdminUserRole(userId, newRole);
-      setUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user.id === userId ? { ...user, role: newRole } : user
+      // The API already expects User['role'] from a previous change.
+      // This function's local type change is to align with ROLES_FOR_SELECT.
+      await adminApi.updateUserRole(userId, newRole);
+      // Original optimistic update is removed, will be handled by more comprehensive logic later in this function
+      // setUsers((prevUsers) =>
+      //   prevUsers.map((user) =>
+      //     user.id === userId ? { ...user, role: newRole } : user
+      //   )
+      // );
+      toast.success(`User ${userId} role updated to ${newRole}.`);
+      // Logic for guest limits will be added in the next step here.
+      // For now, just ensuring the signature and basic call is updated.
+      // The full logic for handleRoleChange including guest limits will be applied in a subsequent diff.
+      // This step only focuses on changing ROLES_FOR_SELECT and the signature.
+      // A placeholder for the more complex logic to be inserted:
+      // setUsers(prevUsers => prevUsers.map(user =>
+      //   user.id === userId ? { ...user, role: newRole } : user
+      // ));
+      // --- Start of new comprehensive logic for handleRoleChange ---
+      let finalUserUpdate: Partial<User> = { role: newRole };
+
+      if (newRole === 'guest') {
+        const guestLimitsPayload: Partial<Pick<User,
+          'max_messages_per_month' |
+          'max_reactions_per_month' |
+          'max_reactions_per_message' |
+          'current_messages_this_month' |
+          'reactions_received_this_month' | // Changed
+          'last_usage_reset_date'
+        >> = {
+          max_messages_per_month: 3,
+          max_reactions_per_month: 9,
+          max_reactions_per_message: 3,
+          last_usage_reset_date: "2999-01-19", // Far future date as a convention
+          current_messages_this_month: 0,    // Reset current usage
+          reactions_received_this_month: 0    // Changed
+        };
+        try {
+          await adminApi.updateUserLimits(userId, guestLimitsPayload);
+          toast.success(`User ${userId} limits reset to guest defaults.`);
+          finalUserUpdate = { ...finalUserUpdate, ...guestLimitsPayload };
+        } catch (limitErr) {
+          console.error('Failed to set guest limits:', limitErr);
+          toast.error('Role set to guest, but failed to reset limits. Manual limit adjustment might be needed.');
+        }
+      }
+
+      // Update local state with all changes
+      setUsers(prevUsers =>
+        prevUsers.map(user =>
+          user.id === userId ? { ...user, ...finalUserUpdate } : user
         )
       );
-      toast.success(`User ${userId} role updated to ${newRole}.`);
+      // --- End of new comprehensive logic for handleRoleChange ---
     } catch (err) {
       console.error('Update role error:', err);
       toast.error(
@@ -72,7 +193,7 @@ const AdminPortalPage: React.FC = () => {
 
     setIsDeletingUser(true);
     try {
-      await newAdminApi.deleteAdminUser(userToDelete.id);
+      await adminApi.deleteUser(userToDelete.id);
       setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userToDelete.id));
       toast.success(`User ${userToDelete.name} (ID: ${userToDelete.id}) deleted successfully.`);
       setIsDeleteUserModalOpen(false);
@@ -181,14 +302,15 @@ const AdminPortalPage: React.FC = () => {
                         disabled={updatingRoleId === user.id || isLoading}
                         className="block w-auto pl-3 pr-10 py-1.5 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-neutral-700 dark:border-neutral-600 dark:text-white disabled:opacity-50"
                       >
-                        {ROLES.map((role) => (
+                        {/* 'guest' is now a settable option, so no special disabled option needed if it's current. */}
+                        {ROLES_FOR_SELECT.map((role) => (
                           <option key={role} value={role}>
                             {role.charAt(0).toUpperCase() + role.slice(1)}
                           </option>
                         ))}
                       </select>
                       <Button 
-                        variant="danger" 
+                        variant="danger"
                         size="sm" 
                         onClick={() => {
                           setUserToDelete({ id: user.id, name: user.name });
@@ -197,6 +319,46 @@ const AdminPortalPage: React.FC = () => {
                         disabled={isLoading || !!updatingRoleId || isDeletingUser}
                       >
                         Delete User
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          setSelectedUserForLimits(user);
+                          setIsLoadingUserDetails(true);
+                          try {
+                            const response = await adminApi.getUserDetails(user.id);
+                            setSelectedUserForLimits(response.data);
+                            const dateValue = response.data.last_usage_reset_date;
+                            let formattedDateForInput = '';
+                            if (dateValue) {
+                              try {
+                                // Ensure it's a valid date and format to YYYY-MM-DD for <input type="date">
+                                formattedDateForInput = new Date(dateValue).toISOString().split('T')[0];
+                              } catch (e) {
+                                console.error("Error parsing last_usage_reset_date for input: ", dateValue);
+                                // Keep it empty if parsing fails, or handle as appropriate
+                              }
+                            }
+                            setLimitInputs({
+                              max_messages_per_month: response.data.max_messages_per_month?.toString() || '',
+                              max_reactions_per_month: response.data.max_reactions_per_month?.toString() || '',
+                              max_reactions_per_message: response.data.max_reactions_per_message?.toString() || '',
+                              last_usage_reset_date: formattedDateForInput,
+                            });
+                            setIsEditLimitsModalOpen(true);
+                          } catch (err) {
+                            toast.error('Failed to fetch user details.');
+                            console.error("Fetch user details error:", err);
+                            setSelectedUserForLimits(null); // Clear optimistic set if fetch fails
+                          } finally {
+                            setIsLoadingUserDetails(false);
+                          }
+                        }}
+                        disabled={(isLoadingUserDetails && selectedUserForLimits?.id === user.id) || (isEditLimitsModalOpen && selectedUserForLimits?.id !== user.id) || !!updatingRoleId || isDeletingUser}
+                        isLoading={isLoadingUserDetails && selectedUserForLimits?.id === user.id}
+                      >
+                        Manage Limits
                       </Button>
                     </div>
                   </td>
@@ -245,6 +407,123 @@ const AdminPortalPage: React.FC = () => {
                 disabled={isDeletingUser}
               >
                 Confirm Delete
+              </Button>
+            </div>
+          </Modal>
+        )}
+
+        {/* Edit Limits Modal */}
+        {isEditLimitsModalOpen && selectedUserForLimits && (
+          <Modal
+            isOpen={isEditLimitsModalOpen}
+            onClose={() => {
+              if (isUpdatingLimits) return;
+              setIsEditLimitsModalOpen(false);
+              setSelectedUserForLimits(null);
+            }}
+            title={`Manage Limits for ${selectedUserForLimits.name}`}
+            size="lg" // Consider 'lg' or 'xl' for more content
+          >
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-md font-semibold mb-1">Current Usage:</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Messages This Month: {selectedUserForLimits.current_messages_this_month ?? 0} / {selectedUserForLimits.max_messages_per_month !== null ? selectedUserForLimits.max_messages_per_month : 'Unlimited'}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Reactions Received This Month: {selectedUserForLimits.reactions_received_this_month ?? 0} / {selectedUserForLimits.max_reactions_per_month !== null ? selectedUserForLimits.max_reactions_per_month : 'Unlimited'}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Last Usage Reset Date: {selectedUserForLimits.last_usage_reset_date ? formatDate(selectedUserForLimits.last_usage_reset_date) : 'N/A'}
+                </p>
+              </div>
+
+              <hr className="dark:border-neutral-700"/>
+
+              <div>
+                <label htmlFor="max_messages_per_month" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Max Messages/Month (empty for unlimited)
+                </label>
+                <Input
+                  type="number"
+                  name="max_messages_per_month"
+                  id="max_messages_per_month"
+                  value={limitInputs.max_messages_per_month}
+                  onChange={handleLimitInputChange}
+                  className="mt-1"
+                  placeholder="e.g., 100"
+                  min="0"
+                  disabled={isUpdatingLimits}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="max_reactions_per_month" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Max Reactions/Month (empty for unlimited)
+                </label>
+                <Input
+                  type="number"
+                  name="max_reactions_per_month"
+                  id="max_reactions_per_month"
+                  value={limitInputs.max_reactions_per_month}
+                  onChange={handleLimitInputChange}
+                  className="mt-1"
+                  placeholder="e.g., 500"
+                  min="0"
+                  disabled={isUpdatingLimits}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="max_reactions_per_message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Max Reactions/Message (empty for unlimited)
+                </label>
+                <Input
+                  type="number"
+                  name="max_reactions_per_message"
+                  id="max_reactions_per_message"
+                  value={limitInputs.max_reactions_per_message}
+                  onChange={handleLimitInputChange}
+                  className="mt-1"
+                  placeholder="e.g., 5"
+                  min="0"
+                  disabled={isUpdatingLimits}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="last_usage_reset_date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Last Usage Reset Date (YYYY-MM-DD, empty to clear)
+                </label>
+                <Input
+                  type="date"
+                  name="last_usage_reset_date"
+                  id="last_usage_reset_date"
+                  value={limitInputs.last_usage_reset_date}
+                  onChange={handleLimitInputChange}
+                  className="mt-1"
+                  disabled={isUpdatingLimits}
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsEditLimitsModalOpen(false);
+                  setSelectedUserForLimits(null);
+                }}
+                disabled={isUpdatingLimits}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary" // Changed from danger to primary for save action
+                onClick={handleSaveLimits}
+                isLoading={isUpdatingLimits}
+                disabled={isUpdatingLimits}
+              >
+                Save Limits
               </Button>
             </div>
           </Modal>

@@ -8,6 +8,7 @@ interface PasscodeCreatorProps {
   enabled?: boolean;
   minLength?: number;
   className?: string;
+  disabled?: boolean; // Add this line
 }
 
 const PasscodeCreator: React.FC<PasscodeCreatorProps> = ({
@@ -16,6 +17,7 @@ const PasscodeCreator: React.FC<PasscodeCreatorProps> = ({
   enabled = false,
   minLength = 4,
   className,
+  disabled = false, // Add this
 }) => {
   const [passcode, setPasscode] = useState<string>('');
   const [strength, setStrength] = useState<number>(0);
@@ -123,7 +125,7 @@ const PasscodeCreator: React.FC<PasscodeCreatorProps> = ({
   };
   
   return (
-    <div className={classNames('space-y-3', className || '')}>
+    <div className={classNames('space-y-3', className || '', disabled ? 'opacity-50 cursor-not-allowed' : '')}>
       {/* Toggle switch */}
       <div className="flex items-center">
         <input
@@ -131,6 +133,7 @@ const PasscodeCreator: React.FC<PasscodeCreatorProps> = ({
           type="checkbox"
           checked={enabled}
           onChange={handleToggleChange}
+          disabled={disabled} // Add this
           className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-600 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:ring-primary-500"
         />
         <label
@@ -150,14 +153,17 @@ const PasscodeCreator: React.FC<PasscodeCreatorProps> = ({
               value={passcode}
               onChange={handlePasscodeChange}
               placeholder="Enter passcode"
+              disabled={disabled} // Add this
               className={classNames(
                 'w-full rounded-md border border-neutral-300 py-2 pl-3 pr-20 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500',
-                error ? 'border-red-300 dark:border-red-700' : ''
+                error ? 'border-red-300 dark:border-red-700' : '',
+                disabled ? 'bg-neutral-100 dark:bg-neutral-700 cursor-not-allowed' : '' // Example disabled styling
               )}
             />
             <button
               type="button"
               onClick={generatePasscode}
+              disabled={disabled} // Add this
               className="absolute inset-y-0 right-0 flex items-center px-3 text-sm font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
             >
               Generate
