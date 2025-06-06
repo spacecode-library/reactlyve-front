@@ -97,6 +97,7 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  console.log('ProfileData at render time:', JSON.stringify(profileData, null, 2));
   return (
     <DashboardLayout>
       <div className="space-y-6"> {/* Main content div ensuring it's properly closed before DashboardLayout closes */}
