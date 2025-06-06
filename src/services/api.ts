@@ -155,12 +155,12 @@ export const adminApi = {
   getStats: () => api.get('/admin/stats'), // Assuming this endpoint returns data; check its casing if complex.
   getUserDetails: (userId: string) => api.get(`/admin/users/${userId}/details`),
   updateUserLimits: (userId: string, limits: Partial<Pick<User,
-    'max_messages_per_month' |
-    'max_reactions_per_month' |
-    'max_reactions_per_message' |
-    'current_messages_this_month' |
-    'reactions_received_this_month' | // Changed
-    'last_usage_reset_date'
+    'maxMessagesPerMonth' |
+    'maxReactionsPerMonth' |
+    'maxReactionsPerMessage' |
+    'currentMessagesThisMonth' |
+    'reactionsReceivedThisMonth' | // Changed
+    'lastUsageResetDate'
   >>) =>
     api.put(`/admin/users/${userId}/limits`, limits),
 };

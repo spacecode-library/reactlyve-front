@@ -19,10 +19,10 @@ interface UserToDelete {
 }
 
 interface UserLimitInputs {
-  max_messages_per_month: string;
-  max_reactions_per_month: string;
-  max_reactions_per_message: string;
-  last_usage_reset_date: string; // Added
+  maxMessagesPerMonth: string;
+  maxReactionsPerMonth: string;
+  maxReactionsPerMessage: string;
+  lastUsageResetDate: string; // Added
 }
 
 const AdminPortalPage: React.FC = () => {
@@ -40,10 +40,10 @@ const AdminPortalPage: React.FC = () => {
   const [isEditLimitsModalOpen, setIsEditLimitsModalOpen] = useState(false);
   const [selectedUserForLimits, setSelectedUserForLimits] = useState<User | null>(null);
   const [limitInputs, setLimitInputs] = useState<UserLimitInputs>({
-    max_messages_per_month: '',
-    max_reactions_per_month: '',
-    max_reactions_per_message: '',
-    last_usage_reset_date: '', // Added
+    maxMessagesPerMonth: '',
+    maxReactionsPerMonth: '',
+    maxReactionsPerMessage: '',
+    lastUsageResetDate: '', // Added
   });
   const [isLoadingUserDetails, setIsLoadingUserDetails] = useState(false);
   const [isUpdatingLimits, setIsUpdatingLimits] = useState(false);
@@ -88,10 +88,10 @@ const AdminPortalPage: React.FC = () => {
     };
 
     const payload = {
-      max_messages_per_month: parseInput(limitInputs.max_messages_per_month),
-      max_reactions_per_month: parseInput(limitInputs.max_reactions_per_month),
-      max_reactions_per_message: parseInput(limitInputs.max_reactions_per_message),
-      last_usage_reset_date: limitInputs.last_usage_reset_date === '' ? null : limitInputs.last_usage_reset_date,
+      maxMessagesPerMonth: parseInput(limitInputs.maxMessagesPerMonth),
+      maxReactionsPerMonth: parseInput(limitInputs.maxReactionsPerMonth),
+      maxReactionsPerMessage: parseInput(limitInputs.maxReactionsPerMessage),
+      lastUsageResetDate: limitInputs.lastUsageResetDate === '' ? null : limitInputs.lastUsageResetDate,
     };
 
     try {
@@ -101,10 +101,10 @@ const AdminPortalPage: React.FC = () => {
         u.id === selectedUserForLimits.id
           ? {
             ...u,
-            max_messages_per_month: payload.max_messages_per_month,
-            max_reactions_per_month: payload.max_reactions_per_month,
-            max_reactions_per_message: payload.max_reactions_per_message,
-            last_usage_reset_date: payload.last_usage_reset_date,
+            maxMessagesPerMonth: payload.maxMessagesPerMonth,
+            maxReactionsPerMonth: payload.maxReactionsPerMonth,
+            maxReactionsPerMessage: payload.maxReactionsPerMessage,
+            lastUsageResetDate: payload.lastUsageResetDate,
             // current_ values are not directly set here, they reflect actual usage
           }
           : u
@@ -146,19 +146,19 @@ const AdminPortalPage: React.FC = () => {
 
       if (newRole === 'guest') {
         const guestLimitsPayload: Partial<Pick<User,
-          'max_messages_per_month' |
-          'max_reactions_per_month' |
-          'max_reactions_per_message' |
-          'current_messages_this_month' |
-          'reactions_received_this_month' | // Changed
-          'last_usage_reset_date'
+          'maxMessagesPerMonth' |
+          'maxReactionsPerMonth' |
+          'maxReactionsPerMessage' |
+          'currentMessagesThisMonth' |
+          'reactionsReceivedThisMonth' | // Changed
+          'lastUsageResetDate'
         >> = {
-          max_messages_per_month: 3,
-          max_reactions_per_month: 9,
-          max_reactions_per_message: 3,
-          last_usage_reset_date: "2999-01-19", // Far future date as a convention
-          current_messages_this_month: 0,    // Reset current usage
-          reactions_received_this_month: 0    // Changed
+          maxMessagesPerMonth: 3,
+          maxReactionsPerMonth: 9,
+          maxReactionsPerMessage: 3,
+          lastUsageResetDate: "2999-01-19", // Far future date as a convention
+          currentMessagesThisMonth: 0,    // Reset current usage
+          reactionsReceivedThisMonth: 0    // Changed
         };
         try {
           await adminApi.updateUserLimits(userId, guestLimitsPayload);
@@ -329,22 +329,22 @@ const AdminPortalPage: React.FC = () => {
                           try {
                             const response = await adminApi.getUserDetails(user.id);
                             setSelectedUserForLimits(response.data);
-                            const dateValue = response.data.last_usage_reset_date;
+                            const dateValue = response.data.lastUsageResetDate;
                             let formattedDateForInput = '';
                             if (dateValue) {
                               try {
                                 // Ensure it's a valid date and format to YYYY-MM-DD for <input type="date">
                                 formattedDateForInput = new Date(dateValue).toISOString().split('T')[0];
                               } catch (e) {
-                                console.error("Error parsing last_usage_reset_date for input: ", dateValue);
+                                console.error("Error parsing lastUsageResetDate for input: ", dateValue);
                                 // Keep it empty if parsing fails, or handle as appropriate
                               }
                             }
                             setLimitInputs({
-                              max_messages_per_month: response.data.max_messages_per_month?.toString() || '',
-                              max_reactions_per_month: response.data.max_reactions_per_month?.toString() || '',
-                              max_reactions_per_message: response.data.max_reactions_per_message?.toString() || '',
-                              last_usage_reset_date: formattedDateForInput,
+                              maxMessagesPerMonth: response.data.maxMessagesPerMonth?.toString() || '',
+                              maxReactionsPerMonth: response.data.maxReactionsPerMonth?.toString() || '',
+                              maxReactionsPerMessage: response.data.maxReactionsPerMessage?.toString() || '',
+                              lastUsageResetDate: formattedDateForInput,
                             });
                             setIsEditLimitsModalOpen(true);
                           } catch (err) {
@@ -428,27 +428,27 @@ const AdminPortalPage: React.FC = () => {
               <div>
                 <h4 className="text-md font-semibold mb-1">Current Usage:</h4>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Messages This Month: {selectedUserForLimits.current_messages_this_month ?? 0} / {selectedUserForLimits.max_messages_per_month != null ? selectedUserForLimits.max_messages_per_month : 'Unlimited'}
+                  Messages This Month: {selectedUserForLimits.currentMessagesThisMonth ?? 0} / {selectedUserForLimits.maxMessagesPerMonth != null ? selectedUserForLimits.maxMessagesPerMonth : 'Unlimited'}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Reactions Received This Month: {selectedUserForLimits.reactions_received_this_month ?? 0} / {selectedUserForLimits.max_reactions_per_month != null ? selectedUserForLimits.max_reactions_per_month : 'Unlimited'}
+                  Reactions Received This Month: {selectedUserForLimits.reactionsReceivedThisMonth ?? 0} / {selectedUserForLimits.maxReactionsPerMonth != null ? selectedUserForLimits.maxReactionsPerMonth : 'Unlimited'}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Last Usage Reset Date: {selectedUserForLimits.last_usage_reset_date ? formatDate(selectedUserForLimits.last_usage_reset_date) : 'N/A'}
+                  Last Usage Reset Date: {selectedUserForLimits.lastUsageResetDate ? formatDate(selectedUserForLimits.lastUsageResetDate) : 'N/A'}
                 </p>
               </div>
 
               <hr className="dark:border-neutral-700"/>
 
               <div>
-                <label htmlFor="max_messages_per_month" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="maxMessagesPerMonth" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Max Messages/Month (empty for unlimited)
                 </label>
                 <Input
                   type="number"
-                  name="max_messages_per_month"
-                  id="max_messages_per_month"
-                  value={limitInputs.max_messages_per_month}
+                  name="maxMessagesPerMonth"
+                  id="maxMessagesPerMonth"
+                  value={limitInputs.maxMessagesPerMonth}
                   onChange={handleLimitInputChange}
                   className="mt-1"
                   placeholder="e.g., 100"
@@ -458,14 +458,14 @@ const AdminPortalPage: React.FC = () => {
               </div>
 
               <div>
-                <label htmlFor="max_reactions_per_month" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="maxReactionsPerMonth" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Max Reactions/Month (empty for unlimited)
                 </label>
                 <Input
                   type="number"
-                  name="max_reactions_per_month"
-                  id="max_reactions_per_month"
-                  value={limitInputs.max_reactions_per_month}
+                  name="maxReactionsPerMonth"
+                  id="maxReactionsPerMonth"
+                  value={limitInputs.maxReactionsPerMonth}
                   onChange={handleLimitInputChange}
                   className="mt-1"
                   placeholder="e.g., 500"
@@ -475,14 +475,14 @@ const AdminPortalPage: React.FC = () => {
               </div>
 
               <div>
-                <label htmlFor="max_reactions_per_message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="maxReactionsPerMessage" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Max Reactions/Message (empty for unlimited)
                 </label>
                 <Input
                   type="number"
-                  name="max_reactions_per_message"
-                  id="max_reactions_per_message"
-                  value={limitInputs.max_reactions_per_message}
+                  name="maxReactionsPerMessage"
+                  id="maxReactionsPerMessage"
+                  value={limitInputs.maxReactionsPerMessage}
                   onChange={handleLimitInputChange}
                   className="mt-1"
                   placeholder="e.g., 5"
@@ -492,14 +492,14 @@ const AdminPortalPage: React.FC = () => {
               </div>
 
               <div>
-                <label htmlFor="last_usage_reset_date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="lastUsageResetDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Last Usage Reset Date (YYYY-MM-DD, empty to clear)
                 </label>
                 <Input
                   type="date"
-                  name="last_usage_reset_date"
-                  id="last_usage_reset_date"
-                  value={limitInputs.last_usage_reset_date}
+                  name="lastUsageResetDate"
+                  id="lastUsageResetDate"
+                  value={limitInputs.lastUsageResetDate}
                   onChange={handleLimitInputChange}
                   className="mt-1"
                   disabled={isUpdatingLimits}
