@@ -141,19 +141,19 @@ const ProfilePage: React.FC = () => {
           <div>
             <span className="font-semibold">Messages This Month:</span>
             <span className="ml-2">
-              {(profileData.current_messages_this_month ?? 0)} / {profileData.max_messages_per_month !== null ? profileData.max_messages_per_month : 'Unlimited'}
+              {(profileData.current_messages_this_month ?? 0)} / {profileData.max_messages_per_month != null ? profileData.max_messages_per_month : 'Unlimited'}
             </span>
           </div>
           <div>
             <span className="font-semibold">Reactions Received by Your Content This Month:</span>
             <span className="ml-2">
-              {(profileData.reactions_received_this_month ?? 0)} / {profileData.max_reactions_per_month !== null ? profileData.max_reactions_per_month : 'Unlimited'}
+              {(profileData.reactions_received_this_month ?? 0)} / {profileData.max_reactions_per_month != null ? profileData.max_reactions_per_month : 'Unlimited'}
             </span>
           </div>
           <div>
             <span className="font-semibold">Default Reactions Allowed for New Messages:</span>
             <span className="ml-2">
-              {profileData.max_reactions_per_message !== null ? profileData.max_reactions_per_message : 'Not set'}
+              {profileData.max_reactions_per_message != null ? profileData.max_reactions_per_message : 'Not set'}
             </span>
           </div>
           {profileData.role !== 'guest' && (
