@@ -98,6 +98,10 @@ const ProfilePage: React.FC = () => {
   };
 
   console.log('ProfileData at render time:', JSON.stringify(profileData, null, 2));
+  console.log('Render-time currentMessages VAL:', profileData.current_messages_this_month, 'TYPE:', typeof profileData.current_messages_this_month);
+  console.log('Render-time maxMessages VAL:', profileData.max_messages_per_month, 'TYPE:', typeof profileData.max_messages_per_month);
+  console.log('Render-time maxReactionsMessage VAL:', profileData.max_reactions_per_message, 'TYPE:', typeof profileData.max_reactions_per_message);
+  console.log('Render-time lastUsageResetDate VAL:', profileData.last_usage_reset_date, 'TYPE:', typeof profileData.last_usage_reset_date);
   return (
     <DashboardLayout>
       <div className="space-y-6"> {/* Main content div ensuring it's properly closed before DashboardLayout closes */}
