@@ -1,5 +1,6 @@
 import React from 'react';
 import { isIOS } from '../../utils/mediaHelpers';
+import { REACTION_ERRORS } from '../../components/constants/errorMessages';
 
 interface PermissionRequestProps {
   onCancel: () => void;
@@ -14,6 +15,7 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
   errorMessage,
   isReplyMode = false,
 }) => {
+  const isReactionLimitError = errorMessage === REACTION_ERRORS.REACTION_LIMIT_CONTACT_SENDER;
   const isIOSDevice = isIOS();
   const isMacOS = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
   const isChrome = navigator.userAgent.indexOf('Chrome') > -1;
@@ -146,18 +148,29 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
       </div>
       
       <h3 className="mt-4 text-lg font-medium text-neutral-900 dark:text-white">
-        {permissionType === 'camera'
-          ? 'Camera Permission Required'
-          : permissionType === 'microphone'
-            ? 'Microphone Permission Required'
-            : 'Camera & Microphone Permissions Required'}
+        {isReactionLimitError
+          ? 'Reaction Limit Reached'
+          : permissionType === 'camera'
+            ? 'Camera Permission Required'
+            : permissionType === 'microphone'
+              ? 'Microphone Permission Required'
+              : 'Camera & Microphone Permissions Required'}
       </h3>
       
-      <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
-        We need access to your {getPermissionText()} to record your {isReplyMode ? 'reply' : 'reaction'}. Please allow access in your browser.
-      </p>
+      {!isReactionLimitError && (
+        <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
+          We need access to your {getPermissionText()} to record your {isReplyMode ? 'reply' : 'reaction'}. Please allow access in your browser.
+        </p>
+      )}
       
-      {errorMessage && (
+      {isReactionLimitError && errorMessage && (
+        <div className="mt-4 rounded-md bg-blue-50 p-4 dark:bg-blue-900/30"> {/* Using a more neutral/info color */}
+          <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+            {errorMessage}
+          </p>
+        </div>
+      )}
+      {errorMessage && !isReactionLimitError && (
         <div className="mt-4 rounded-md bg-red-50 p-3 dark:bg-red-900/20">
           <p className="text-sm text-red-700 dark:text-red-300">
             Error: {errorMessage}
@@ -165,10 +178,12 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
         </div>
       )}
       
-      <div className="mt-4 text-left">
-        <h4 className="font-medium text-neutral-900 dark:text-white">How to enable access:</h4>
-        {getPlatformInstructions()}
-      </div>
+      {!isReactionLimitError && (
+        <div className="mt-4 text-left">
+          <h4 className="font-medium text-neutral-900 dark:text-white">How to enable access:</h4>
+          {getPlatformInstructions()}
+        </div>
+      )}
       
       <div className="mt-6 flex justify-center space-x-3">
         <button
@@ -178,12 +193,14 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
           Refresh Page
         </button>
         
-        <button
-          onClick={onCancel}
-          className="btn btn-outline"
-        >
-          Go Back
-        </button>
+        {!errorMessage && (
+          <button
+            onClick={onCancel}
+            className="btn btn-outline"
+          >
+            Go Back
+          </button>
+        )}
       </div>
     </div>
   );

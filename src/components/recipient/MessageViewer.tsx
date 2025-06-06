@@ -37,6 +37,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   onLocalRecordingComplete,
 }) => {
   const { user } = useAuth();
+
   // const isReactionLimitReached = !!(user &&
   //   user.max_reactions_per_month !== null &&
   //   (user.current_reactions_this_month ?? 0) >= user.max_reactions_per_month
@@ -51,7 +52,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const [videoRetryCount, setVideoRetryCount] = useState(0);
   const MAX_RETRIES = 3;
 
-  const [showReactionLimitContactMessage, setShowReactionLimitContactMessage] = useState<boolean>(false);
   const [isNameSubmitted, setIsNameSubmitted] = useState(false);
   const [triggerCountdown, setTriggerCountdown] = useState(false);
   const [webcamStatusMessage, setWebcamStatusMessage] = useState<string | null>(null);
@@ -190,10 +190,8 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       if (err instanceof AxiosError && err.response) {
         const backendError = err.response?.data?.error;
         // Check for the specific reaction limit error
-        if (backendError && typeof backendError === 'string' && backendError.includes('SENDER_MESSAGE_REACTION_LIMIT_REACHED')) { // Or use the exact error code/string from backend
-          setShowReactionLimitContactMessage(true); // Set the new state to true
-          // DO NOT call setPermissionError for this case.
-          // Ensure UI is reset as needed
+        if (backendError && typeof backendError === 'string' && backendError.includes(REACTION_ERRORS.SENDER_MESSAGE_REACTION_LIMIT_REACHED)) {
+          setPermissionError(REACTION_ERRORS.REACTION_LIMIT_CONTACT_SENDER);
           setIsNameSubmitted(false);
           setTriggerCountdown(false);
         } else {
@@ -230,25 +228,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
         <PasscodeEntry onSubmitPasscode={handlePasscodeSubmit} />
-      </div>
-    );
-  }
-
-  if (showReactionLimitContactMessage) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-4 py-12 dark:bg-neutral-900 text-center">
-        <div className="max-w-md">
-          <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">Reaction Limit Reached</h2>
-          <p className="mt-3 text-md text-neutral-600 dark:text-neutral-300">
-            {REACTION_ERRORS.REACTION_LIMIT_CONTACT_SENDER}
-          </p>
-          <Link
-            to="/" // Or another appropriate link, like back to the home page
-            className="mt-6 inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:bg-primary-700 dark:hover:bg-primary-600"
-          >
-            Go to Homepage
-          </Link>
-        </div>
       </div>
     );
   }
