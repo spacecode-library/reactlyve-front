@@ -428,10 +428,10 @@ const AdminPortalPage: React.FC = () => {
               <div>
                 <h4 className="text-md font-semibold mb-1">Current Usage:</h4>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Messages This Month: {selectedUserForLimits.current_messages_this_month ?? 0} / {selectedUserForLimits.max_messages_per_month !== null ? selectedUserForLimits.max_messages_per_month : 'Unlimited'}
+                  Messages This Month: {selectedUserForLimits.current_messages_this_month ?? 0} / {selectedUserForLimits.max_messages_per_month != null ? selectedUserForLimits.max_messages_per_month : 'Unlimited'}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Reactions Received This Month: {selectedUserForLimits.reactions_received_this_month ?? 0} / {selectedUserForLimits.max_reactions_per_month !== null ? selectedUserForLimits.max_reactions_per_month : 'Unlimited'}
+                  Reactions Received This Month: {selectedUserForLimits.reactions_received_this_month ?? 0} / {selectedUserForLimits.max_reactions_per_month != null ? selectedUserForLimits.max_reactions_per_month : 'Unlimited'}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
                   Last Usage Reset Date: {selectedUserForLimits.last_usage_reset_date ? formatDate(selectedUserForLimits.last_usage_reset_date) : 'N/A'}
