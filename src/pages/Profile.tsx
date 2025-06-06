@@ -29,6 +29,7 @@ const ProfilePage: React.FC = () => {
         setIsLoading(true);
         setError(null);
         const response = await profileApi.getProfileMe();
+        console.log('Raw profile data from API:', JSON.stringify(response.data, null, 2));
         setProfileData(response.data);
       } catch (err) {
         setError('Failed to fetch profile data. Please try again later.');
