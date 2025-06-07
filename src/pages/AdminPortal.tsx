@@ -47,6 +47,7 @@ const AdminPortalPage: React.FC = () => {
   });
   const [isLoadingUserDetails, setIsLoadingUserDetails] = useState(false);
   const [isUpdatingLimits, setIsUpdatingLimits] = useState(false);
+  const [lastUpdatedUserId, setLastUpdatedUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -66,6 +67,14 @@ const AdminPortalPage: React.FC = () => {
 
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    if (lastUpdatedUserId) {
+      // const updatedUser = users.find(u => u.id === lastUpdatedUserId);
+      // console.log('[AdminPortal] useEffect after users change, updated user:', updatedUser); // Removed
+      setLastUpdatedUserId(null); // Reset for next update
+    }
+  }, [users, lastUpdatedUserId]);
 
   const handleLimitInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -159,7 +168,13 @@ const AdminPortalPage: React.FC = () => {
     }
 
     try {
+      // console.log('[AdminPortal] handleSaveLimits: Preparing to send to adminApi.updateUserLimits', {
+      //   userId: selectedUserForLimits.id,
+      //   payload: finalPayload
+      // }); // Removed
       await adminApi.updateUserLimits(selectedUserForLimits.id, finalPayload);
+      // const response = await adminApi.updateUserLimits(selectedUserForLimits.id, finalPayload); // Keep if response is used
+      // console.log('[AdminPortal] handleSaveLimits: adminApi.updateUserLimits - Backend response:', response); // Removed
 
       // Optimistic update for local state (uses camelCase as per User type)
       const camelCaseUpdateData = {
@@ -186,45 +201,73 @@ const AdminPortalPage: React.FC = () => {
 
   const handleRoleChange = async (userId: string, newRole: User['role']) => {
     setUpdatingRoleId(userId);
-    try {
-      // The API already expects User['role'] from a previous change.
-      // This function's local type change is to align with ROLES_FOR_SELECT.
-      await adminApi.updateUserRole(userId, newRole);
-      // Original optimistic update is removed, will be handled by more comprehensive logic later in this function
-      // setUsers((prevUsers) =>
-      //   prevUsers.map((user) =>
-      //     user.id === userId ? { ...user, role: newRole } : user
-      //   )
-      // );
-      toast.success(`User ${userId} role updated to ${newRole}.`);
-      // Logic for guest limits will be added in the next step here.
-      // For now, just ensuring the signature and basic call is updated.
-      // The full logic for handleRoleChange including guest limits will be applied in a subsequent diff.
-      // This step only focuses on changing ROLES_FOR_SELECT and the signature.
-      // A placeholder for the more complex logic to be inserted:
-      // setUsers(prevUsers => prevUsers.map(user =>
-      //   user.id === userId ? { ...user, role: newRole } : user
-      // ));
-      // --- Start of new comprehensive logic for handleRoleChange ---
-      let finalUserUpdate: Partial<User> = { role: newRole };
 
-      if (newRole === 'guest') {
+    const user = users.find(u => u.id === userId);
+    const oldRole = user?.role;
+
+    try {
+      let finalApiResponse: any; // To hold the response that updates the state
+      let updatedUserData: User | undefined;
+
+      if (oldRole === 'guest' && newRole === 'user') {
+        // console.log(`[AdminPortal] handleRoleChange (Guest-to-User): Step 1 - Updating role for ${userId} to ${newRole}`); // Removed
+        const roleUpdateResponse = await adminApi.updateUserRole(userId, newRole); // No date here
+        // console.log('[AdminPortal] handleRoleChange (Guest-to-User): Step 1 - Role update API response:', roleUpdateResponse); // Removed
+
+        if (roleUpdateResponse && (roleUpdateResponse.status === 200 || roleUpdateResponse.status === 204 || roleUpdateResponse.data)) {
+          const newLastUsageResetDate = new Date().toISOString();
+          // console.log(`[AdminPortal] handleRoleChange (Guest-to-User): Step 2 - Setting lastUsageResetDate for ${userId} to ${newLastUsageResetDate}`); // Removed
+          finalApiResponse = await adminApi.updateUserLimits(userId, {
+            last_usage_reset_date: newLastUsageResetDate
+          });
+          // console.log('[AdminPortal] handleRoleChange (Guest-to-User): Step 2 - Limits update API response:', finalApiResponse); // Removed
+          updatedUserData = finalApiResponse.data;
+        } else {
+          throw new Error(roleUpdateResponse?.data?.message || `Role update to '${newRole}' failed`);
+        }
+      } else {
+        // Handle other role changes as before
+        // console.log(`[AdminPortal] handleRoleChange (Other role change): Updating role for ${userId} to ${newRole}`); // Removed
+        finalApiResponse = await adminApi.updateUserRole(userId, newRole);
+        // console.log('[AdminPortal] handleRoleChange (Other role change): Role update API response:', finalApiResponse); // Removed
+        updatedUserData = finalApiResponse.data;
+      }
+
+      toast.success(`User ${userId} role updated to ${newRole}.`);
+
+      // Common logic to update state using finalApiResponse / updatedUserData
+      let finalUserUpdate: Partial<User> = {};
+      if (updatedUserData) {
+        finalUserUpdate = {
+            ...updatedUserData, // Spread all fields from the API response
+            role: newRole, // Ensure newRole is set if not already from API response (e.g. updateUserLimits might not return role)
+        };
+        // If guest-to-user, ensure the newLastUsageResetDate is in finalUserUpdate
+        if (oldRole === 'guest' && newRole === 'user' && finalUserUpdate.lastUsageResetDate) {
+            // The lastUsageResetDate from updateUserLimits response should be the correct one
+        }
+      } else if (oldRole === 'guest' && newRole === 'user') {
+        // Fallback if updatedUserData is not available from limits call, but we know the date
+         finalUserUpdate = { role: newRole, lastUsageResetDate: new Date().toISOString() }; // This might be slightly off if limits call failed but role didn't
+      } else {
+        // Fallback for other role changes if API response structure is unexpected
+        finalUserUpdate = { role: newRole, lastUsageResetDate: user?.lastUsageResetDate || null };
+      }
+
+
+      if (newRole === 'guest' && oldRole !== 'guest') { // Ensure this runs only when changing TO guest
         // Define guest default limits (values)
         const guestMaxMessages = 3;
         const guestMaxReactions = 9;
         const guestMaxReactionsMsg = 3;
         let guestLastUsageResetDateIso: string | null = null;
         try {
-          // For fixed conventional date, direct ISO conversion is simpler.
-          // Ensure it's treated as UTC from the start.
           const [year, month, day] = "2999-01-19".split('-').map(Number);
           guestLastUsageResetDateIso = new Date(Date.UTC(year, month - 1, day)).toISOString();
         } catch (e) {
             console.error("Error formatting guest lastUsageResetDate:", e);
-            // guestLastUsageResetDateIso remains null if error, though unlikely for fixed string
         }
 
-        // Construct the payload for the API call with snake_case keys
         const apiGuestPayload = {
           max_messages_per_month: guestMaxMessages,
           max_reactions_per_month: guestMaxReactions,
@@ -233,36 +276,46 @@ const AdminPortalPage: React.FC = () => {
         };
 
         try {
-          await adminApi.updateUserLimits(userId, apiGuestPayload); // Pass snake_case payload
+          // Note: If newRole is 'guest', this might overwrite parts of finalUserUpdate from earlier.
+          // Consider merging:
+          const guestLimitsResponse = await adminApi.updateUserLimits(userId, apiGuestPayload);
           toast.success(`User ${userId} limits reset to guest defaults.`);
-
-          // For local state update, construct an object that matches User type (camelCase)
-          const finalUserUpdateGuestLimits = {
-            maxMessagesPerMonth: guestMaxMessages,
-            maxReactionsPerMonth: guestMaxReactions,
-            maxReactionsPerMessage: guestMaxReactionsMsg,
-            lastUsageResetDate: guestLastUsageResetDateIso, // Local state can use ISO string
-          };
-          finalUserUpdate = { ...finalUserUpdate, ...finalUserUpdateGuestLimits };
+          // The finalUserUpdate should now primarily be based on guestLimitsResponse.data
+          if (guestLimitsResponse.data) {
+             finalUserUpdate = { ...finalUserUpdate, ...guestLimitsResponse.data, role: newRole }; // Ensure role is guest
+          } else {
+             // Fallback if no data from limits call
+             finalUserUpdate = {
+                ...finalUserUpdate, // Keep role from previous step
+                maxMessagesPerMonth: guestMaxMessages,
+                maxReactionsPerMonth: guestMaxReactions,
+                maxReactionsPerMessage: guestMaxReactionsMsg,
+                lastUsageResetDate: guestLastUsageResetDateIso,
+             };
+          }
         } catch (limitErr) {
           console.error('Failed to set guest limits:', limitErr);
           toast.error('Role set to guest, but failed to reset limits. Manual limit adjustment might be needed.');
+          // If setting guest limits fails, finalUserUpdate might be from the role change call,
+          // which might not have the guest limits.
         }
       }
 
       // Update local state with all changes
-      setUsers(prevUsers =>
-        prevUsers.map(user =>
-          user.id === userId ? { ...user, ...finalUserUpdate } : user
-        )
-      );
-      // --- End of new comprehensive logic for handleRoleChange ---
+      if (Object.keys(finalUserUpdate).length > 0) { // Ensure there's something to update
+        setUsers(prevUsers =>
+          prevUsers.map(u =>
+            u.id === userId ? { ...u, ...finalUserUpdate } : u
+          )
+        );
+        setLastUpdatedUserId(userId); // Trigger useEffect for logging
+      }
+
     } catch (err) {
-      console.error('Update role error:', err);
+      console.error('[AdminPortal] handleRoleChange: Role update API call failed', err);
       toast.error(
         (err as any)?.response?.data?.message || 'Failed to update user role.'
       );
-      // Optionally, refetch users or revert optimistic update if needed
     } finally {
       setUpdatingRoleId(null);
     }
@@ -340,7 +393,9 @@ const AdminPortalPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200 dark:bg-neutral-900 dark:divide-neutral-700">
-              {users.map((user) => (
+              {users.map((user) => {
+                // console.log('[AdminPortal] Passing props to child component for user:', user.id, user); // Removed
+                return (
                 <tr key={user.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                     <div className="flex items-center">
@@ -407,24 +462,20 @@ const AdminPortalPage: React.FC = () => {
                           setSelectedUserForLimits(user);
                           setIsLoadingUserDetails(true);
                           try {
-                            const response = await adminApi.getUserDetails(user.id);
-                            setSelectedUserForLimits(response.data);
-                            const dateValue = response.data.lastUsageResetDate;
-                            let formattedDateForInput = '';
-                            if (dateValue) {
-                              try {
-                                // Ensure it's a valid date and format to YYYY-MM-DD for <input type="date">
-                                formattedDateForInput = new Date(dateValue).toISOString().split('T')[0];
-                              } catch (e) {
-                                console.error("Error parsing lastUsageResetDate for input: ", dateValue);
-                                // Keep it empty if parsing fails, or handle as appropriate
-                              }
-                            }
+                            const apiResponse = await adminApi.getUserDetails(user.id);
+                            const userDetailsToDisplay: User = apiResponse.data;
+
+                            setSelectedUserForLimits(userDetailsToDisplay);
+
+                            const resetDateForInput = userDetailsToDisplay.lastUsageResetDate
+                              ? new Date(userDetailsToDisplay.lastUsageResetDate).toISOString().split('T')[0]
+                              : '';
+
                             setLimitInputs({
-                              maxMessagesPerMonth: response.data.maxMessagesPerMonth?.toString() || '',
-                              maxReactionsPerMonth: response.data.maxReactionsPerMonth?.toString() || '',
-                              maxReactionsPerMessage: response.data.maxReactionsPerMessage?.toString() || '',
-                              lastUsageResetDate: formattedDateForInput,
+                              maxMessagesPerMonth: userDetailsToDisplay.maxMessagesPerMonth?.toString() || '',
+                              maxReactionsPerMonth: userDetailsToDisplay.maxReactionsPerMonth?.toString() || '',
+                              maxReactionsPerMessage: userDetailsToDisplay.maxReactionsPerMessage?.toString() || '',
+                              lastUsageResetDate: resetDateForInput,
                             });
                             setIsEditLimitsModalOpen(true);
                           } catch (err) {
@@ -443,7 +494,8 @@ const AdminPortalPage: React.FC = () => {
                     </div>
                   </td>
                 </tr>
-              ))}
+              );
+            })}
             </tbody>
           </table>
         </div> {/* Close table wrapper div */}
