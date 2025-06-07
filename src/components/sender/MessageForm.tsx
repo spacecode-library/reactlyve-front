@@ -268,8 +268,8 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
   const { user } = useAuth(); // Get user from AuthContext
 
   const isMessageLimitReached = !!(user &&
-    user.max_messages_per_month !== null &&
-    (user.current_messages_this_month ?? 0) >= user.max_messages_per_month
+    user.maxMessagesPerMonth !== null &&
+    (user.currentMessagesThisMonth ?? 0) >= user.maxMessagesPerMonth
   );
 
   const [media, setMedia] = useState<File | null>(null);

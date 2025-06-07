@@ -190,7 +190,9 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       if (err instanceof AxiosError && err.response) {
         const backendError = err.response?.data?.error;
         // Check for the specific reaction limit error
-        if (backendError && typeof backendError === 'string' && backendError.includes(REACTION_ERRORS.SENDER_MESSAGE_REACTION_LIMIT_REACHED)) {
+        if (backendError && typeof backendError === 'string' &&
+            (backendError.includes(REACTION_ERRORS.SENDER_MESSAGE_REACTION_LIMIT_REACHED) ||
+             backendError.includes("can no longer receive reactions this month"))) {
           setPermissionError(REACTION_ERRORS.REACTION_LIMIT_CONTACT_SENDER);
           setIsNameSubmitted(false);
           setTriggerCountdown(false);

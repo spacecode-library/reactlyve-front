@@ -144,6 +144,15 @@ export const repliesApi = {
 };
 
 // ------------------ ADMIN API ------------------
+
+// Interface for the payload sent to updateUserLimits, using snake_case
+interface UpdateUserLimitsPayload {
+  max_messages_per_month?: number | null;
+  max_reactions_per_month?: number | null;
+  max_reactions_per_message?: number | null;
+  last_usage_reset_date?: string | null; // Should be an ISO date string
+}
+
 // Note: Backend responses for getUsers and updateUserRole now return user objects with camelCase keys
 // (e.g., user.googleId, user.createdAt)
 export const adminApi = {
@@ -154,14 +163,7 @@ export const adminApi = {
   deleteUser: (userId: string) => api.delete(`/admin/users/${userId}`),
   getStats: () => api.get('/admin/stats'), // Assuming this endpoint returns data; check its casing if complex.
   getUserDetails: (userId: string) => api.get(`/admin/users/${userId}/details`),
-  updateUserLimits: (userId: string, limits: Partial<Pick<User,
-    'max_messages_per_month' |
-    'max_reactions_per_month' |
-    'max_reactions_per_message' |
-    'current_messages_this_month' |
-    'reactions_received_this_month' | // Changed
-    'last_usage_reset_date'
-  >>) =>
+  updateUserLimits: (userId: string, limits: UpdateUserLimitsPayload) =>
     api.put(`/admin/users/${userId}/limits`, limits),
 };
 

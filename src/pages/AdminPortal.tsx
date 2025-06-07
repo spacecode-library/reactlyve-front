@@ -19,10 +19,10 @@ interface UserToDelete {
 }
 
 interface UserLimitInputs {
-  max_messages_per_month: string;
-  max_reactions_per_month: string;
-  max_reactions_per_message: string;
-  last_usage_reset_date: string; // Added
+  maxMessagesPerMonth: string;
+  maxReactionsPerMonth: string;
+  maxReactionsPerMessage: string;
+  lastUsageResetDate: string; // Added
 }
 
 const AdminPortalPage: React.FC = () => {
@@ -40,10 +40,10 @@ const AdminPortalPage: React.FC = () => {
   const [isEditLimitsModalOpen, setIsEditLimitsModalOpen] = useState(false);
   const [selectedUserForLimits, setSelectedUserForLimits] = useState<User | null>(null);
   const [limitInputs, setLimitInputs] = useState<UserLimitInputs>({
-    max_messages_per_month: '',
-    max_reactions_per_month: '',
-    max_reactions_per_message: '',
-    last_usage_reset_date: '', // Added
+    maxMessagesPerMonth: '',
+    maxReactionsPerMonth: '',
+    maxReactionsPerMessage: '',
+    lastUsageResetDate: '', // Added
   });
   const [isLoadingUserDetails, setIsLoadingUserDetails] = useState(false);
   const [isUpdatingLimits, setIsUpdatingLimits] = useState(false);
@@ -69,6 +69,7 @@ const AdminPortalPage: React.FC = () => {
 
   const handleLimitInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    // console.log('handleLimitInputChange called. Name:', name, 'Value:', value, 'Type:', e.target.type); // Removed
     if (e.target.type === 'number' && value !== '' && !/^\d+$/.test(value) && value !== '-') {
       // Allow only numbers, empty string, or a single hyphen for potential negative (though we use min="0")
       return;
@@ -79,6 +80,8 @@ const AdminPortalPage: React.FC = () => {
   const handleSaveLimits = async () => {
     if (!selectedUserForLimits) return;
 
+    // console.log('handleSaveLimits called. Current limitInputs:', limitInputs); // Removed
+
     setIsUpdatingLimits(true);
 
     const parseInput = (value: string): number | null => {
@@ -87,26 +90,87 @@ const AdminPortalPage: React.FC = () => {
       return isNaN(num) ? null : num; // Convert NaN (from invalid parse like "abc") to null
     };
 
-    const payload = {
-      max_messages_per_month: parseInput(limitInputs.max_messages_per_month),
-      max_reactions_per_month: parseInput(limitInputs.max_reactions_per_month),
-      max_reactions_per_message: parseInput(limitInputs.max_reactions_per_message),
-      last_usage_reset_date: limitInputs.last_usage_reset_date === '' ? null : limitInputs.last_usage_reset_date,
+    const rawDate = limitInputs.lastUsageResetDate; // YYYY-MM-DD string or empty
+    let formattedDateForPayload: string | null = null;
+    if (rawDate) {
+      try {
+        // new Date('YYYY-MM-DD') can interpret the date in local timezone.
+        // To ensure it's treated as UTC for date-only inputs, parse components.
+        const parts = rawDate.split('-');
+        if (parts.length === 3) {
+          const year = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10); // 1-12
+          const day = parseInt(parts[2], 10);
+
+          // Validate numeric parts
+          if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+            // Date.UTC expects month to be 0-11
+            const utcDate = new Date(Date.UTC(year, month - 1, day));
+            if (!isNaN(utcDate.getTime())) { // Check if utcDate is valid
+              // Check if the constructed UTC date corresponds to the input parts
+              // This guards against invalid dates like "2023-02-30" being accepted by new Date()
+              // and rolling over to a different month.
+              if (utcDate.getUTCFullYear() === year &&
+                  utcDate.getUTCMonth() === month - 1 &&
+                  utcDate.getUTCDate() === day) {
+                formattedDateForPayload = utcDate.toISOString();
+              } // else {
+                // console.warn(`Input date ${rawDate} resulted in an invalid UTC date after construction (e.g., day out of range for month).`); // Removed
+              // }
+            } // else {
+              // console.warn(`Could not construct a valid UTC date from ${rawDate} (Date.UTC returned NaN).`); // Removed
+            // }
+          } // else {
+            // console.warn(`Could not parse numeric components from ${rawDate}.`); // Removed
+          // }
+        } // else {
+          // console.warn(`Date string ${rawDate} is not in YYYY-MM-DD format.`); // Removed
+        // }
+      } catch (error) {
+        // console.error(`Error processing date ${rawDate}:`, error); // Removed
+        // formattedDateForPayload remains null
+        // It's generally good to keep actual error handling, but task asks to remove specific logs.
+        // For a production system, one might log this to an error tracking service.
+      }
+    }
+
+    // Prepare values for both API payload and local state update
+    const maxMessages = parseInput(limitInputs.maxMessagesPerMonth);
+    const maxReactions = parseInput(limitInputs.maxReactionsPerMonth);
+    const maxReactionsMsg = parseInput(limitInputs.maxReactionsPerMessage);
+    // formattedDateForPayload is already the ISO string or null
+
+    const finalPayload = {
+      max_messages_per_month: maxMessages,
+      max_reactions_per_month: maxReactions,
+      max_reactions_per_message: maxReactionsMsg,
+      last_usage_reset_date: formattedDateForPayload,
     };
 
+    // console.log('Parsed payload to be sent:', finalPayload); // Removed
+
+    // Check if all payload properties are null
+    const allNull = Object.values(finalPayload).every(value => value === null);
+
+    if (allNull) {
+      toast.error("Please provide at least one limit value to update.");
+      setIsUpdatingLimits(false); // Reset loading state
+      return; // Exit the function
+    }
+
     try {
-      // Assuming adminApi.updateUserLimits can handle all fields in payload due to prior step update
-      await adminApi.updateUserLimits(selectedUserForLimits.id, payload);
+      await adminApi.updateUserLimits(selectedUserForLimits.id, finalPayload);
+
+      // Optimistic update for local state (uses camelCase as per User type)
+      const camelCaseUpdateData = {
+          maxMessagesPerMonth: maxMessages,
+          maxReactionsPerMonth: maxReactions,
+          maxReactionsPerMessage: maxReactionsMsg,
+          lastUsageResetDate: formattedDateForPayload, // This is the ISO string or null
+      };
       setUsers(prevUsers => prevUsers.map(u =>
         u.id === selectedUserForLimits.id
-          ? {
-            ...u,
-            max_messages_per_month: payload.max_messages_per_month,
-            max_reactions_per_month: payload.max_reactions_per_month,
-            max_reactions_per_message: payload.max_reactions_per_message,
-            last_usage_reset_date: payload.last_usage_reset_date,
-            // current_ values are not directly set here, they reflect actual usage
-          }
+          ? { ...u, ...camelCaseUpdateData }
           : u
       ));
       toast.success('Limits updated successfully!');
@@ -145,25 +209,41 @@ const AdminPortalPage: React.FC = () => {
       let finalUserUpdate: Partial<User> = { role: newRole };
 
       if (newRole === 'guest') {
-        const guestLimitsPayload: Partial<Pick<User,
-          'max_messages_per_month' |
-          'max_reactions_per_month' |
-          'max_reactions_per_message' |
-          'current_messages_this_month' |
-          'reactions_received_this_month' | // Changed
-          'last_usage_reset_date'
-        >> = {
-          max_messages_per_month: 3,
-          max_reactions_per_month: 9,
-          max_reactions_per_message: 3,
-          last_usage_reset_date: "2999-01-19", // Far future date as a convention
-          current_messages_this_month: 0,    // Reset current usage
-          reactions_received_this_month: 0    // Changed
-        };
+        // Define guest default limits (values)
+        const guestMaxMessages = 3;
+        const guestMaxReactions = 9;
+        const guestMaxReactionsMsg = 3;
+        let guestLastUsageResetDateIso: string | null = null;
         try {
-          await adminApi.updateUserLimits(userId, guestLimitsPayload);
+          // For fixed conventional date, direct ISO conversion is simpler.
+          // Ensure it's treated as UTC from the start.
+          const [year, month, day] = "2999-01-19".split('-').map(Number);
+          guestLastUsageResetDateIso = new Date(Date.UTC(year, month - 1, day)).toISOString();
+        } catch (e) {
+            console.error("Error formatting guest lastUsageResetDate:", e);
+            // guestLastUsageResetDateIso remains null if error, though unlikely for fixed string
+        }
+
+        // Construct the payload for the API call with snake_case keys
+        const apiGuestPayload = {
+          max_messages_per_month: guestMaxMessages,
+          max_reactions_per_month: guestMaxReactions,
+          max_reactions_per_message: guestMaxReactionsMsg,
+          last_usage_reset_date: guestLastUsageResetDateIso,
+        };
+
+        try {
+          await adminApi.updateUserLimits(userId, apiGuestPayload); // Pass snake_case payload
           toast.success(`User ${userId} limits reset to guest defaults.`);
-          finalUserUpdate = { ...finalUserUpdate, ...guestLimitsPayload };
+
+          // For local state update, construct an object that matches User type (camelCase)
+          const finalUserUpdateGuestLimits = {
+            maxMessagesPerMonth: guestMaxMessages,
+            maxReactionsPerMonth: guestMaxReactions,
+            maxReactionsPerMessage: guestMaxReactionsMsg,
+            lastUsageResetDate: guestLastUsageResetDateIso, // Local state can use ISO string
+          };
+          finalUserUpdate = { ...finalUserUpdate, ...finalUserUpdateGuestLimits };
         } catch (limitErr) {
           console.error('Failed to set guest limits:', limitErr);
           toast.error('Role set to guest, but failed to reset limits. Manual limit adjustment might be needed.');
@@ -329,22 +409,22 @@ const AdminPortalPage: React.FC = () => {
                           try {
                             const response = await adminApi.getUserDetails(user.id);
                             setSelectedUserForLimits(response.data);
-                            const dateValue = response.data.last_usage_reset_date;
+                            const dateValue = response.data.lastUsageResetDate;
                             let formattedDateForInput = '';
                             if (dateValue) {
                               try {
                                 // Ensure it's a valid date and format to YYYY-MM-DD for <input type="date">
                                 formattedDateForInput = new Date(dateValue).toISOString().split('T')[0];
                               } catch (e) {
-                                console.error("Error parsing last_usage_reset_date for input: ", dateValue);
+                                console.error("Error parsing lastUsageResetDate for input: ", dateValue);
                                 // Keep it empty if parsing fails, or handle as appropriate
                               }
                             }
                             setLimitInputs({
-                              max_messages_per_month: response.data.max_messages_per_month?.toString() || '',
-                              max_reactions_per_month: response.data.max_reactions_per_month?.toString() || '',
-                              max_reactions_per_message: response.data.max_reactions_per_message?.toString() || '',
-                              last_usage_reset_date: formattedDateForInput,
+                              maxMessagesPerMonth: response.data.maxMessagesPerMonth?.toString() || '',
+                              maxReactionsPerMonth: response.data.maxReactionsPerMonth?.toString() || '',
+                              maxReactionsPerMessage: response.data.maxReactionsPerMessage?.toString() || '',
+                              lastUsageResetDate: formattedDateForInput,
                             });
                             setIsEditLimitsModalOpen(true);
                           } catch (err) {
@@ -428,27 +508,27 @@ const AdminPortalPage: React.FC = () => {
               <div>
                 <h4 className="text-md font-semibold mb-1">Current Usage:</h4>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Messages This Month: {selectedUserForLimits.current_messages_this_month ?? 0} / {selectedUserForLimits.max_messages_per_month !== null ? selectedUserForLimits.max_messages_per_month : 'Unlimited'}
+                  Messages This Month: {selectedUserForLimits.currentMessagesThisMonth ?? 0} / {selectedUserForLimits.maxMessagesPerMonth != null ? selectedUserForLimits.maxMessagesPerMonth : 'Unlimited'}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Reactions Received This Month: {selectedUserForLimits.reactions_received_this_month ?? 0} / {selectedUserForLimits.max_reactions_per_month !== null ? selectedUserForLimits.max_reactions_per_month : 'Unlimited'}
+                  Reactions Received This Month: {selectedUserForLimits.reactionsReceivedThisMonth ?? 0} / {selectedUserForLimits.maxReactionsPerMonth != null ? selectedUserForLimits.maxReactionsPerMonth : 'Unlimited'}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Last Usage Reset Date: {selectedUserForLimits.last_usage_reset_date ? formatDate(selectedUserForLimits.last_usage_reset_date) : 'N/A'}
+                  Last Usage Reset Date: {selectedUserForLimits.lastUsageResetDate ? formatDate(selectedUserForLimits.lastUsageResetDate) : 'N/A'}
                 </p>
               </div>
 
               <hr className="dark:border-neutral-700"/>
 
               <div>
-                <label htmlFor="max_messages_per_month" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="maxMessagesPerMonth" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Max Messages/Month (empty for unlimited)
                 </label>
                 <Input
                   type="number"
-                  name="max_messages_per_month"
-                  id="max_messages_per_month"
-                  value={limitInputs.max_messages_per_month}
+                  name="maxMessagesPerMonth"
+                  id="maxMessagesPerMonth"
+                  value={limitInputs.maxMessagesPerMonth}
                   onChange={handleLimitInputChange}
                   className="mt-1"
                   placeholder="e.g., 100"
@@ -458,14 +538,14 @@ const AdminPortalPage: React.FC = () => {
               </div>
 
               <div>
-                <label htmlFor="max_reactions_per_month" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="maxReactionsPerMonth" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Max Reactions/Month (empty for unlimited)
                 </label>
                 <Input
                   type="number"
-                  name="max_reactions_per_month"
-                  id="max_reactions_per_month"
-                  value={limitInputs.max_reactions_per_month}
+                  name="maxReactionsPerMonth"
+                  id="maxReactionsPerMonth"
+                  value={limitInputs.maxReactionsPerMonth}
                   onChange={handleLimitInputChange}
                   className="mt-1"
                   placeholder="e.g., 500"
@@ -475,14 +555,14 @@ const AdminPortalPage: React.FC = () => {
               </div>
 
               <div>
-                <label htmlFor="max_reactions_per_message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="maxReactionsPerMessage" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Max Reactions/Message (empty for unlimited)
                 </label>
                 <Input
                   type="number"
-                  name="max_reactions_per_message"
-                  id="max_reactions_per_message"
-                  value={limitInputs.max_reactions_per_message}
+                  name="maxReactionsPerMessage"
+                  id="maxReactionsPerMessage"
+                  value={limitInputs.maxReactionsPerMessage}
                   onChange={handleLimitInputChange}
                   className="mt-1"
                   placeholder="e.g., 5"
@@ -492,14 +572,14 @@ const AdminPortalPage: React.FC = () => {
               </div>
 
               <div>
-                <label htmlFor="last_usage_reset_date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label htmlFor="lastUsageResetDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Last Usage Reset Date (YYYY-MM-DD, empty to clear)
                 </label>
                 <Input
                   type="date"
-                  name="last_usage_reset_date"
-                  id="last_usage_reset_date"
-                  value={limitInputs.last_usage_reset_date}
+                  name="lastUsageResetDate"
+                  id="lastUsageResetDate"
+                  value={limitInputs.lastUsageResetDate}
                   onChange={handleLimitInputChange}
                   className="mt-1"
                   disabled={isUpdatingLimits}

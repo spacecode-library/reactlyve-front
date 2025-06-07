@@ -141,26 +141,26 @@ const ProfilePage: React.FC = () => {
           <div>
             <span className="font-semibold">Messages This Month:</span>
             <span className="ml-2">
-              {(profileData.current_messages_this_month ?? 0)} / {profileData.max_messages_per_month !== null ? profileData.max_messages_per_month : 'Unlimited'}
+              {(profileData.currentMessagesThisMonth ?? 0)} / {profileData.maxMessagesPerMonth != null ? profileData.maxMessagesPerMonth : 'Unlimited'}
             </span>
           </div>
           <div>
             <span className="font-semibold">Reactions Received by Your Content This Month:</span>
             <span className="ml-2">
-              {(profileData.reactions_received_this_month ?? 0)} / {profileData.max_reactions_per_month !== null ? profileData.max_reactions_per_month : 'Unlimited'}
+              {(profileData.reactionsReceivedThisMonth ?? 0)} / {profileData.maxReactionsPerMonth != null ? profileData.maxReactionsPerMonth : 'Unlimited'}
             </span>
           </div>
           <div>
             <span className="font-semibold">Default Reactions Allowed for New Messages:</span>
             <span className="ml-2">
-              {profileData.max_reactions_per_message !== null ? profileData.max_reactions_per_message : 'Not set'}
+              {profileData.maxReactionsPerMessage != null ? profileData.maxReactionsPerMessage : 'Not set'}
             </span>
           </div>
           {profileData.role !== 'guest' && (
             <div>
               <span className="font-semibold">Usage Resets On:</span>
               <span className="ml-2">
-                {profileData.last_usage_reset_date ? formatDate(profileData.last_usage_reset_date) : 'N/A'}
+                {profileData.lastUsageResetDate ? formatDate(profileData.lastUsageResetDate) : 'N/A'}
               </span>
             </div>
           )}
