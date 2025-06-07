@@ -203,71 +203,73 @@ const AdminPortalPage: React.FC = () => {
 
     const user = users.find(u => u.id === userId);
     const oldRole = user?.role;
-    let lastUsageResetDateArg: string | undefined = undefined; // Defined here to be in scope for pre-try log
-
-    if (oldRole === 'guest' && newRole === 'user') {
-      lastUsageResetDateArg = new Date().toISOString();
-      console.log('[AdminPortal] handleRoleChange (Guest-to-User): Preparing to send to adminApi.updateUserRole', {
-        userId,
-        role: newRole,
-        lastUsageResetDate: lastUsageResetDateArg
-      });
-    } else {
-      console.log('[AdminPortal] handleRoleChange (Other role change): Preparing to send to adminApi.updateUserRole', { userId, role: newRole });
-    }
 
     try {
-      // const user = users.find(u => u.id === userId); // Moved up
-      // const oldRole = user?.role; // Moved up
-
-      // let lastUsageResetDateArg: string | undefined = undefined; // Moved up
-      let lastUsageResetDateForState: string | null = user?.lastUsageResetDate || null; // Keep existing or null
+      let finalApiResponse: any; // To hold the response that updates the state
+      let updatedUserData: User | undefined;
 
       if (oldRole === 'guest' && newRole === 'user') {
-        // lastUsageResetDateArg is already set above
-        lastUsageResetDateForState = lastUsageResetDateArg!; // Use non-null assertion as it's set if this condition is true
+        console.log(`[AdminPortal] handleRoleChange (Guest-to-User): Step 1 - Updating role for ${userId} to ${newRole}`);
+        const roleUpdateResponse = await adminApi.updateUserRole(userId, newRole); // No date here
+        console.log('[AdminPortal] handleRoleChange (Guest-to-User): Step 1 - Role update API response:', roleUpdateResponse);
+        // Assuming roleUpdateResponse.data contains the user object or relevant status
+
+        // Proceed only if role update was successful (basic check, adapt if API returns specific success indicators)
+        if (roleUpdateResponse && (roleUpdateResponse.status === 200 || roleUpdateResponse.status === 204 || roleUpdateResponse.data)) {
+          const newLastUsageResetDate = new Date().toISOString();
+          console.log(`[AdminPortal] handleRoleChange (Guest-to-User): Step 2 - Setting lastUsageResetDate for ${userId} to ${newLastUsageResetDate}`);
+          finalApiResponse = await adminApi.updateUserLimits(userId, {
+            last_usage_reset_date: newLastUsageResetDate
+          });
+          console.log('[AdminPortal] handleRoleChange (Guest-to-User): Step 2 - Limits update API response:', finalApiResponse);
+          updatedUserData = finalApiResponse.data; // Assuming user data is in .data
+        } else {
+          // Role update failed, throw an error or handle accordingly
+          throw new Error(roleUpdateResponse?.data?.message || `Role update to '${newRole}' failed`);
+        }
+      } else {
+        // Handle other role changes as before
+        console.log(`[AdminPortal] handleRoleChange (Other role change): Updating role for ${userId} to ${newRole}`);
+        finalApiResponse = await adminApi.updateUserRole(userId, newRole);
+        console.log('[AdminPortal] handleRoleChange (Other role change): Role update API response:', finalApiResponse);
+        updatedUserData = finalApiResponse.data; // Assuming user data is in .data
       }
 
-      // The API already expects User['role'] from a previous change.
-      const apiResponse = await adminApi.updateUserRole(userId, newRole, lastUsageResetDateArg);
-      console.log('[AdminPortal] handleRoleChange: adminApi.updateUserRole - Backend response:', apiResponse);
-      // Original optimistic update is removed, will be handled by more comprehensive logic later in this function
-      // setUsers((prevUsers) =>
-      //   prevUsers.map((user) =>
-      //     user.id === userId ? { ...user, role: newRole } : user
-      //   )
-      // );
       toast.success(`User ${userId} role updated to ${newRole}.`);
 
-      // Logic for guest limits will be added in the next step here.
-      // For now, just ensuring the signature and basic call is updated.
-      // The full logic for handleRoleChange including guest limits will be applied in a subsequent diff.
-      // This step only focuses on changing ROLES_FOR_SELECT and the signature.
-      // A placeholder for the more complex logic to be inserted:
-      // setUsers(prevUsers => prevUsers.map(user =>
-      //   user.id === userId ? { ...user, role: newRole } : user
-      // ));
-      // --- Start of new comprehensive logic for handleRoleChange ---
-      // Initialize finalUserUpdate with role and the potentially updated lastUsageResetDate
-      let finalUserUpdate: Partial<User> = { role: newRole, lastUsageResetDate: lastUsageResetDateForState };
+      // Common logic to update state using finalApiResponse / updatedUserData
+      let finalUserUpdate: Partial<User> = {};
+      if (updatedUserData) {
+        finalUserUpdate = {
+            ...updatedUserData, // Spread all fields from the API response
+            role: newRole, // Ensure newRole is set if not already from API response (e.g. updateUserLimits might not return role)
+        };
+        // If guest-to-user, ensure the newLastUsageResetDate is in finalUserUpdate
+        if (oldRole === 'guest' && newRole === 'user' && finalUserUpdate.lastUsageResetDate) {
+            // The lastUsageResetDate from updateUserLimits response should be the correct one
+        }
+      } else if (oldRole === 'guest' && newRole === 'user') {
+        // Fallback if updatedUserData is not available from limits call, but we know the date
+         finalUserUpdate = { role: newRole, lastUsageResetDate: new Date().toISOString() }; // This might be slightly off if limits call failed but role didn't
+      } else {
+        // Fallback for other role changes if API response structure is unexpected
+        finalUserUpdate = { role: newRole, lastUsageResetDate: user?.lastUsageResetDate || null };
+      }
 
-      if (newRole === 'guest') {
+
+      if (newRole === 'guest' && oldRole !== 'guest') { // Ensure this runs only when changing TO guest
         // Define guest default limits (values)
         const guestMaxMessages = 3;
         const guestMaxReactions = 9;
         const guestMaxReactionsMsg = 3;
         let guestLastUsageResetDateIso: string | null = null;
         try {
-          // For fixed conventional date, direct ISO conversion is simpler.
-          // Ensure it's treated as UTC from the start.
           const [year, month, day] = "2999-01-19".split('-').map(Number);
           guestLastUsageResetDateIso = new Date(Date.UTC(year, month - 1, day)).toISOString();
         } catch (e) {
             console.error("Error formatting guest lastUsageResetDate:", e);
-            // guestLastUsageResetDateIso remains null if error, though unlikely for fixed string
         }
 
-        // Construct the payload for the API call with snake_case keys
         const apiGuestPayload = {
           max_messages_per_month: guestMaxMessages,
           max_reactions_per_month: guestMaxReactions,
@@ -276,38 +278,46 @@ const AdminPortalPage: React.FC = () => {
         };
 
         try {
-          await adminApi.updateUserLimits(userId, apiGuestPayload); // Pass snake_case payload
+          // Note: If newRole is 'guest', this might overwrite parts of finalUserUpdate from earlier.
+          // Consider merging:
+          const guestLimitsResponse = await adminApi.updateUserLimits(userId, apiGuestPayload);
           toast.success(`User ${userId} limits reset to guest defaults.`);
-
-          // For local state update, construct an object that matches User type (camelCase)
-          const finalUserUpdateGuestLimits = {
-            maxMessagesPerMonth: guestMaxMessages,
-            maxReactionsPerMonth: guestMaxReactions,
-            maxReactionsPerMessage: guestMaxReactionsMsg,
-            lastUsageResetDate: guestLastUsageResetDateIso, // Local state can use ISO string
-          };
-          finalUserUpdate = { ...finalUserUpdate, ...finalUserUpdateGuestLimits };
+          // The finalUserUpdate should now primarily be based on guestLimitsResponse.data
+          if (guestLimitsResponse.data) {
+             finalUserUpdate = { ...finalUserUpdate, ...guestLimitsResponse.data, role: newRole }; // Ensure role is guest
+          } else {
+             // Fallback if no data from limits call
+             finalUserUpdate = {
+                ...finalUserUpdate, // Keep role from previous step
+                maxMessagesPerMonth: guestMaxMessages,
+                maxReactionsPerMonth: guestMaxReactions,
+                maxReactionsPerMessage: guestMaxReactionsMsg,
+                lastUsageResetDate: guestLastUsageResetDateIso,
+             };
+          }
         } catch (limitErr) {
           console.error('Failed to set guest limits:', limitErr);
           toast.error('Role set to guest, but failed to reset limits. Manual limit adjustment might be needed.');
+          // If setting guest limits fails, finalUserUpdate might be from the role change call,
+          // which might not have the guest limits.
         }
       }
-      // console.log('[AdminPortal] handleRoleChange: Updating local user state with', finalUserUpdate); // Removed
+
       // Update local state with all changes
-      setUsers(prevUsers =>
-        prevUsers.map(user =>
-          user.id === userId ? { ...user, ...finalUserUpdate } : user
-        )
-      );
-      setLastUpdatedUserId(userId); // Trigger useEffect for logging
-      // --- End of new comprehensive logic for handleRoleChange ---
+      if (Object.keys(finalUserUpdate).length > 0) { // Ensure there's something to update
+        setUsers(prevUsers =>
+          prevUsers.map(u =>
+            u.id === userId ? { ...u, ...finalUserUpdate } : u
+          )
+        );
+        setLastUpdatedUserId(userId); // Trigger useEffect for logging
+      }
+
     } catch (err) {
       console.error('[AdminPortal] handleRoleChange: Role update API call failed', err);
-      // console.error('Update role error:', err); // Original console.error
       toast.error(
         (err as any)?.response?.data?.message || 'Failed to update user role.'
       );
-      // Optionally, refetch users or revert optimistic update if needed
     } finally {
       setUpdatingRoleId(null);
     }
