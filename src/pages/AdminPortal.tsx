@@ -168,7 +168,12 @@ const AdminPortalPage: React.FC = () => {
     }
 
     try {
-      await adminApi.updateUserLimits(selectedUserForLimits.id, finalPayload);
+      console.log('[AdminPortal] handleSaveLimits: Preparing to send to adminApi.updateUserLimits', {
+        userId: selectedUserForLimits.id,
+        payload: finalPayload
+      });
+      const response = await adminApi.updateUserLimits(selectedUserForLimits.id, finalPayload);
+      console.log('[AdminPortal] handleSaveLimits: adminApi.updateUserLimits - Backend response:', response);
 
       // Optimistic update for local state (uses camelCase as per User type)
       const camelCaseUpdateData = {
@@ -195,22 +200,37 @@ const AdminPortalPage: React.FC = () => {
 
   const handleRoleChange = async (userId: string, newRole: User['role']) => {
     setUpdatingRoleId(userId);
-    try {
-      const user = users.find(u => u.id === userId);
-      const oldRole = user?.role;
 
-      let lastUsageResetDateArg: string | undefined = undefined;
+    const user = users.find(u => u.id === userId);
+    const oldRole = user?.role;
+    let lastUsageResetDateArg: string | undefined = undefined; // Defined here to be in scope for pre-try log
+
+    if (oldRole === 'guest' && newRole === 'user') {
+      lastUsageResetDateArg = new Date().toISOString();
+      console.log('[AdminPortal] handleRoleChange (Guest-to-User): Preparing to send to adminApi.updateUserRole', {
+        userId,
+        role: newRole,
+        lastUsageResetDate: lastUsageResetDateArg
+      });
+    } else {
+      console.log('[AdminPortal] handleRoleChange (Other role change): Preparing to send to adminApi.updateUserRole', { userId, role: newRole });
+    }
+
+    try {
+      // const user = users.find(u => u.id === userId); // Moved up
+      // const oldRole = user?.role; // Moved up
+
+      // let lastUsageResetDateArg: string | undefined = undefined; // Moved up
       let lastUsageResetDateForState: string | null = user?.lastUsageResetDate || null; // Keep existing or null
 
       if (oldRole === 'guest' && newRole === 'user') {
-        lastUsageResetDateArg = new Date().toISOString();
-        lastUsageResetDateForState = lastUsageResetDateArg; // Update for local state as well
+        // lastUsageResetDateArg is already set above
+        lastUsageResetDateForState = lastUsageResetDateArg!; // Use non-null assertion as it's set if this condition is true
       }
 
       // The API already expects User['role'] from a previous change.
-      // console.log('[AdminPortal] handleRoleChange: Attempting to update role', { userId, oldRole, newRole, lastUsageResetDateArg }); // Removed
-      await adminApi.updateUserRole(userId, newRole, lastUsageResetDateArg);
-      // console.log('[AdminPortal] handleRoleChange: Role update API call successful', response); // Removed, toast covers success
+      const apiResponse = await adminApi.updateUserRole(userId, newRole, lastUsageResetDateArg);
+      console.log('[AdminPortal] handleRoleChange: adminApi.updateUserRole - Backend response:', apiResponse);
       // Original optimistic update is removed, will be handled by more comprehensive logic later in this function
       // setUsers((prevUsers) =>
       //   prevUsers.map((user) =>
