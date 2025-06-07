@@ -69,7 +69,7 @@ const AdminPortalPage: React.FC = () => {
 
   const handleLimitInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    console.log('handleLimitInputChange called. Name:', name, 'Value:', value, 'Type:', e.target.type);
+    // console.log('handleLimitInputChange called. Name:', name, 'Value:', value, 'Type:', e.target.type); // Removed
     if (e.target.type === 'number' && value !== '' && !/^\d+$/.test(value) && value !== '-') {
       // Allow only numbers, empty string, or a single hyphen for potential negative (though we use min="0")
       return;
@@ -80,7 +80,7 @@ const AdminPortalPage: React.FC = () => {
   const handleSaveLimits = async () => {
     if (!selectedUserForLimits) return;
 
-    console.log('handleSaveLimits called. Current limitInputs:', limitInputs);
+    // console.log('handleSaveLimits called. Current limitInputs:', limitInputs); // Removed
 
     setIsUpdatingLimits(true);
 
@@ -114,21 +114,23 @@ const AdminPortalPage: React.FC = () => {
                   utcDate.getUTCMonth() === month - 1 &&
                   utcDate.getUTCDate() === day) {
                 formattedDateForPayload = utcDate.toISOString();
-              } else {
-                console.warn(`Input date ${rawDate} resulted in an invalid UTC date after construction (e.g., day out of range for month).`);
-              }
-            } else {
-              console.warn(`Could not construct a valid UTC date from ${rawDate} (Date.UTC returned NaN).`);
-            }
-          } else {
-            console.warn(`Could not parse numeric components from ${rawDate}.`);
-          }
-        } else {
-          console.warn(`Date string ${rawDate} is not in YYYY-MM-DD format.`);
-        }
+              } // else {
+                // console.warn(`Input date ${rawDate} resulted in an invalid UTC date after construction (e.g., day out of range for month).`); // Removed
+              // }
+            } // else {
+              // console.warn(`Could not construct a valid UTC date from ${rawDate} (Date.UTC returned NaN).`); // Removed
+            // }
+          } // else {
+            // console.warn(`Could not parse numeric components from ${rawDate}.`); // Removed
+          // }
+        } // else {
+          // console.warn(`Date string ${rawDate} is not in YYYY-MM-DD format.`); // Removed
+        // }
       } catch (error) {
-        console.error(`Error processing date ${rawDate}:`, error);
+        // console.error(`Error processing date ${rawDate}:`, error); // Removed
         // formattedDateForPayload remains null
+        // It's generally good to keep actual error handling, but task asks to remove specific logs.
+        // For a production system, one might log this to an error tracking service.
       }
     }
 
@@ -145,7 +147,7 @@ const AdminPortalPage: React.FC = () => {
       last_usage_reset_date: formattedDateForPayload,
     };
 
-    console.log('Parsed payload to be sent:', finalPayload);
+    // console.log('Parsed payload to be sent:', finalPayload); // Removed
 
     // Check if all payload properties are null
     const allNull = Object.values(finalPayload).every(value => value === null);
