@@ -408,101 +408,122 @@ const Message: React.FC = () => {
             {imageElement}
             {videoElement}
 
-            {/* Shareable link and passcode */}
-            <div className="mb-6 grid gap-4 md:grid-cols-2">
-              {normalizedMessage.shareableLink && (
-                <div>
-                  <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Shareable Link</h2>
-                  <div className="flex items-center gap-2 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
-                    <p className="flex-1 truncate text-sm text-neutral-700 dark:text-neutral-300">
-                      {normalizedMessage.shareableLink}
-                    </p>
-                    <button
-                      onClick={() => copyToClipboard(normalizedMessage.shareableLink, 'link')}
-                      className="rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700"
-                    >
-                      {copied.link ? <ClipboardIcon size={16} /> : <CopyIcon size={16} />}
-                    </button>
-                    <button
-                      onClick={() => setShowQrCode(!showQrCode)}
-                      className="ml-2 rounded-md bg-green-600 p-2 text-white hover:bg-green-700"
-                    >
-                      {showQrCode ? 'Hide QR' : 'Show QR'}
-                    </button>
-                  </div>
-                  {copied.link && (
-                    <p className="mt-1 text-xs text-green-600 dark:text-green-400">Link copied to clipboard!</p>
-                  )}
-                  {showQrCode && normalizedMessage.shareableLink && (
-                    <div className="mt-4 text-center">
-                      <h3 className="mb-2 text-md font-semibold text-neutral-900 dark:text-white">Scan QR Code</h3>
-                      <div className="inline-block rounded-lg bg-white p-4 shadow">
-                        <QRCodeSVG
-                          value={normalizedMessage.shareableLink}
-                          size={200} 
-                          bgColor={"#ffffff"}
-                          fgColor={"#000000"}
-                          level={"L"} 
-                        />
+            {/* Shareable link, passcode, reaction length, and reaction stats */}
+            <div className="mb-6 flex flex-col gap-4"> {/* Outer container for rows */}
+              {/* Desktop Row 1: Shareable Link and Passcode */}
+              <div className="lg:grid lg:grid-cols-2 lg:gap-4 flex flex-col gap-4">
+                {normalizedMessage.shareableLink && (
+                  <div>
+                    <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Shareable Link</h2>
+                    <div className="flex items-center gap-2 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
+                      <p className="flex-1 truncate text-sm text-neutral-700 dark:text-neutral-300">
+                        {normalizedMessage.shareableLink}
+                      </p>
+                      <button
+                        onClick={() => copyToClipboard(normalizedMessage.shareableLink, 'link')}
+                        className="rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700"
+                      >
+                        {copied.link ? <ClipboardIcon size={16} /> : <CopyIcon size={16} />}
+                      </button>
+                      <button
+                        onClick={() => setShowQrCode(!showQrCode)}
+                        className="ml-2 rounded-md bg-green-600 p-2 text-white hover:bg-green-700"
+                      >
+                        {showQrCode ? 'Hide QR' : 'Show QR'}
+                      </button>
+                    </div>
+                    {copied.link && (
+                      <p className="mt-1 text-xs text-green-600 dark:text-green-400">Link copied to clipboard!</p>
+                    )}
+                    {showQrCode && normalizedMessage.shareableLink && (
+                      <div className="mt-4 text-center">
+                        <h3 className="mb-2 text-md font-semibold text-neutral-900 dark:text-white">Scan QR Code</h3>
+                        <div className="inline-block rounded-lg bg-white p-4 shadow">
+                          <QRCodeSVG
+                            value={normalizedMessage.shareableLink}
+                            size={200}
+                            bgColor={"#ffffff"}
+                            fgColor={"#000000"}
+                            level={"L"}
+                          />
+                        </div>
+                        <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                          Scan this QR code to access the shareable link.
+                        </p>
                       </div>
-                      <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-                        Scan this QR code to access the shareable link.
+                    )}
+                  </div>
+                )}
+
+                {/* Passcode Display - Always show section, indicate if not set */}
+                {message && (
+                  <div>
+                    <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Passcode</h2>
+                    <div className="flex items-center gap-2 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
+                      <p className="flex-1 text-sm font-mono text-neutral-700 dark:text-neutral-300">
+                        {message.passcode ? (
+                          message.passcode
+                        ) : (
+                          <span className="italic">Not Set</span>
+                        )}
+                      </p>
+                      {/* Only show copy button if passcode is set */}
+                      {message.passcode && (
+                        <button
+                          onClick={() => copyToClipboard(message.passcode, 'passcode')}
+                          className="rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700"
+                          title="Copy Passcode"
+                        >
+                          {copied.passcode ? <ClipboardIcon size={16} /> : <CopyIcon size={16} />}
+                        </button>
+                      )}
+                      <button
+                        onClick={handleOpenPasscodeModal}
+                        className="ml-2 rounded-md p-1 text-neutral-500 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-500"
+                        title="Edit Passcode"
+                      >
+                        <Edit3Icon size={16} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop Row 2: Reaction Length and Reaction Stats */}
+              <div className="lg:grid lg:grid-cols-2 lg:gap-4 flex flex-col gap-4">
+                {/* Reaction Length Display */}
+                {normalizedMessage && typeof normalizedMessage.reaction_length === 'number' && (
+                  <div>
+                    <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Reaction Length</h2>
+                    <div className="flex items-center justify-between gap-2 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
+                      <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                        {normalizedMessage.reaction_length} seconds
+                      </p>
+                      <button
+                        onClick={handleOpenReactionLengthModal}
+                        className="ml-2 rounded-md p-1 text-neutral-500 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-500"
+                        title="Edit Reaction Length"
+                      >
+                        <Edit3Icon size={16} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {/* Reaction Stats Display */}
+                {normalizedMessage && (normalizedMessage.reactions_used !== undefined || normalizedMessage.reactions_remaining !== undefined || normalizedMessage.max_reactions_allowed !== undefined) && (
+                  <div>
+                    <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Reaction Stats</h2>
+                    <div className="rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
+                      <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                        Used: {normalizedMessage.reactions_used ?? 'N/A'} / {normalizedMessage.max_reactions_allowed ?? 'Unlimited'}
+                      </p>
+                      <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                        Remaining: {normalizedMessage.reactions_remaining ?? 'N/A'}
                       </p>
                     </div>
-                  )}
-                </div>
-              )}
-
-              {/* Passcode Display - Always show section, indicate if not set */}
-              {message && (
-                <div>
-                  <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Passcode</h2>
-                  <div className="flex items-center gap-2 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
-                    <p className="flex-1 text-sm font-mono text-neutral-700 dark:text-neutral-300">
-                      {message.passcode ? (
-                        message.passcode
-                      ) : (
-                        <span className="italic">Not Set</span>
-                      )}
-                    </p>
-                    {/* Only show copy button if passcode is set */}
-                    {message.passcode && (
-                      <button
-                        onClick={() => copyToClipboard(message.passcode, 'passcode')}
-                        className="rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700"
-                        title="Copy Passcode"
-                      >
-                        {copied.passcode ? <ClipboardIcon size={16} /> : <CopyIcon size={16} />}
-                      </button>
-                    )}
-                    <button
-                      onClick={handleOpenPasscodeModal}
-                      className="ml-2 rounded-md p-1 text-neutral-500 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-500"
-                      title="Edit Passcode"
-                    >
-                      <Edit3Icon size={16} />
-                    </button>
                   </div>
-                </div>
-              )}
-              {/* Reaction Length Display */}
-              {normalizedMessage && typeof normalizedMessage.reaction_length === 'number' && (
-                <div>
-                  <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Reaction Length</h2>
-                  <div className="flex items-center justify-between gap-2 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
-                    <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                      {normalizedMessage.reaction_length} seconds
-                    </p>
-                    <button
-                      onClick={handleOpenReactionLengthModal}
-                      className="ml-2 rounded-md p-1 text-neutral-500 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-500"
-                      title="Edit Reaction Length"
-                    >
-                      <Edit3Icon size={16} />
-                    </button>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Reactions and Replies */}
