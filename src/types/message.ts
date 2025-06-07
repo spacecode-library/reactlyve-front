@@ -23,6 +23,8 @@ export interface Message {
   duration?: number;
   reaction_length?: number;
   max_reactions_allowed?: number | null; // Add this line
+  reactions_used?: number;
+  reactions_remaining?: number;
   isreply?: string;
   sender?: {
     name: string;

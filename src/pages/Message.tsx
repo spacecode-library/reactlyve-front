@@ -506,6 +506,17 @@ const Message: React.FC = () => {
             </div>
 
             {/* Reactions and Replies */}
+            {normalizedMessage && (normalizedMessage.reactions_used !== undefined || normalizedMessage.reactions_remaining !== undefined || normalizedMessage.max_reactions_allowed !== undefined) && (
+              <div className="mb-4">
+                <h3 className="text-md font-semibold text-neutral-800 dark:text-neutral-200 mb-1">Reaction Quotas</h3>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                  Reactions Used: {normalizedMessage.reactions_used ?? 'N/A'} / {normalizedMessage.max_reactions_allowed ?? 'Unlimited'}
+                </p>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                  Reactions Remaining: {normalizedMessage.reactions_remaining ?? 'N/A'}
+                </p>
+              </div>
+            )}
             {hasReactions ? (
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
