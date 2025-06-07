@@ -235,7 +235,7 @@ import { z } from 'zod';
 import { useAuth } from '../../context/AuthContext'; // Added useAuth import
 import { messagesApi } from '../../services/api';
 import { AxiosError } from 'axios'; // Added import
-import { VALIDATION_ERRORS } from '../constants/errorMessages';
+import { VALIDATION_ERRORS, MESSAGE_ERRORS } from '../constants/errorMessages'; // Modified import
 import { classNames } from '../../utils/classNames';
 import Button from '../common/Button';
 import MediaUploader from './MediaUploader';
@@ -414,9 +414,9 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
   
   return (
     <>
-      {isMessageLimitReached && (
+      {isMessageLimitReached && user && ( // Added user check for safety, though isMessageLimitReached already implies user exists
         <div className="p-3 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800" role="alert">
-          You have reached your monthly message limit. You will be able to send more messages next month.
+          {user.role === 'guest' ? MESSAGE_ERRORS.GUEST_MESSAGE_LIMIT_REACHED : MESSAGE_ERRORS.USER_MESSAGE_LIMIT_REACHED}
         </div>
       )}
       <form

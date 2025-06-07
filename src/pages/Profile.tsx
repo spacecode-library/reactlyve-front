@@ -156,7 +156,12 @@ const ProfilePage: React.FC = () => {
               {profileData.maxReactionsPerMessage != null ? profileData.maxReactionsPerMessage : 'Not set'}
             </span>
           </div>
-          {profileData.role !== 'guest' && (
+          {profileData.role === 'guest' ? (
+            <div>
+              <span className="font-semibold">Usage Resets On:</span>
+              <span className="ml-2">Your limits are fixed. To increase them, please contact support@reactlyve.com or sign up for an account.</span>
+            </div>
+          ) : (
             <div>
               <span className="font-semibold">Usage Resets On:</span>
               <span className="ml-2">
