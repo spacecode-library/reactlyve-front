@@ -168,12 +168,13 @@ const AdminPortalPage: React.FC = () => {
     }
 
     try {
-      console.log('[AdminPortal] handleSaveLimits: Preparing to send to adminApi.updateUserLimits', {
-        userId: selectedUserForLimits.id,
-        payload: finalPayload
-      });
-      const response = await adminApi.updateUserLimits(selectedUserForLimits.id, finalPayload);
-      console.log('[AdminPortal] handleSaveLimits: adminApi.updateUserLimits - Backend response:', response);
+      // console.log('[AdminPortal] handleSaveLimits: Preparing to send to adminApi.updateUserLimits', {
+      //   userId: selectedUserForLimits.id,
+      //   payload: finalPayload
+      // }); // Removed
+      await adminApi.updateUserLimits(selectedUserForLimits.id, finalPayload);
+      // const response = await adminApi.updateUserLimits(selectedUserForLimits.id, finalPayload); // Keep if response is used
+      // console.log('[AdminPortal] handleSaveLimits: adminApi.updateUserLimits - Backend response:', response); // Removed
 
       // Optimistic update for local state (uses camelCase as per User type)
       const camelCaseUpdateData = {
@@ -209,30 +210,27 @@ const AdminPortalPage: React.FC = () => {
       let updatedUserData: User | undefined;
 
       if (oldRole === 'guest' && newRole === 'user') {
-        console.log(`[AdminPortal] handleRoleChange (Guest-to-User): Step 1 - Updating role for ${userId} to ${newRole}`);
+        // console.log(`[AdminPortal] handleRoleChange (Guest-to-User): Step 1 - Updating role for ${userId} to ${newRole}`); // Removed
         const roleUpdateResponse = await adminApi.updateUserRole(userId, newRole); // No date here
-        console.log('[AdminPortal] handleRoleChange (Guest-to-User): Step 1 - Role update API response:', roleUpdateResponse);
-        // Assuming roleUpdateResponse.data contains the user object or relevant status
+        // console.log('[AdminPortal] handleRoleChange (Guest-to-User): Step 1 - Role update API response:', roleUpdateResponse); // Removed
 
-        // Proceed only if role update was successful (basic check, adapt if API returns specific success indicators)
         if (roleUpdateResponse && (roleUpdateResponse.status === 200 || roleUpdateResponse.status === 204 || roleUpdateResponse.data)) {
           const newLastUsageResetDate = new Date().toISOString();
-          console.log(`[AdminPortal] handleRoleChange (Guest-to-User): Step 2 - Setting lastUsageResetDate for ${userId} to ${newLastUsageResetDate}`);
+          // console.log(`[AdminPortal] handleRoleChange (Guest-to-User): Step 2 - Setting lastUsageResetDate for ${userId} to ${newLastUsageResetDate}`); // Removed
           finalApiResponse = await adminApi.updateUserLimits(userId, {
             last_usage_reset_date: newLastUsageResetDate
           });
-          console.log('[AdminPortal] handleRoleChange (Guest-to-User): Step 2 - Limits update API response:', finalApiResponse);
-          updatedUserData = finalApiResponse.data; // Assuming user data is in .data
+          // console.log('[AdminPortal] handleRoleChange (Guest-to-User): Step 2 - Limits update API response:', finalApiResponse); // Removed
+          updatedUserData = finalApiResponse.data;
         } else {
-          // Role update failed, throw an error or handle accordingly
           throw new Error(roleUpdateResponse?.data?.message || `Role update to '${newRole}' failed`);
         }
       } else {
         // Handle other role changes as before
-        console.log(`[AdminPortal] handleRoleChange (Other role change): Updating role for ${userId} to ${newRole}`);
+        // console.log(`[AdminPortal] handleRoleChange (Other role change): Updating role for ${userId} to ${newRole}`); // Removed
         finalApiResponse = await adminApi.updateUserRole(userId, newRole);
-        console.log('[AdminPortal] handleRoleChange (Other role change): Role update API response:', finalApiResponse);
-        updatedUserData = finalApiResponse.data; // Assuming user data is in .data
+        // console.log('[AdminPortal] handleRoleChange (Other role change): Role update API response:', finalApiResponse); // Removed
+        updatedUserData = finalApiResponse.data;
       }
 
       toast.success(`User ${userId} role updated to ${newRole}.`);
