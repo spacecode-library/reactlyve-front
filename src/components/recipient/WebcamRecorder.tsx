@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'; // Added useRef
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
 import useWebcam from '../../hooks/useWebcam';
 import useMediaRecorder from '../../hooks/useMediaRecorder';
-import { Button } from '../common/Button';
+import Button from '../common/Button';
 import { supportsMediaRecording } from '../../utils/validators';
 import { classNames } from '../../utils/classNames';
 
