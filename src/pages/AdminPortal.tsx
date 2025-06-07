@@ -207,33 +207,41 @@ const AdminPortalPage: React.FC = () => {
       let finalUserUpdate: Partial<User> = { role: newRole };
 
       if (newRole === 'guest') {
-        const guestLimitsPayload: Partial<Pick<User,
-          'maxMessagesPerMonth' |
-          'maxReactionsPerMonth' |
-          'maxReactionsPerMessage' |
-          'lastUsageResetDate'
-          // Removed 'currentMessagesThisMonth' and 'reactionsReceivedThisMonth' from Pick
-        >> = {
-          maxMessagesPerMonth: 3,
-          maxReactionsPerMonth: 9,
-          maxReactionsPerMessage: 3,
-          lastUsageResetDate: "2999-01-19", // Far future date as a convention
-          // currentMessagesThisMonth: 0,    // Removed
-          // reactionsReceivedThisMonth: 0   // Removed
-        };
+        // Define guest default limits (values)
+        const guestMaxMessages = 3;
+        const guestMaxReactions = 9;
+        const guestMaxReactionsMsg = 3;
+        let guestLastUsageResetDateIso: string | null = null;
         try {
-          // Create a new payload for the API call without the current usage fields
-          const apiPayload = {
-            maxMessagesPerMonth: guestLimitsPayload.maxMessagesPerMonth,
-            maxReactionsPerMonth: guestLimitsPayload.maxReactionsPerMonth,
-            maxReactionsPerMessage: guestLimitsPayload.maxReactionsPerMessage,
-            lastUsageResetDate: guestLimitsPayload.lastUsageResetDate,
-          };
-          await adminApi.updateUserLimits(userId, apiPayload);
+          // For fixed conventional date, direct ISO conversion is simpler.
+          // Ensure it's treated as UTC from the start.
+          const [year, month, day] = "2999-01-19".split('-').map(Number);
+          guestLastUsageResetDateIso = new Date(Date.UTC(year, month - 1, day)).toISOString();
+        } catch (e) {
+            console.error("Error formatting guest lastUsageResetDate:", e);
+            // guestLastUsageResetDateIso remains null if error, though unlikely for fixed string
+        }
+
+        // Construct the payload for the API call with snake_case keys
+        const apiGuestPayload = {
+          max_messages_per_month: guestMaxMessages,
+          max_reactions_per_month: guestMaxReactions,
+          max_reactions_per_message: guestMaxReactionsMsg,
+          last_usage_reset_date: guestLastUsageResetDateIso,
+        };
+
+        try {
+          await adminApi.updateUserLimits(userId, apiGuestPayload); // Pass snake_case payload
           toast.success(`User ${userId} limits reset to guest defaults.`);
-          // For local state update, we might still want to reflect that current usage *should* be zero
-          // or simply update with what was sent to API. For now, align with API payload.
-          finalUserUpdate = { ...finalUserUpdate, ...apiPayload };
+
+          // For local state update, construct an object that matches User type (camelCase)
+          const finalUserUpdateGuestLimits = {
+            maxMessagesPerMonth: guestMaxMessages,
+            maxReactionsPerMonth: guestMaxReactions,
+            maxReactionsPerMessage: guestMaxReactionsMsg,
+            lastUsageResetDate: guestLastUsageResetDateIso, // Local state can use ISO string
+          };
+          finalUserUpdate = { ...finalUserUpdate, ...finalUserUpdateGuestLimits };
         } catch (limitErr) {
           console.error('Failed to set guest limits:', limitErr);
           toast.error('Role set to guest, but failed to reset limits. Manual limit adjustment might be needed.');
