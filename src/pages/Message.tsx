@@ -408,8 +408,8 @@ const Message: React.FC = () => {
             {imageElement}
             {videoElement}
 
-            {/* Shareable link and passcode */}
-            <div className="mb-6 grid gap-4 md:grid-cols-2">
+            {/* Shareable link, passcode, reaction length, and reaction stats */}
+            <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {normalizedMessage.shareableLink && (
                 <div>
                   <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Shareable Link</h2>
@@ -503,20 +503,23 @@ const Message: React.FC = () => {
                   </div>
                 </div>
               )}
+              {/* Reaction Stats Display */}
+              {normalizedMessage && (normalizedMessage.reactions_used !== undefined || normalizedMessage.reactions_remaining !== undefined || normalizedMessage.max_reactions_allowed !== undefined) && (
+                <div>
+                  <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Reaction Stats</h2>
+                  <div className="rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
+                    <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                      Used: {normalizedMessage.reactions_used ?? 'N/A'} / {normalizedMessage.max_reactions_allowed ?? 'Unlimited'}
+                    </p>
+                    <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                      Remaining: {normalizedMessage.reactions_remaining ?? 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Reactions and Replies */}
-            {normalizedMessage && (normalizedMessage.reactions_used !== undefined || normalizedMessage.reactions_remaining !== undefined || normalizedMessage.max_reactions_allowed !== undefined) && (
-              <div className="mb-4">
-                <h3 className="text-md font-semibold text-neutral-800 dark:text-neutral-200 mb-1">Reaction Quotas</h3>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                  Reactions Used: {normalizedMessage.reactions_used ?? 'N/A'} / {normalizedMessage.max_reactions_allowed ?? 'Unlimited'}
-                </p>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                  Reactions Remaining: {normalizedMessage.reactions_remaining ?? 'N/A'}
-                </p>
-              </div>
-            )}
             {hasReactions ? (
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
