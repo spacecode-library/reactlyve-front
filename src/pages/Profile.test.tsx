@@ -78,14 +78,16 @@ describe('ProfilePage', () => {
       reactionsReceivedThisMonth: 0,
       maxReactionsPerMonth: null, // Unlimited
       maxReactionsPerMessage: 5,
+      blocked: false, // Added
       lastLogin: new Date().toISOString(),
       lastUsageResetDate: null, // Guest doesn't have this
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
     mockGetProfileMe.mockResolvedValue({ data: guestProfileData });
-    mockUseAuth.mockReturnValue({ // Ensure auth context matches guest role if ProfilePage uses it directly
-        user: { ...guestProfileData },
+    // Also update the user object in useAuth mock if it's used for rendering or checks that need 'blocked'
+    mockUseAuth.mockReturnValue({
+        user: { ...guestProfileData, blocked: false },
         logout: jest.fn()
     });
 
@@ -124,14 +126,16 @@ describe('ProfilePage', () => {
       reactionsReceivedThisMonth: 5,
       maxReactionsPerMonth: 200,
       maxReactionsPerMessage: 10,
+      blocked: false, // Added
       lastLogin: new Date().toISOString(),
       lastUsageResetDate: '2023-12-01T00:00:00.000Z', // Specific date for testing
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
     mockGetProfileMe.mockResolvedValue({ data: userProfileData });
-    mockUseAuth.mockReturnValue({ // Auth context for a registered user
-        user: { ...userProfileData },
+    // Also update the user object in useAuth mock
+    mockUseAuth.mockReturnValue({
+        user: { ...userProfileData, blocked: false },
         logout: jest.fn()
     });
 
