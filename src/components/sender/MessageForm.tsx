@@ -378,23 +378,35 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
       });
     } catch (error) {
       console.error('Error creating message:', error);
-      // Check if the error is an AxiosError and if it has a response
-      // (which implies the global interceptor likely handled the toast)
+
       if (error instanceof AxiosError && error.response) {
-        // Assume global interceptor handled the toast, so do nothing here
-        // or just log if needed for debugging.
+        const errorMessage = error.response.data?.error || error.response.data?.message || "";
+        const isLimitError = (error.response.status === 429 || error.response.status === 403) &&
+                             (errorMessage.includes("limit reached") || errorMessage.includes("Message limit reached"));
+
+        if (user?.role === 'guest' && isLimitError) {
+          showToast({ message: MESSAGE_ERRORS.GUEST_MESSAGE_LIMIT_REACHED, type: 'error' });
+        } else {
+          // For non-guest limit errors or other Axios errors with a response,
+          // assume global interceptor will handle or has handled it.
+          // If global interceptor is not showing a toast for some cases,
+          // and one is desired here, it could be added below.
+          // For now, this 'else' block means we are intentionally not showing a *local* toast here
+          // for non-guest limit errors or other specific Axios errors, relying on global handling.
+          // If error.response.data.error or .message was present but not a "limit" error,
+          // it would also fall here, likely handled by global interceptor.
+        }
       } else {
-        // Show generic toast only for non-Axios errors (e.g., network issues)
-        // or if AxiosError doesn't have a response.
+        // Non-Axios error, or Axios error without a response.
         showToast({
-          message: 'Failed to create message. Please try again.',
+          message: MESSAGE_ERRORS.CREATE_FAILED, // Using the constant
           type: 'error',
         });
       }
     } finally {
       setIsSubmitting(false);
     }
-  }, [media, mediaType]);
+  }, [media, mediaType, user]); // Added user to dependency array
   
   // Calculate remaining character count
   const messageValue = watch('message') || '';
