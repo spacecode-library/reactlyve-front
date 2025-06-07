@@ -236,7 +236,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     if (permissionError === REACTION_ERRORS.REACTION_LIMIT_CONTACT_SENDER) {
       // Dedicated UI for Reaction Limit Error
       return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-4 text-center dark:bg-neutral-900">
+        <div className="flex min-h-screen w-full flex-col items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900 sm:py-12">
           <div className="card mx-auto max-w-md p-6 text-center"> {/* Ensure 'card' class provides appropriate styling */}
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900 mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
