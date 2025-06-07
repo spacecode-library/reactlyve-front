@@ -494,7 +494,9 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     <> {/* Use a fragment if adding the overlay as a sibling to the main div */}
       <div className={classNames('relative flex flex-col items-center justify-center text-center', className || '')}>
 
-        <h2 className="text-xl font-semibold mb-2">Record Your Lyve Reaction</h2>
+        {!(showCountdown || isRecording || recordingCompleted || isCompressing) && (
+          <h2 className="text-xl font-semibold mb-2">Record Your Lyve Reaction</h2>
+        )}
 
       {((showCountdown && !previewManuallyToggled) || showPreview) && (
         <div className="relative w-full max-w-md mt-2 mb-4 aspect-video">
