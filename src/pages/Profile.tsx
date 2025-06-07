@@ -139,13 +139,13 @@ const ProfilePage: React.FC = () => {
         <h3 className="text-xl font-semibold mb-4">Usage and Limits</h3>
         <div className="space-y-3">
           <div>
-            <span className="font-semibold">Messages This Month:</span>
+            <span className="font-semibold">{profileData.role === 'guest' ? "Messages:" : "Messages This Month:"}</span>
             <span className="ml-2">
               {(profileData.currentMessagesThisMonth ?? 0)} / {profileData.maxMessagesPerMonth != null ? profileData.maxMessagesPerMonth : 'Unlimited'}
             </span>
           </div>
           <div>
-            <span className="font-semibold">Reactions Received by Your Content This Month:</span>
+            <span className="font-semibold">{profileData.role === 'guest' ? "Reactions Received by Your Content:" : "Reactions Received by Your Content This Month:"}</span>
             <span className="ml-2">
               {(profileData.reactionsReceivedThisMonth ?? 0)} / {profileData.maxReactionsPerMonth != null ? profileData.maxReactionsPerMonth : 'Unlimited'}
             </span>
@@ -156,7 +156,12 @@ const ProfilePage: React.FC = () => {
               {profileData.maxReactionsPerMessage != null ? profileData.maxReactionsPerMessage : 'Not set'}
             </span>
           </div>
-          {profileData.role !== 'guest' && (
+          {profileData.role === 'guest' ? (
+            <div>
+              <span className="font-semibold">Usage Resets On:</span>
+              <span className="ml-2">Your limits are fixed. To increase them, please contact support@reactlyve.com or sign up for an account.</span>
+            </div>
+          ) : (
             <div>
               <span className="font-semibold">Usage Resets On:</span>
               <span className="ml-2">

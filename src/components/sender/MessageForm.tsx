@@ -235,7 +235,7 @@ import { z } from 'zod';
 import { useAuth } from '../../context/AuthContext'; // Added useAuth import
 import { messagesApi } from '../../services/api';
 import { AxiosError } from 'axios'; // Added import
-import { VALIDATION_ERRORS } from '../constants/errorMessages';
+import { VALIDATION_ERRORS, MESSAGE_ERRORS } from '../constants/errorMessages'; // Modified import
 import { classNames } from '../../utils/classNames';
 import Button from '../common/Button';
 import MediaUploader from './MediaUploader';
@@ -378,23 +378,35 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
       });
     } catch (error) {
       console.error('Error creating message:', error);
-      // Check if the error is an AxiosError and if it has a response
-      // (which implies the global interceptor likely handled the toast)
+
       if (error instanceof AxiosError && error.response) {
-        // Assume global interceptor handled the toast, so do nothing here
-        // or just log if needed for debugging.
+        const errorMessage = error.response.data?.error || error.response.data?.message || "";
+        const isLimitError = (error.response.status === 429 || error.response.status === 403) &&
+                             (errorMessage.includes("limit reached") || errorMessage.includes("Message limit reached"));
+
+        if (user?.role === 'guest' && isLimitError) {
+          showToast({ message: MESSAGE_ERRORS.GUEST_MESSAGE_LIMIT_REACHED, type: 'error' });
+        } else {
+          // For non-guest limit errors or other Axios errors with a response,
+          // assume global interceptor will handle or has handled it.
+          // If global interceptor is not showing a toast for some cases,
+          // and one is desired here, it could be added below.
+          // For now, this 'else' block means we are intentionally not showing a *local* toast here
+          // for non-guest limit errors or other specific Axios errors, relying on global handling.
+          // If error.response.data.error or .message was present but not a "limit" error,
+          // it would also fall here, likely handled by global interceptor.
+        }
       } else {
-        // Show generic toast only for non-Axios errors (e.g., network issues)
-        // or if AxiosError doesn't have a response.
+        // Non-Axios error, or Axios error without a response.
         showToast({
-          message: 'Failed to create message. Please try again.',
+          message: MESSAGE_ERRORS.CREATE_FAILED, // Using the constant
           type: 'error',
         });
       }
     } finally {
       setIsSubmitting(false);
     }
-  }, [media, mediaType]);
+  }, [media, mediaType, user]); // Added user to dependency array
   
   // Calculate remaining character count
   const messageValue = watch('message') || '';
@@ -414,9 +426,9 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
   
   return (
     <>
-      {isMessageLimitReached && (
+      {isMessageLimitReached && user && ( // Added user check for safety, though isMessageLimitReached already implies user exists
         <div className="p-3 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800" role="alert">
-          You have reached your monthly message limit. You will be able to send more messages next month.
+          {user.role === 'guest' ? MESSAGE_ERRORS.GUEST_MESSAGE_LIMIT_REACHED : MESSAGE_ERRORS.USER_MESSAGE_LIMIT_REACHED}
         </div>
       )}
       <form

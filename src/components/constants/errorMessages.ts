@@ -44,6 +44,8 @@ export const GENERAL_ERRORS = {
     LINK_EXPIRED: 'This link has expired or is no longer valid.',
     NOT_FOUND: 'Message not found. It may have been deleted or the link is incorrect.',
     ALREADY_VIEWED: 'This message has already been viewed.',
+    GUEST_MESSAGE_LIMIT_REACHED: "You have reached your message limit. To send more messages, please contact support@reactlyve.com to request an increase or sign up for an account.",
+    USER_MESSAGE_LIMIT_REACHED: "You have reached your monthly message limit. You will be able to send more messages next month.",
   };
   
   // Reaction error messages
