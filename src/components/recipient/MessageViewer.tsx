@@ -246,7 +246,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
             <h3 className="text-lg font-medium text-neutral-900 dark:text-white text-center"> {/* Removed mt-4 as icon has mb-4 */}
               Reaction Limit Reached
             </h3>
-            <div className="mt-4 rounded-md bg-blue-50 p-4 dark:bg-blue-900/30">
+            <div className="mt-4 rounded-md bg-blue-50 p-4 dark:bg-blue-900/30 text-center">
               <p className="text-sm font-medium text-blue-700 dark:text-blue-300 text-center">
                 {REACTION_ERRORS.REACTION_LIMIT_CONTACT_SENDER}
               </p>
