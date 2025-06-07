@@ -165,7 +165,7 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
       
       {isReactionLimitError && errorMessage && (
         <div className="mt-4 rounded-md bg-blue-50 p-4 dark:bg-blue-900/30"> {/* Using a more neutral/info color */}
-          <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+          <p className="text-sm font-medium text-blue-700 dark:text-blue-300 text-center">
             {errorMessage}
           </p>
         </div>

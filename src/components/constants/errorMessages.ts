@@ -57,7 +57,7 @@ export const GENERAL_ERRORS = {
     NOT_FOUND: 'Reaction not found. It may have been deleted.',
     BROWSER_NOT_SUPPORTED: 'Your browser does not support video recording. Please try a different browser.',
     SENDER_MESSAGE_REACTION_LIMIT_REACHED: "Reaction limit reached for this message.",
-    REACTION_LIMIT_CONTACT_SENDER: "Please contact the person who shared this message with you regarding increasing their reaction limits."
+    REACTION_LIMIT_CONTACT_SENDER: "Error: This user can no longer receive reaction at this time (limit reached)."
   };
   
   // Admin error messages
