@@ -191,7 +191,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         const backendError = err.response?.data?.error;
         // Check for the specific reaction limit error
         if (backendError && typeof backendError === 'string' &&
-            backendError === "This user can no longer receive reaction at this time (limit reached)") {
+            backendError.includes("This user can no longer receive reaction at this time (limit reached)")) {
           setPermissionError(REACTION_ERRORS.REACTION_LIMIT_CONTACT_SENDER);
           setIsNameSubmitted(false);
           setTriggerCountdown(false);
