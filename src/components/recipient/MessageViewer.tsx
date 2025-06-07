@@ -191,17 +191,14 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         const backendError = err.response?.data?.error;
         // Check for the specific reaction limit error
         if (backendError && typeof backendError === 'string' &&
-            (backendError.includes(REACTION_ERRORS.SENDER_MESSAGE_REACTION_LIMIT_REACHED) ||
-             backendError.includes("can no longer receive reactions this month"))) {
+            backendError === "This user can no longer receive reaction at this time (limit reached)") {
           setPermissionError(REACTION_ERRORS.REACTION_LIMIT_CONTACT_SENDER);
           setIsNameSubmitted(false);
           setTriggerCountdown(false);
         } else {
-          // Default handling for other Axios errors
+          // Default handling for other Axios errors (or if the error string changes again)
           const backendErrorMessage = backendError || 'Failed to initialize reaction session.';
           setPermissionError(backendErrorMessage);
-          // The global interceptor in api.ts should handle toasting for these generic backend errors.
-          // Reset UI state for other errors too
           setIsNameSubmitted(false);
           setTriggerCountdown(false);
         }
