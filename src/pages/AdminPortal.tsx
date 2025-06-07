@@ -90,17 +90,65 @@ const AdminPortalPage: React.FC = () => {
       return isNaN(num) ? null : num; // Convert NaN (from invalid parse like "abc") to null
     };
 
-    const payload = {
-      maxMessagesPerMonth: parseInput(limitInputs.maxMessagesPerMonth),
-      maxReactionsPerMonth: parseInput(limitInputs.maxReactionsPerMonth),
-      maxReactionsPerMessage: parseInput(limitInputs.maxReactionsPerMessage),
-      lastUsageResetDate: limitInputs.lastUsageResetDate === '' ? null : limitInputs.lastUsageResetDate,
+    const rawDate = limitInputs.lastUsageResetDate; // YYYY-MM-DD string or empty
+    let formattedDateForPayload: string | null = null;
+    if (rawDate) {
+      try {
+        // new Date('YYYY-MM-DD') can interpret the date in local timezone.
+        // To ensure it's treated as UTC for date-only inputs, parse components.
+        const parts = rawDate.split('-');
+        if (parts.length === 3) {
+          const year = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10); // 1-12
+          const day = parseInt(parts[2], 10);
+
+          // Validate numeric parts
+          if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+            // Date.UTC expects month to be 0-11
+            const utcDate = new Date(Date.UTC(year, month - 1, day));
+            if (!isNaN(utcDate.getTime())) { // Check if utcDate is valid
+              // Check if the constructed UTC date corresponds to the input parts
+              // This guards against invalid dates like "2023-02-30" being accepted by new Date()
+              // and rolling over to a different month.
+              if (utcDate.getUTCFullYear() === year &&
+                  utcDate.getUTCMonth() === month - 1 &&
+                  utcDate.getUTCDate() === day) {
+                formattedDateForPayload = utcDate.toISOString();
+              } else {
+                console.warn(`Input date ${rawDate} resulted in an invalid UTC date after construction (e.g., day out of range for month).`);
+              }
+            } else {
+              console.warn(`Could not construct a valid UTC date from ${rawDate} (Date.UTC returned NaN).`);
+            }
+          } else {
+            console.warn(`Could not parse numeric components from ${rawDate}.`);
+          }
+        } else {
+          console.warn(`Date string ${rawDate} is not in YYYY-MM-DD format.`);
+        }
+      } catch (error) {
+        console.error(`Error processing date ${rawDate}:`, error);
+        // formattedDateForPayload remains null
+      }
+    }
+
+    // Prepare values for both API payload and local state update
+    const maxMessages = parseInput(limitInputs.maxMessagesPerMonth);
+    const maxReactions = parseInput(limitInputs.maxReactionsPerMonth);
+    const maxReactionsMsg = parseInput(limitInputs.maxReactionsPerMessage);
+    // formattedDateForPayload is already the ISO string or null
+
+    const finalPayload = {
+      max_messages_per_month: maxMessages,
+      max_reactions_per_month: maxReactions,
+      max_reactions_per_message: maxReactionsMsg,
+      last_usage_reset_date: formattedDateForPayload,
     };
 
-    console.log('Parsed payload to be sent:', payload);
+    console.log('Parsed payload to be sent:', finalPayload);
 
     // Check if all payload properties are null
-    const allNull = Object.values(payload).every(value => value === null);
+    const allNull = Object.values(finalPayload).every(value => value === null);
 
     if (allNull) {
       toast.error("Please provide at least one limit value to update.");
@@ -109,18 +157,18 @@ const AdminPortalPage: React.FC = () => {
     }
 
     try {
-      // Assuming adminApi.updateUserLimits can handle all fields in payload due to prior step update
-      await adminApi.updateUserLimits(selectedUserForLimits.id, payload);
+      await adminApi.updateUserLimits(selectedUserForLimits.id, finalPayload);
+
+      // Optimistic update for local state (uses camelCase as per User type)
+      const camelCaseUpdateData = {
+          maxMessagesPerMonth: maxMessages,
+          maxReactionsPerMonth: maxReactions,
+          maxReactionsPerMessage: maxReactionsMsg,
+          lastUsageResetDate: formattedDateForPayload, // This is the ISO string or null
+      };
       setUsers(prevUsers => prevUsers.map(u =>
         u.id === selectedUserForLimits.id
-          ? {
-            ...u,
-            maxMessagesPerMonth: payload.maxMessagesPerMonth,
-            maxReactionsPerMonth: payload.maxReactionsPerMonth,
-            maxReactionsPerMessage: payload.maxReactionsPerMessage,
-            lastUsageResetDate: payload.lastUsageResetDate,
-            // current_ values are not directly set here, they reflect actual usage
-          }
+          ? { ...u, ...camelCaseUpdateData }
           : u
       ));
       toast.success('Limits updated successfully!');
