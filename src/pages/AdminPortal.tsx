@@ -47,6 +47,7 @@ const AdminPortalPage: React.FC = () => {
   });
   const [isLoadingUserDetails, setIsLoadingUserDetails] = useState(false);
   const [isUpdatingLimits, setIsUpdatingLimits] = useState(false);
+  const [lastUpdatedUserId, setLastUpdatedUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -66,6 +67,14 @@ const AdminPortalPage: React.FC = () => {
 
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    if (lastUpdatedUserId) {
+      // const updatedUser = users.find(u => u.id === lastUpdatedUserId);
+      // console.log('[AdminPortal] useEffect after users change, updated user:', updatedUser); // Removed
+      setLastUpdatedUserId(null); // Reset for next update
+    }
+  }, [users, lastUpdatedUserId]);
 
   const handleLimitInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -199,9 +208,9 @@ const AdminPortalPage: React.FC = () => {
       }
 
       // The API already expects User['role'] from a previous change.
-      console.log('[AdminPortal] handleRoleChange: Attempting to update role', { userId, oldRole, newRole, lastUsageResetDateArg });
-      const response = await adminApi.updateUserRole(userId, newRole, lastUsageResetDateArg);
-      console.log('[AdminPortal] handleRoleChange: Role update API call successful', response);
+      // console.log('[AdminPortal] handleRoleChange: Attempting to update role', { userId, oldRole, newRole, lastUsageResetDateArg }); // Removed
+      await adminApi.updateUserRole(userId, newRole, lastUsageResetDateArg);
+      // console.log('[AdminPortal] handleRoleChange: Role update API call successful', response); // Removed, toast covers success
       // Original optimistic update is removed, will be handled by more comprehensive logic later in this function
       // setUsers((prevUsers) =>
       //   prevUsers.map((user) =>
@@ -209,6 +218,7 @@ const AdminPortalPage: React.FC = () => {
       //   )
       // );
       toast.success(`User ${userId} role updated to ${newRole}.`);
+
       // Logic for guest limits will be added in the next step here.
       // For now, just ensuring the signature and basic call is updated.
       // The full logic for handleRoleChange including guest limits will be applied in a subsequent diff.
@@ -262,13 +272,14 @@ const AdminPortalPage: React.FC = () => {
           toast.error('Role set to guest, but failed to reset limits. Manual limit adjustment might be needed.');
         }
       }
-      console.log('[AdminPortal] handleRoleChange: Updating local user state with', finalUserUpdate);
+      // console.log('[AdminPortal] handleRoleChange: Updating local user state with', finalUserUpdate); // Removed
       // Update local state with all changes
       setUsers(prevUsers =>
         prevUsers.map(user =>
           user.id === userId ? { ...user, ...finalUserUpdate } : user
         )
       );
+      setLastUpdatedUserId(userId); // Trigger useEffect for logging
       // --- End of new comprehensive logic for handleRoleChange ---
     } catch (err) {
       console.error('[AdminPortal] handleRoleChange: Role update API call failed', err);
@@ -354,7 +365,9 @@ const AdminPortalPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200 dark:bg-neutral-900 dark:divide-neutral-700">
-              {users.map((user) => (
+              {users.map((user) => {
+                // console.log('[AdminPortal] Passing props to child component for user:', user.id, user); // Removed
+                return (
                 <tr key={user.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                     <div className="flex items-center">
@@ -421,24 +434,20 @@ const AdminPortalPage: React.FC = () => {
                           setSelectedUserForLimits(user);
                           setIsLoadingUserDetails(true);
                           try {
-                            const response = await adminApi.getUserDetails(user.id);
-                            setSelectedUserForLimits(response.data);
-                            const dateValue = response.data.lastUsageResetDate;
-                            let formattedDateForInput = '';
-                            if (dateValue) {
-                              try {
-                                // Ensure it's a valid date and format to YYYY-MM-DD for <input type="date">
-                                formattedDateForInput = new Date(dateValue).toISOString().split('T')[0];
-                              } catch (e) {
-                                console.error("Error parsing lastUsageResetDate for input: ", dateValue);
-                                // Keep it empty if parsing fails, or handle as appropriate
-                              }
-                            }
+                            const apiResponse = await adminApi.getUserDetails(user.id);
+                            const userDetailsToDisplay: User = apiResponse.data;
+
+                            setSelectedUserForLimits(userDetailsToDisplay);
+
+                            const resetDateForInput = userDetailsToDisplay.lastUsageResetDate
+                              ? new Date(userDetailsToDisplay.lastUsageResetDate).toISOString().split('T')[0]
+                              : '';
+
                             setLimitInputs({
-                              maxMessagesPerMonth: response.data.maxMessagesPerMonth?.toString() || '',
-                              maxReactionsPerMonth: response.data.maxReactionsPerMonth?.toString() || '',
-                              maxReactionsPerMessage: response.data.maxReactionsPerMessage?.toString() || '',
-                              lastUsageResetDate: formattedDateForInput,
+                              maxMessagesPerMonth: userDetailsToDisplay.maxMessagesPerMonth?.toString() || '',
+                              maxReactionsPerMonth: userDetailsToDisplay.maxReactionsPerMonth?.toString() || '',
+                              maxReactionsPerMessage: userDetailsToDisplay.maxReactionsPerMessage?.toString() || '',
+                              lastUsageResetDate: resetDateForInput,
                             });
                             setIsEditLimitsModalOpen(true);
                           } catch (err) {
@@ -457,7 +466,8 @@ const AdminPortalPage: React.FC = () => {
                     </div>
                   </td>
                 </tr>
-              ))}
+              );
+            })}
             </tbody>
           </table>
         </div> {/* Close table wrapper div */}
