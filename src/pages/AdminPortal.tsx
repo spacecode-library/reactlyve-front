@@ -69,6 +69,7 @@ const AdminPortalPage: React.FC = () => {
 
   const handleLimitInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    console.log('handleLimitInputChange called. Name:', name, 'Value:', value, 'Type:', e.target.type);
     if (e.target.type === 'number' && value !== '' && !/^\d+$/.test(value) && value !== '-') {
       // Allow only numbers, empty string, or a single hyphen for potential negative (though we use min="0")
       return;
@@ -78,6 +79,8 @@ const AdminPortalPage: React.FC = () => {
 
   const handleSaveLimits = async () => {
     if (!selectedUserForLimits) return;
+
+    console.log('handleSaveLimits called. Current limitInputs:', limitInputs);
 
     setIsUpdatingLimits(true);
 
@@ -93,6 +96,8 @@ const AdminPortalPage: React.FC = () => {
       maxReactionsPerMessage: parseInput(limitInputs.maxReactionsPerMessage),
       lastUsageResetDate: limitInputs.lastUsageResetDate === '' ? null : limitInputs.lastUsageResetDate,
     };
+
+    console.log('Parsed payload to be sent:', payload);
 
     // Check if all payload properties are null
     const allNull = Object.values(payload).every(value => value === null);
