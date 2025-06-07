@@ -94,6 +94,15 @@ const AdminPortalPage: React.FC = () => {
       lastUsageResetDate: limitInputs.lastUsageResetDate === '' ? null : limitInputs.lastUsageResetDate,
     };
 
+    // Check if all payload properties are null
+    const allNull = Object.values(payload).every(value => value === null);
+
+    if (allNull) {
+      toast.error("Please provide at least one limit value to update.");
+      setIsUpdatingLimits(false); // Reset loading state
+      return; // Exit the function
+    }
+
     try {
       // Assuming adminApi.updateUserLimits can handle all fields in payload due to prior step update
       await adminApi.updateUserLimits(selectedUserForLimits.id, payload);
@@ -149,21 +158,29 @@ const AdminPortalPage: React.FC = () => {
           'maxMessagesPerMonth' |
           'maxReactionsPerMonth' |
           'maxReactionsPerMessage' |
-          'currentMessagesThisMonth' |
-          'reactionsReceivedThisMonth' | // Changed
           'lastUsageResetDate'
+          // Removed 'currentMessagesThisMonth' and 'reactionsReceivedThisMonth' from Pick
         >> = {
           maxMessagesPerMonth: 3,
           maxReactionsPerMonth: 9,
           maxReactionsPerMessage: 3,
           lastUsageResetDate: "2999-01-19", // Far future date as a convention
-          currentMessagesThisMonth: 0,    // Reset current usage
-          reactionsReceivedThisMonth: 0    // Changed
+          // currentMessagesThisMonth: 0,    // Removed
+          // reactionsReceivedThisMonth: 0   // Removed
         };
         try {
-          await adminApi.updateUserLimits(userId, guestLimitsPayload);
+          // Create a new payload for the API call without the current usage fields
+          const apiPayload = {
+            maxMessagesPerMonth: guestLimitsPayload.maxMessagesPerMonth,
+            maxReactionsPerMonth: guestLimitsPayload.maxReactionsPerMonth,
+            maxReactionsPerMessage: guestLimitsPayload.maxReactionsPerMessage,
+            lastUsageResetDate: guestLimitsPayload.lastUsageResetDate,
+          };
+          await adminApi.updateUserLimits(userId, apiPayload);
           toast.success(`User ${userId} limits reset to guest defaults.`);
-          finalUserUpdate = { ...finalUserUpdate, ...guestLimitsPayload };
+          // For local state update, we might still want to reflect that current usage *should* be zero
+          // or simply update with what was sent to API. For now, align with API payload.
+          finalUserUpdate = { ...finalUserUpdate, ...apiPayload };
         } catch (limitErr) {
           console.error('Failed to set guest limits:', limitErr);
           toast.error('Role set to guest, but failed to reset limits. Manual limit adjustment might be needed.');
