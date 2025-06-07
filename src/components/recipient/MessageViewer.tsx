@@ -265,7 +265,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     } else {
       // Fallback to PermissionRequest for other errors that might use this state
       return (
-        <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
+        <div className="flex min-h-screen w-full flex-col items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900 sm:py-12">
           <PermissionRequest
             onCancel={() => onSkipReaction?.()}
             permissionType="both" // This is still hardcoded; might need review later if other errors use this path
