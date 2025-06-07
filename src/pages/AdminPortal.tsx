@@ -199,7 +199,9 @@ const AdminPortalPage: React.FC = () => {
       }
 
       // The API already expects User['role'] from a previous change.
-      await adminApi.updateUserRole(userId, newRole, lastUsageResetDateArg);
+      console.log('[AdminPortal] handleRoleChange: Attempting to update role', { userId, oldRole, newRole, lastUsageResetDateArg });
+      const response = await adminApi.updateUserRole(userId, newRole, lastUsageResetDateArg);
+      console.log('[AdminPortal] handleRoleChange: Role update API call successful', response);
       // Original optimistic update is removed, will be handled by more comprehensive logic later in this function
       // setUsers((prevUsers) =>
       //   prevUsers.map((user) =>
@@ -260,7 +262,7 @@ const AdminPortalPage: React.FC = () => {
           toast.error('Role set to guest, but failed to reset limits. Manual limit adjustment might be needed.');
         }
       }
-
+      console.log('[AdminPortal] handleRoleChange: Updating local user state with', finalUserUpdate);
       // Update local state with all changes
       setUsers(prevUsers =>
         prevUsers.map(user =>
@@ -269,7 +271,8 @@ const AdminPortalPage: React.FC = () => {
       );
       // --- End of new comprehensive logic for handleRoleChange ---
     } catch (err) {
-      console.error('Update role error:', err);
+      console.error('[AdminPortal] handleRoleChange: Role update API call failed', err);
+      // console.error('Update role error:', err); // Original console.error
       toast.error(
         (err as any)?.response?.data?.message || 'Failed to update user role.'
       );
