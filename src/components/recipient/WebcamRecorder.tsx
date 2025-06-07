@@ -1,8 +1,10 @@
 import { FFmpeg, FileData } from '@ffmpeg/ffmpeg'; // Added
 import { fetchFile, toBlobURL } from '@ffmpeg/util'; // Added
 import React, { useState, useEffect, useRef } from 'react'; // Added useRef
+import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
 import useWebcam from '../../hooks/useWebcam';
 import useMediaRecorder from '../../hooks/useMediaRecorder';
+import { Button } from '../common/Button';
 import { supportsMediaRecording } from '../../utils/validators';
 import { classNames } from '../../utils/classNames';
 
@@ -514,7 +516,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       )}
 
       {isRecording && !isCompressing && (
-        <p className="text-red-500 mt-2 text-sm font-medium">
+        <p className="text-red-600 dark:text-red-400 mt-2 text-base font-semibold">
           Recording... {recordingCountdown !== null ? `${recordingCountdown}s left` : ''}
         </p>
       )}
@@ -524,15 +526,17 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       )}
 
       {isRecording && (
-        <button
-          className="text-sm text-primary-600 underline mt-2"
+        <Button
+          variant="outline"
+          leftIcon={showPreview ? <ChevronUpIcon className="h-5 w-5" /> : <ChevronDownIcon className="h-5 w-5" />}
           onClick={() => {
             setShowPreview(prev => !prev);
             setPreviewManuallyToggled(true);
           }}
+          className="mt-2"
         >
           {showPreview ? 'Hide Preview' : 'Show Preview'}
-        </button>
+        </Button>
       )}
 
       {isUploading && !hideUploadSpinner && !isCompressing && (
