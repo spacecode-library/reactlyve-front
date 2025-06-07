@@ -157,9 +157,15 @@ interface UpdateUserLimitsPayload {
 // (e.g., user.googleId, user.createdAt)
 export const adminApi = {
   getUsers: () => api.get('/admin/users'),
-  updateUserRole: (userId: string, role: User['role']) =>
+  updateUserRole: (userId: string, role: User['role'], lastUsageResetDate?: string) => {
     // Backend expects { role: "value" } (lowercase)
-    api.put(`/admin/users/${userId}/role`, { role }),
+    // And optionally { last_usage_reset_date: "value" } (snake_case)
+    const payload: { role: User['role']; last_usage_reset_date?: string } = { role };
+    if (lastUsageResetDate) {
+      payload.last_usage_reset_date = lastUsageResetDate;
+    }
+    return api.put(`/admin/users/${userId}/role`, payload);
+  },
   deleteUser: (userId: string) => api.delete(`/admin/users/${userId}`),
   getStats: () => api.get('/admin/stats'), // Assuming this endpoint returns data; check its casing if complex.
   getUserDetails: (userId: string) => api.get(`/admin/users/${userId}/details`),

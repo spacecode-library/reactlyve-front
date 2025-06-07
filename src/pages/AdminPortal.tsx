@@ -187,9 +187,19 @@ const AdminPortalPage: React.FC = () => {
   const handleRoleChange = async (userId: string, newRole: User['role']) => {
     setUpdatingRoleId(userId);
     try {
+      const user = users.find(u => u.id === userId);
+      const oldRole = user?.role;
+
+      let lastUsageResetDateArg: string | undefined = undefined;
+      let lastUsageResetDateForState: string | null = user?.lastUsageResetDate || null; // Keep existing or null
+
+      if (oldRole === 'guest' && newRole === 'user') {
+        lastUsageResetDateArg = new Date().toISOString();
+        lastUsageResetDateForState = lastUsageResetDateArg; // Update for local state as well
+      }
+
       // The API already expects User['role'] from a previous change.
-      // This function's local type change is to align with ROLES_FOR_SELECT.
-      await adminApi.updateUserRole(userId, newRole);
+      await adminApi.updateUserRole(userId, newRole, lastUsageResetDateArg);
       // Original optimistic update is removed, will be handled by more comprehensive logic later in this function
       // setUsers((prevUsers) =>
       //   prevUsers.map((user) =>
@@ -206,7 +216,8 @@ const AdminPortalPage: React.FC = () => {
       //   user.id === userId ? { ...user, role: newRole } : user
       // ));
       // --- Start of new comprehensive logic for handleRoleChange ---
-      let finalUserUpdate: Partial<User> = { role: newRole };
+      // Initialize finalUserUpdate with role and the potentially updated lastUsageResetDate
+      let finalUserUpdate: Partial<User> = { role: newRole, lastUsageResetDate: lastUsageResetDateForState };
 
       if (newRole === 'guest') {
         // Define guest default limits (values)
