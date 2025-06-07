@@ -235,15 +235,47 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   }
 
   if (permissionError) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
-        <PermissionRequest
-          onCancel={() => onSkipReaction?.()}
-          permissionType="both"
-          errorMessage={permissionError}
-        />
-      </div>
-    );
+    if (permissionError === REACTION_ERRORS.REACTION_LIMIT_CONTACT_SENDER) {
+      // Dedicated UI for Reaction Limit Error
+      return (
+        <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-4 text-center dark:bg-neutral-900">
+          <div className="card mx-auto max-w-md p-6"> {/* Ensure 'card' class provides appropriate styling */}
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900 mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-neutral-900 dark:text-white"> {/* Removed mt-4 as icon has mb-4 */}
+              Reaction Limit Reached
+            </h3>
+            <div className="mt-4 rounded-md bg-blue-50 p-4 dark:bg-blue-900/30">
+              <p className="text-sm font-medium text-blue-700 dark:text-blue-300 text-center">
+                {REACTION_ERRORS.REACTION_LIMIT_CONTACT_SENDER}
+              </p>
+            </div>
+            <div className="mt-6 flex justify-center">
+              <button
+                onClick={() => window.location.reload()}
+                className="btn btn-primary bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-700 dark:hover:bg-yellow-600" // Matched button style from PermissionRequest
+              >
+                Refresh Page
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    } else {
+      // Fallback to PermissionRequest for other errors that might use this state
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
+          <PermissionRequest
+            onCancel={() => onSkipReaction?.()}
+            permissionType="both" // This is still hardcoded; might need review later if other errors use this path
+            errorMessage={permissionError}
+          />
+        </div>
+      );
+    }
   }
 
   const renderMessageContent = () => (
