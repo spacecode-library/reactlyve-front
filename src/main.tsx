@@ -5,7 +5,7 @@ import App from './App';
 import './styles/globals.css';
 import { Toaster } from 'react-hot-toast';
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+ReactDOM.createRoot(document.querySelector('.app-container') as HTMLElement).render(
   <React.StrictMode>
     <BrowserRouter>
       <App />
