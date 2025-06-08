@@ -85,6 +85,22 @@ module.exports = {
             '0%': { opacity: '0', transform: 'translateY(20px)' },
             '100%': { opacity: '1', transform: 'translateY(0)' },
           },
+          'grow-width': { // Top and Bottom
+            '0%': { width: '0%' },
+            '100%': { width: '100%' },
+          },
+          'grow-height': { // Right and Left
+            '0%': { height: '0%' },
+            '100%': { height: '100%' },
+          },
+        },
+        animation: { // Ensure this is correctly placed within extend: {}
+          fadeIn: 'fadeIn 0.5s ease-out',
+          slideUp: 'slideUp 0.5s ease-out',
+          'snake-border-top': 'grow-width 0.75s linear',
+          'snake-border-right': 'grow-height 0.75s linear',
+          'snake-border-bottom': 'grow-width 0.75s linear',
+          'snake-border-left': 'grow-height 0.75s linear',
         },
       },
     },

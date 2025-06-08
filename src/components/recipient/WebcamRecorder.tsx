@@ -24,6 +24,7 @@ interface WebcamRecorderProps {
   onWebcamError?: (message: string | null) => void;
   isUploading?: boolean;
   hideUploadSpinner?: boolean; // Added new prop
+  onRecordingStatusChange?: (isRecording: boolean) => void; // New prop
 }
 
 // Add FFmpeg core path constant (if not already globally available, define it here)
@@ -46,6 +47,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   onWebcamError,
   isUploading = false,
   hideUploadSpinner = false, // Destructured new prop
+  onRecordingStatusChange, // Destructure
 }) => {
   const ffmpegRef = useRef(new FFmpeg()); // Added
   const stopWebcamRef = useRef<() => void>();
@@ -82,6 +84,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     stopRecording,
     clearRecording,
     error: mediaRecorderError,
+    duration: recorderDuration,
   } = useMediaRecorder({ stream, maxDuration });
 
   useEffect(() => {
@@ -89,9 +92,12 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       const errorMsg = `Recording error: ${mediaRecorderError.message}`;
       setPermissionError(errorMsg);
       onWebcamError?.(errorMsg);
+      if (isRecording) { // Check if it was recording
+        onRecordingStatusChange?.(false);
+      }
       setIsRecording(false);
     }
-  }, [mediaRecorderError, onWebcamError]);
+  }, [mediaRecorderError, onWebcamError, isRecording, onRecordingStatusChange]);
 
 
 
@@ -304,6 +310,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     if (recordingStatus === 'stopped' && recordedBlob && !recordingCompleted) {
       setRecordingCompleted(true);
       setIsRecording(false); // This state indicates UI should hide recording elements
+      onRecordingStatusChange?.(false); // <<< ADD THIS
 
       const runProcessing = async () => {
         await processAndCompleteRecording(recordedBlob);
@@ -343,11 +350,15 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
             if (webcamInitialized && stream) {
               startRecording();
               setIsRecording(true);
+              onRecordingStatusChange?.(true); // <<< ADD THIS
               setRecordingCountdown(maxDuration / 1000);
               setCountdownHasOccurred(true);
               onCountdownComplete?.();
             } else {
               const err = 'Camera stream not available after countdown.';
+              if (isRecording) { // Check if it was recording
+                onRecordingStatusChange?.(false);
+              }
               setPermissionError(err);
               onWebcamError?.(err);
               onPermissionDenied?.(err);
@@ -360,7 +371,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     }
 
     return () => clearInterval(interval);
-  }, [showCountdown, countdownValue, stream]);
+  }, [showCountdown, countdownValue, stream, isRecording, onRecordingStatusChange, onCountdownComplete, maxDuration, onPermissionDenied, onWebcamError, webcamInitialized]);
 
 
 
@@ -446,6 +457,9 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
 
 
   const handleCancel = async () => {
+    if (isRecording) { // Check if it was recording before cancelling
+      onRecordingStatusChange?.(false); // <<< ADD THIS
+    }
     if (isCompressing) {
         const ffmpeg = ffmpegRef.current;
         if (ffmpeg.loaded) {
@@ -514,13 +528,19 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
               <div className="text-6xl font-bold text-white drop-shadow-md">{countdownValue}</div>
             </div>
           )}
-        </div>
-      )}
 
-      {isRecording && !isCompressing && (
-        <p className="text-red-600 dark:text-red-400 mt-2 text-base font-semibold">
-          Recording... {recordingCountdown !== null ? `${recordingCountdown}s left` : ''}
-        </p>
+          {isRecording && !isCompressing && !isUploading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-30 text-red-500">
+              <svg className="h-8 w-8 mb-2 text-red-500 opacity-75" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="10" />
+              </svg>
+              {/* Recording Timer Text */}
+              <p className="text-lg font-semibold">
+                {`${Math.round(recorderDuration / 1000)}s of ${maxDuration / 1000}s`}
+              </p>
+            </div>
+          )}
+        </div>
       )}
 
       {recordingCompleted && !isCompressing && !isUploading && (
