@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import WebcamRecorder from './WebcamRecorder';
 import PermissionRequest from './PermissionRequest';
 import PasscodeEntry from './PasscodeEntry';
+import RecordingBorder from '../common/RecordingBorder'; // Import RecordingBorder
 import { formatDistanceToNow } from 'date-fns';
 import { Message } from '../../types/message';
 import { normalizeMessage } from '../../utils/normalizeKeys';
@@ -64,7 +65,8 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const [replyText, setReplyText] = useState('');
   const [isSendingReply, setIsSendingReply] = useState(false);
   const [replyError, setReplyError] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false); 
+  const [isUploading, setIsUploading] = useState(false);
+  const [isWebcamRecording, setIsWebcamRecording] = useState(false); // Add state for recording status
   // Removed: const videoRef = useRef<HTMLVideoElement>(null);
 
   const formattedDate = message.createdAt
@@ -417,25 +419,27 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   return (
     <>
+      <RecordingBorder isVisible={isWebcamRecording} />
       <div
         className={"flex min-h-screen w-full flex-col items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900 sm:py-12"}
       >
-        {showRecorder && !isReactionRecorded && ( 
+        {showRecorder && !isReactionRecorded && (
           <div className="w-full max-w-md mx-auto mb-4">
             <WebcamRecorder
               onRecordingComplete={handleReactionComplete}
               onCancel={() => { /* Consider what cancel means in this new flow */ }}
               maxDuration={(normalizedMessage.reaction_length ? normalizedMessage.reaction_length * 1000 : 15000)}
-              countdownDuration={5} 
+              countdownDuration={5}
               onPermissionDenied={(err) => setPermissionError(err)}
-              autoStart={false} 
-              triggerCountdownSignal={triggerCountdown} 
-              onCountdownComplete={handleCountdownComplete} 
+              autoStart={false}
+              triggerCountdownSignal={triggerCountdown}
+              onCountdownComplete={handleCountdownComplete}
               hidePreviewAfterCountdown={true}
-              onStatusUpdate={setWebcamStatusMessage} 
-              onWebcamError={setWebcamInlineError}   
+              onStatusUpdate={setWebcamStatusMessage}
+              onWebcamError={setWebcamInlineError}
               isUploading={isUploading} // This line was duplicated in the error
-              hideUploadSpinner={isUploading} 
+              hideUploadSpinner={isUploading}
+              onRecordingStatusChange={setIsWebcamRecording} // Pass the callback
             />
           </div>
         )}
