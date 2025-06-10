@@ -55,10 +55,14 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({
   const handleEmailShare = () => {
     if (shareableLink) {
       const subject = 'Check out my surprise message!';
-      let body = `I've sent you a surprise message. Click the link below to view it:\n\n${shareableLink}`;
+      let body = `I've sent you a surprise message. Click the link below to view it:
+
+${shareableLink}`; // Changed to let for modification
       
       if (hasPasscode && passcode) {
-        body += `\n\nYou'll need this passcode to view it: ${passcode}`;
+        body += `
+
+Passcode: ${passcode}`; // Appends passcode on a new line
       }
 
       const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -71,18 +75,22 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({
     if (!shareableLink) return;
     
     if (navigator.share) {
-      let text = 'Check out my surprise message!';
+      let shareText;
       if (hasPasscode && passcode) {
-        text += ` (Passcode: ${passcode})`;
+        shareText = `Check out my surprise message!
+Passcode: ${passcode}`;
+      } else {
+        shareText = 'Check out my surprise message!';
       }
       
       navigator.share({
         title: 'Reactlyve Message',
-        text,
-        url: shareableLink,
+        text: shareText,
+        url: shareableLink, // The link itself is shared in the URL field
       }).catch(error => {
         console.error('Error sharing:', error);
-        // Fallback to copy link if sharing fails
+        // Fallback to copy link if sharing fails, or consider a more nuanced fallback
+        // For now, keeping existing fallback:
         handleCopyLink();
       });
     } else {
