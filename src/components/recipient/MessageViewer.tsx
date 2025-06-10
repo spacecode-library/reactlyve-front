@@ -68,6 +68,8 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [isWebcamRecording, setIsWebcamRecording] = useState(false); // Add state for recording status
   // Removed: const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPreloadingMedia, setIsPreloadingMedia] = useState(false);
+  const [preloadedMediaUrl, setPreloadedMediaUrl] = useState<string | null>(null);
 
   const formattedDate = message.createdAt
     ? formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })
@@ -90,6 +92,49 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     sessionStorage.setItem(`reaction-session-${message.id}`, JSON.stringify({ id, createdAt: Date.now() }));
     return id;
   });
+
+  const startPreloading = useCallback(() => {
+    if (isPreloadingMedia || preloadedMediaUrl) {
+      return;
+    }
+
+    if (normalizedMessage.mediaType === 'image' && transformedImgUrl) {
+      setIsPreloadingMedia(true);
+      setPreloadedMediaUrl(null);
+      const img = new Image();
+      img.onload = () => {
+        setPreloadedMediaUrl(transformedImgUrl);
+        setIsPreloadingMedia(false);
+      };
+      img.onerror = () => {
+        console.error('Failed to preload image');
+        setIsPreloadingMedia(false);
+        // Optionally handle error display
+      };
+      img.src = transformedImgUrl;
+    } else if (normalizedMessage.mediaType === 'video' && transformedVidUrl) {
+      setIsPreloadingMedia(true);
+      setPreloadedMediaUrl(null);
+      const vid = document.createElement('video');
+      vid.preload = 'auto';
+      vid.oncanplaythrough = () => {
+        setPreloadedMediaUrl(transformedVidUrl);
+        setIsPreloadingMedia(false);
+      };
+      vid.onerror = () => {
+        console.error('Failed to preload video');
+        setIsPreloadingMedia(false);
+        // Optionally handle error display
+      };
+      vid.src = transformedVidUrl;
+    }
+  }, [isPreloadingMedia, preloadedMediaUrl, normalizedMessage.mediaType, transformedImgUrl, transformedVidUrl]);
+
+  useEffect(() => {
+    if ((!message.hasPasscode || passcodeVerified) && (transformedImgUrl || transformedVidUrl)) {
+      startPreloading();
+    }
+  }, [passcodeVerified, message.hasPasscode, transformedImgUrl, transformedVidUrl, startPreloading]);
 
   // Removed useEffect for videoRef.current.play()
 
@@ -324,7 +369,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
               ) : (
                 <img
                   key={imageRetryCount} // Add key to force re-render on retry
-                  src={transformedImgUrl}
+                  src={preloadedMediaUrl && normalizedMessage.mediaType === 'image' ? preloadedMediaUrl : transformedImgUrl}
                   alt="Message attachment"
                   className="w-full object-cover"
                   onError={handleImageError}
@@ -359,7 +404,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
               ) : (
                 <VideoPlayer
                   key={videoRetryCount} // Add key to force re-render on retry
-                  src={transformedVidUrl}
+                  src={preloadedMediaUrl && normalizedMessage.mediaType === 'video' ? preloadedMediaUrl : transformedVidUrl}
                   poster={normalizedMessage.thumbnailUrl || undefined}
                   className="w-full object-cover"
                   autoPlay={countdownComplete}
