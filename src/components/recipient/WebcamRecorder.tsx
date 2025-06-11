@@ -92,14 +92,13 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       const errorMsg = `Recording error: ${mediaRecorderError.message}`;
       setPermissionError(errorMsg);
       onWebcamError?.(errorMsg);
-      if (isRecording) { // Check if it was recording
+      if (isRecording) {
+        // Check if it was recording
         onRecordingStatusChange?.(false);
       }
       setIsRecording(false);
     }
   }, [mediaRecorderError, onWebcamError, isRecording, onRecordingStatusChange]);
-
-
 
   useEffect(() => {
     setIsBrowserSupported(supportsMediaRecording());
@@ -107,46 +106,55 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
 
   useEffect(() => {
     const ffmpeg = ffmpegRef.current;
-    ffmpeg.on('log', (logEntry) => {
+    ffmpeg.on('log', logEntry => {
       // console.log(`FFmpeg internal log (WebcamRecorder): ${logEntry.message}`);
-      if (typeof logEntry.message === 'string' && logEntry.message.toLowerCase().includes('error')) {
-          console.error(`FFmpeg Error Log (WebcamRecorder): ${logEntry.message}`);
+      if (
+        typeof logEntry.message === 'string' &&
+        logEntry.message.toLowerCase().includes('error')
+      ) {
+        console.error(`FFmpeg Error Log (WebcamRecorder): ${logEntry.message}`);
       }
     });
 
     const loadFFmpeg = async () => {
       if (!ffmpeg.loaded) {
         try {
-          const coreURL = await toBlobURL(`${FFMPEG_CORE_BASE_URL}/ffmpeg-core.js`, 'text/javascript');
-          const wasmURL = await toBlobURL(`${FFMPEG_CORE_BASE_URL}/ffmpeg-core.wasm`, 'application/wasm');
+          const coreURL = await toBlobURL(
+            `${FFMPEG_CORE_BASE_URL}/ffmpeg-core.js`,
+            'text/javascript'
+          );
+          const wasmURL = await toBlobURL(
+            `${FFMPEG_CORE_BASE_URL}/ffmpeg-core.wasm`,
+            'application/wasm'
+          );
           // console.log('Loading FFmpeg core (WebcamRecorder)...');
           await ffmpeg.load({ coreURL, wasmURL });
           // console.log('FFmpeg core loaded (WebcamRecorder).');
         } catch (err) {
-          console.error("Failed to load FFmpeg core (WebcamRecorder):", err);
-          onWebcamError?.("Failed to load video compression components.");
+          console.error('Failed to load FFmpeg core (WebcamRecorder):', err);
+          onWebcamError?.('Failed to load video compression components.');
         }
       }
     };
     if (webcamInitialized) {
-       loadFFmpeg();
+      loadFFmpeg();
     }
 
     return () => {
-       if (ffmpeg.loaded) {
-           // console.log('Terminating FFmpeg on WebcamRecorder unmount');
-           ffmpeg.terminate();
-       }
+      if (ffmpeg.loaded) {
+        // console.log('Terminating FFmpeg on WebcamRecorder unmount');
+        ffmpeg.terminate();
+      }
     };
   }, [webcamInitialized, onWebcamError]);
-
-
 
   useEffect(() => {
     if (!isBrowserSupported || webcamInitialized) return;
 
     const tryInitializeWebcam = async (attempt: number) => {
-      const statusMsg = `Requesting webcam access... (Attempt ${attempt + 1} of ${MAX_RETRY_ATTEMPTS})`;
+      const statusMsg = `Requesting webcam access... (Attempt ${
+        attempt + 1
+      } of ${MAX_RETRY_ATTEMPTS})`;
       setRetryMessage(statusMsg);
       onStatusUpdate?.(statusMsg);
       try {
@@ -172,9 +180,14 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       stopWebcam();
       stopRecording();
     };
-  }, [isBrowserSupported, webcamInitialized, autoStart, onStatusUpdate, onWebcamError, onPermissionDenied]);
-
-
+  }, [
+    isBrowserSupported,
+    webcamInitialized,
+    autoStart,
+    onStatusUpdate,
+    onWebcamError,
+    onPermissionDenied,
+  ]);
 
   useEffect(() => {
     if (webcamHookError) {
@@ -185,8 +198,6 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       setShowCountdown(false);
     }
   }, [webcamHookError, onWebcamError]);
-
-
 
   useEffect(() => {
     if (webcamInitialized) {
@@ -202,9 +213,16 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
         onPermissionDenied?.(errorMsg);
       }
     }
-  }, [stream, webcamInitialized, autoStart, onPermissionDenied, webcamHookError, countdownHasOccurred, isRecording, recordingCompleted]);
-
-
+  }, [
+    stream,
+    webcamInitialized,
+    autoStart,
+    onPermissionDenied,
+    webcamHookError,
+    countdownHasOccurred,
+    isRecording,
+    recordingCompleted,
+  ]);
 
   useEffect(() => {
     if (showPreview && stream && videoRef.current && webcamInitialized) {
@@ -214,8 +232,6 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     }
   }, [showPreview, stream, webcamInitialized, videoRef, triggerCountdownSignal]);
 
-
-
   useEffect(() => {
     return () => {
       if (videoRef.current?.srcObject) {
@@ -224,8 +240,6 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       }
     };
   }, []);
-
-
 
   useEffect(() => {
     const processAndCompleteRecording = async (blob: Blob) => {
@@ -243,20 +257,31 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
               setCompressionProgress(progress < 0 ? 0 : progress > 1 ? 1 : progress);
             });
 
-            const inputFileName = "input.webm";
-            const outputFileName = "output_compressed.mp4";
+            const inputFileName = 'input.webm';
+            const outputFileName = 'output_compressed.mp4';
 
             await ffmpegRef.current.writeFile(inputFileName, await fetchFile(blob));
 
+            const connection = (navigator as any).connection;
+            const crfValue =
+              connection && connection.downlink && connection.downlink < 1 ? '30' : '25';
+
             const ffmpegCommand = [
-              '-i', inputFileName,
-              '-vf', "scale='if(gt(iw,ih),1280,-2)':'if(gt(iw,ih),-2,1280)'",
-              '-c:v', 'libx264',
-              '-crf', '25',
-              '-preset', 'ultrafast',
-              '-movflags', '+faststart',
-              '-loglevel', 'error',
-              outputFileName
+              '-i',
+              inputFileName,
+              '-vf',
+              "scale='if(gt(iw,ih),1280,-2)':'if(gt(iw,ih),-2,1280)'",
+              '-c:v',
+              'libx264',
+              '-crf',
+              crfValue,
+              '-preset',
+              'ultrafast',
+              '-movflags',
+              '+faststart',
+              '-loglevel',
+              'error',
+              outputFileName,
             ];
             await ffmpegRef.current.exec(ffmpegCommand);
 
@@ -264,7 +289,9 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
             if (data instanceof Uint8Array && data.length > 0) {
               blobToUpload = new Blob([data.buffer], { type: 'video/mp4' });
             } else {
-              console.error('FFmpeg (WebcamRecorder): Compression resulted in a zero-byte or non-Uint8Array file. Using original.');
+              console.error(
+                'FFmpeg (WebcamRecorder): Compression resulted in a zero-byte or non-Uint8Array file. Using original.'
+              );
               onWebcamError?.('Compression failed. Uploading original.');
               blobToUpload = blob; // Ensure original blob is used
             }
@@ -310,16 +337,26 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     if (recordingStatus === 'stopped' && recordedBlob && !recordingCompleted) {
       setRecordingCompleted(true);
       setIsRecording(false); // This state indicates UI should hide recording elements
-      onRecordingStatusChange?.(false); // <<< ADD THIS
+      onRecordingStatusChange?.(false);
+
+      // Stop webcam right away so the camera light turns off while we process
+      stopWebcam();
 
       const runProcessing = async () => {
         await processAndCompleteRecording(recordedBlob);
         // Any other state updates that depend on processing being fully done
       };
       runProcessing();
-      // Removed stopWebcam() and videoRef cleanup from here
     }
-  }, [recordingStatus, recordedBlob, recordingCompleted, onRecordingComplete, stopWebcam, onWebcamError, onStatusUpdate]);
+  }, [
+    recordingStatus,
+    recordedBlob,
+    recordingCompleted,
+    onRecordingComplete,
+    stopWebcam,
+    onWebcamError,
+    onStatusUpdate,
+  ]);
 
   // Add this new useEffect for failsafe cleanup:
   useEffect(() => {
@@ -330,14 +367,12 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   useEffect(() => {
     // console.log('[WebcamRecorder] Component did mount, registering unmount cleanup effect.'); // Removed
     return () => {
-        // console.log('[WebcamRecorder] Component will unmount, calling stopWebcam via ref from cleanup effect.'); // Removed
-        if (stopWebcamRef.current) {
-            stopWebcamRef.current();
-        }
+      // console.log('[WebcamRecorder] Component will unmount, calling stopWebcam via ref from cleanup effect.'); // Removed
+      if (stopWebcamRef.current) {
+        stopWebcamRef.current();
+      }
     };
   }, []); // Empty dependency array means this effect runs only on mount and cleans up only on unmount.
-
-
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -356,7 +391,8 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
               onCountdownComplete?.();
             } else {
               const err = 'Camera stream not available after countdown.';
-              if (isRecording) { // Check if it was recording
+              if (isRecording) {
+                // Check if it was recording
                 onRecordingStatusChange?.(false);
               }
               setPermissionError(err);
@@ -371,27 +407,28 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     }
 
     return () => clearInterval(interval);
-  }, [showCountdown, countdownValue, stream, isRecording, onRecordingStatusChange, onCountdownComplete, maxDuration, onPermissionDenied, onWebcamError, webcamInitialized]);
-
-
+  }, [
+    showCountdown,
+    countdownValue,
+    stream,
+    isRecording,
+    onRecordingStatusChange,
+    onCountdownComplete,
+    maxDuration,
+    onPermissionDenied,
+    onWebcamError,
+    webcamInitialized,
+  ]);
 
   useEffect(() => {
-    if (
-      (isRecording || !showCountdown) &&
-      hidePreviewAfterCountdown &&
-      !previewManuallyToggled
-    ) {
+    if ((isRecording || !showCountdown) && hidePreviewAfterCountdown && !previewManuallyToggled) {
       setShowPreview(false);
     }
   }, [isRecording, showCountdown, hidePreviewAfterCountdown, previewManuallyToggled]);
 
-
-
   useEffect(() => {
     if (showCountdown) setCountdownValue(countdownDuration);
   }, [showCountdown, countdownDuration]);
-
-
 
   useEffect(() => {
     if (!isRecording || recordingCountdown === null) return;
@@ -407,44 +444,44 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     return () => clearInterval(interval);
   }, [isRecording, recordingCountdown]);
 
-
-
   useEffect(() => {
     if ((showCountdown || isRecording) && stream && videoRef.current) {
       videoRef.current.srcObject = stream;
     }
   }, [showCountdown, isRecording, stream]);
 
-
-
   useEffect(() => {
-    if (triggerCountdownSignal && !isRecording && !recordingCompleted && webcamInitialized && stream) {
+    if (
+      triggerCountdownSignal &&
+      !isRecording &&
+      !recordingCompleted &&
+      webcamInitialized &&
+      stream
+    ) {
       setShowCountdown(true);
     }
   }, [triggerCountdownSignal, webcamInitialized, stream, isRecording, recordingCompleted]);
 
-
-
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-    if (isRecording || isUploading || isCompressing) { // Added isCompressing
+      if (isRecording || isUploading || isCompressing) {
+        // Added isCompressing
         event.preventDefault();
         event.returnValue = 'Your video is still being processed. Are you sure you want to leave?';
-    }
+      }
     };
 
-    if (isRecording || isUploading || isCompressing) { // Added isCompressing
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    if (isRecording || isUploading || isCompressing) {
+      // Added isCompressing
+      window.addEventListener('beforeunload', handleBeforeUnload);
     } else {
-    window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     }
 
     return () => {
-    window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [isRecording, isUploading, isCompressing]); // Added isCompressing
-
-
 
   const handleRetryWebcam = () => {
     setWebcamInitialized(false);
@@ -454,20 +491,19 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     onStatusUpdate?.(null);
   };
 
-
-
   const handleCancel = async () => {
-    if (isRecording) { // Check if it was recording before cancelling
+    if (isRecording) {
+      // Check if it was recording before cancelling
       onRecordingStatusChange?.(false); // <<< ADD THIS
     }
     if (isCompressing) {
-        const ffmpeg = ffmpegRef.current;
-        if (ffmpeg.loaded) {
-            await ffmpeg.terminate();
-            ffmpegRef.current = new FFmpeg();
-        }
-        setIsCompressing(false);
-        setCompressionProgress(0);
+      const ffmpeg = ffmpegRef.current;
+      if (ffmpeg.loaded) {
+        await ffmpeg.terminate();
+        ffmpegRef.current = new FFmpeg();
+      }
+      setIsCompressing(false);
+      setCompressionProgress(0);
     }
     stopRecording();
     clearRecording();
@@ -477,110 +513,128 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     onCancel();
   };
 
-
-
   if (!isBrowserSupported) {
     return (
       <div className="text-center text-red-600">
-        <p>Your browser does not support webcam recording. Please try on another device or browser.</p>
-        <button onClick={onCancel} className="btn btn-outline mt-2">Go Back</button>
+        <p>
+          Your browser does not support webcam recording. Please try on another device or browser.
+        </p>
+        <button onClick={onCancel} className="btn btn-outline mt-2">
+          Go Back
+        </button>
       </div>
     );
   }
-
-
 
   if (permissionError) {
     return (
       <div className="text-center text-red-600">
         <p>{permissionError}</p>
         <div className="mt-4 space-x-2">
-          <button onClick={handleRetryWebcam} className="btn btn-primary">Retry</button>
-          <button onClick={handleCancel} className="btn btn-outline">Cancel</button>
+          <button onClick={handleRetryWebcam} className="btn btn-primary">
+            Retry
+          </button>
+          <button onClick={handleCancel} className="btn btn-outline">
+            Cancel
+          </button>
         </div>
       </div>
     );
   }
 
-
-
   return (
-    <> {/* Use a fragment if adding the overlay as a sibling to the main div */}
-      <div className={classNames('relative flex flex-col items-center justify-center text-center', className || '')}>
-
+    <>
+      {' '}
+      {/* Use a fragment if adding the overlay as a sibling to the main div */}
+      <div
+        className={classNames(
+          'relative flex flex-col items-center justify-center text-center',
+          className || ''
+        )}
+      >
         {!(showCountdown || isRecording || recordingCompleted || isCompressing) && (
-          <h2 className="text-xl font-semibold mb-2">Record Your Lyve Reaction</h2>
+          <h2 className="mb-2 text-xl font-semibold">Record Your Lyve Reaction</h2>
         )}
 
-      {((showCountdown && !previewManuallyToggled) || showPreview) && (
-        <div className="relative w-full max-w-md mt-2 mb-4 aspect-video">
+        {((showCountdown && !previewManuallyToggled) || showPreview) && (
+          <div className="aspect-video relative mb-4 mt-2 w-full max-w-md">
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              className="h-full w-full rounded object-cover shadow-md"
+            />
 
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            playsInline
-            className="rounded shadow-md w-full h-full object-cover"
-          />
+            {showCountdown && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-6xl font-bold text-white drop-shadow-md">{countdownValue}</div>
+              </div>
+            )}
 
-          {showCountdown && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-6xl font-bold text-white drop-shadow-md">{countdownValue}</div>
-            </div>
-          )}
+            {isRecording && !isCompressing && !isUploading && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-30 text-red-500">
+                <svg
+                  className="mb-2 h-8 w-8 text-red-500 opacity-75"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                </svg>
+                {/* Recording Timer Text */}
+                <p className="text-lg font-semibold">
+                  {`${Math.round(recorderDuration / 1000)}s of ${maxDuration / 1000}s`}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
-          {isRecording && !isCompressing && !isUploading && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-30 text-red-500">
-              <svg className="h-8 w-8 mb-2 text-red-500 opacity-75" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="12" cy="12" r="10" />
-              </svg>
-              {/* Recording Timer Text */}
-              <p className="text-lg font-semibold">
-                {`${Math.round(recorderDuration / 1000)}s of ${maxDuration / 1000}s`}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+        {recordingCompleted && !isCompressing && !isUploading && (
+          <p className="mt-2 text-green-600">Recording complete!</p>
+        )}
 
-      {recordingCompleted && !isCompressing && !isUploading && (
-        <p className="text-green-600 mt-2">Recording complete!</p>
-      )}
+        {isRecording && (
+          <Button
+            variant="outline"
+            leftIcon={
+              showPreview ? (
+                <ChevronUpIcon className="h-5 w-5" />
+              ) : (
+                <ChevronDownIcon className="h-5 w-5" />
+              )
+            }
+            onClick={() => {
+              setShowPreview(prev => !prev);
+              setPreviewManuallyToggled(true);
+            }}
+            className="mt-2"
+          >
+            {showPreview ? 'Hide Preview' : 'Show Preview'}
+          </Button>
+        )}
 
-      {isRecording && (
-        <Button
-          variant="outline"
-          leftIcon={showPreview ? <ChevronUpIcon className="h-5 w-5" /> : <ChevronDownIcon className="h-5 w-5" />}
-          onClick={() => {
-            setShowPreview(prev => !prev);
-            setPreviewManuallyToggled(true);
-          }}
-          className="mt-2"
-        >
-          {showPreview ? 'Hide Preview' : 'Show Preview'}
-        </Button>
-      )}
-
-      {isUploading && !hideUploadSpinner && !isCompressing && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      )}
-    </div>
-
+        {isUploading && !hideUploadSpinner && !isCompressing && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
+          </div>
+        )}
+      </div>
       {/* NEW Full-Screen Compression Overlay */}
       {isCompressing && (
-        <div className="fixed inset-0 bg-black/70 flex flex-col items-center justify-center z-50">
-          <div className="h-16 w-16 animate-spin rounded-full border-8 border-neutral-300 border-t-primary-600 mb-4"></div>
-          <p className="text-white text-xl font-semibold">Compressing Video...</p>
-          <p className="text-neutral-200 text-md mb-2">Please wait a moment.</p>
-          <div className="w-3/4 max-w-xs sm:max-w-sm md:max-w-md bg-neutral-600 rounded-full h-2.5">
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/70">
+          <div className="mb-4 h-16 w-16 animate-spin rounded-full border-8 border-neutral-300 border-t-primary-600"></div>
+          <p className="text-xl font-semibold text-white">Compressing Video...</p>
+          <p className="text-md mb-2 text-neutral-200">Please wait a moment.</p>
+          <div className="h-2.5 w-3/4 max-w-xs rounded-full bg-neutral-600 sm:max-w-sm md:max-w-md">
             <div
-              className="bg-primary-500 h-2.5 rounded-full transition-all duration-150"
-              style={{ width: `${Math.max(0, Math.min(100, Math.round(compressionProgress * 100)))}%` }}
+              className="h-2.5 rounded-full bg-primary-500 transition-all duration-150"
+              style={{
+                width: `${Math.max(0, Math.min(100, Math.round(compressionProgress * 100)))}%`,
+              }}
             ></div>
           </div>
-          <p className="text-neutral-100 text-sm mt-2">
+          <p className="mt-2 text-sm text-neutral-100">
             {Math.max(0, Math.min(100, Math.round(compressionProgress * 100)))}%
           </p>
         </div>
