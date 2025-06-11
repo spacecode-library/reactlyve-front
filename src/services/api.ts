@@ -90,6 +90,8 @@ export const messagesApi = {
   updateMessageDetails: async (messageId: string, data: { reaction_length?: number; passcode?: string | null }) => {
     return api.put(`/messages/${messageId}`, data);
   },
+  submitForManualReview: (messageId: string) =>
+    api.post(`/messages/${messageId}/manual-review`),
 };
 
 // ------------------ REACTIONS API ------------------
@@ -129,6 +131,8 @@ export const reactionsApi = {
   getById: (id: string) => api.get(`/reactions/${id}`),
   deleteReactionById: (reactionId: string) => api.delete(`/reactions/${reactionId}/delete`),
   deleteAllForMessage: (messageId: string) => api.delete(`/messages/${messageId}/reactions/delete`),
+  submitForManualReview: (reactionId: string) =>
+    api.post(`/reactions/${reactionId}/manual-review`),
 };
 
 // ------------------ REPLIES API ------------------
@@ -151,6 +155,8 @@ interface UpdateUserLimitsPayload {
   max_reactions_per_month?: number | null;
   max_reactions_per_message?: number | null;
   last_usage_reset_date?: string | null; // Should be an ISO date string
+  moderate_images?: boolean;
+  moderate_videos?: boolean;
 }
 
 // Note: Backend responses for getUsers and updateUserRole now return user objects with camelCase keys

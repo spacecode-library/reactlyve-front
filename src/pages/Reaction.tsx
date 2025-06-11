@@ -4,6 +4,7 @@ import MainLayout from '../layouts/MainLayout';
 import { format } from 'date-fns';
 import { DownloadIcon } from 'lucide-react';
 import { reactionsApi, messagesApi } from '@/services/api';
+import Button from '../components/common/Button';
 import VideoPlayer from '../components/dashboard/VideoPlayer';
 import type { MessageWithReactions } from '@/types/message';
 import type { Reaction } from '@/types/reaction';
@@ -17,6 +18,7 @@ const ReactionPage: React.FC = () => {
   const [parentMessage, setParentMessage] = useState<MessageWithReactions | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   // Define processedVideoUrl
   let processedVideoUrl: string | null | undefined = null;
@@ -134,6 +136,34 @@ const ReactionPage: React.FC = () => {
             <p className="mt-2 text-neutral-700 dark:text-neutral-300">
               <strong>From:</strong> {reaction.name}
             </p>
+          )}
+          {reaction?.moderationStatus && (
+            <div className="mt-2 text-sm text-neutral-700 dark:text-neutral-300">
+              <p>Moderation Status: {reaction.moderationStatus}</p>
+              {reaction.moderationDetails && (
+                <p className="text-neutral-500 dark:text-neutral-400">Reason: {reaction.moderationDetails}</p>
+              )}
+              {reaction.moderationStatus === 'rejected' && (
+                <Button
+                  size="sm"
+                  className="mt-1"
+                  onClick={async () => {
+                    setIsSubmittingReview(true);
+                    try {
+                      await reactionsApi.submitForManualReview(reaction.id);
+                      toast.success('Submitted for manual review');
+                    } catch (err) {
+                      toast.error('Failed to submit review');
+                    } finally {
+                      setIsSubmittingReview(false);
+                    }
+                  }}
+                  isLoading={isSubmittingReview}
+                >
+                  Request Review
+                </Button>
+              )}
+            </div>
           )}
         </div>
       </div>

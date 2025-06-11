@@ -38,6 +38,10 @@ export const normalizeMessage = (message: any) => {
     reaction_length: message.reaction_length ?? message.reactionLength,
     reactions: (message.reactions || []).map(normalizeReaction),
     passcodeVerified: message.passcodeVerified || false,
+    moderationStatus:
+      message.moderation_status || message.moderationStatus || null,
+    moderationDetails:
+      message.moderation_details || message.moderationDetails || null,
   };
 };
 
@@ -55,5 +59,9 @@ export const normalizeReaction = (reaction: any) => {
     thumbnailUrl: reaction.thumbnailUrl || reaction.thumbnailurl,
     duration: reaction.duration || reaction.videoDuration || reaction.video_duration || reaction.durationInSecs || undefined,
     replies: reaction.replies || [],
+    moderationStatus:
+      reaction.moderation_status || reaction.moderationStatus || null,
+    moderationDetails:
+      reaction.moderation_details || reaction.moderationDetails || null,
   };
 };

@@ -41,6 +41,7 @@ const ProfilePage: React.FC = () => {
     fetchProfile();
   }, []);
 
+
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -95,6 +96,7 @@ const ProfilePage: React.FC = () => {
       setIsDeleting(false);
     }
   };
+
 
   return (
     <DashboardLayout>
@@ -171,6 +173,7 @@ const ProfilePage: React.FC = () => {
           )}
         </div>
       </div>
+
 
       <div className="mt-8">
         <h3 className="text-xl font-semibold mb-3">Account Management</h3>

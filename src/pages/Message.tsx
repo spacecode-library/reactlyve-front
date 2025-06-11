@@ -27,6 +27,7 @@ const Message: React.FC = () => {
   const [isDeletingReaction, setIsDeletingReaction] = useState(false);
   const [showDeleteAllReactionsModal, setShowDeleteAllReactionsModal] = useState(false);
   const [isDeletingAllReactions, setIsDeletingAllReactions] = useState(false);
+  const [manualReviewReactionId, setManualReviewReactionId] = useState<string | null>(null);
   const [message, setMessage] = useState<MessageWithReactions | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +46,7 @@ const Message: React.FC = () => {
   const [isReactionLengthModalOpen, setIsReactionLengthModalOpen] = useState(false);
   const [currentReactionLengthValue, setCurrentReactionLengthValue] = useState(15); // Default to 15s, will be clamped
   const [isUpdatingReactionLength, setIsUpdatingReactionLength] = useState(false);
+  const [isSubmittingManualReview, setIsSubmittingManualReview] = useState(false);
 
   useEffect(() => {
     const fetchMessageDetails = async () => {
@@ -430,6 +432,39 @@ const Message: React.FC = () => {
               </div>
             </div>
 
+            {normalizedMessage.moderationStatus && (
+              <div className="mb-6 rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
+                <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                  Moderation Status: {normalizedMessage.moderationStatus}
+                </p>
+                {normalizedMessage.moderationDetails && (
+                  <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                    Reason: {normalizedMessage.moderationDetails}
+                  </p>
+                )}
+                {normalizedMessage.moderationStatus === 'rejected' && (
+                  <Button
+                    size="sm"
+                    className="mt-2"
+                    onClick={async () => {
+                      setIsSubmittingManualReview(true);
+                      try {
+                        await messagesApi.submitForManualReview(id!);
+                        toast.success('Submitted for manual review');
+                      } catch (err) {
+                        toast.error('Failed to submit for review');
+                      } finally {
+                        setIsSubmittingManualReview(false);
+                      }
+                    }}
+                    isLoading={isSubmittingManualReview}
+                  >
+                    Request Manual Review
+                  </Button>
+                )}
+              </div>
+            )}
+
             {/* Media */}
             {imageElement}
             {videoElement}
@@ -615,6 +650,32 @@ const Message: React.FC = () => {
                           <p className="text-sm text-neutral-700 dark:text-neutral-300">
                             Received on {new Date(reaction.createdAt).toLocaleString()}
                           </p>
+                          {reaction.moderationStatus && (
+                            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                              Moderation: {reaction.moderationStatus}
+                              {reaction.moderationDetails ? ` - ${reaction.moderationDetails}` : ''}
+                            </p>
+                          )}
+                          {reaction.moderationStatus === 'rejected' && (
+                            <Button
+                              size="xs"
+                              className="mt-1"
+                              onClick={async () => {
+                                setManualReviewReactionId(reaction.id);
+                                try {
+                                  await reactionsApi.submitForManualReview(reaction.id);
+                                  toast.success('Reaction sent for review');
+                                } catch (err) {
+                                  toast.error('Failed to submit reaction');
+                                } finally {
+                                  setManualReviewReactionId(null);
+                                }
+                              }}
+                              isLoading={manualReviewReactionId === reaction.id}
+                            >
+                              Request Review
+                            </Button>
+                          )}
                         </div>
                         <Button
                           variant="outline"

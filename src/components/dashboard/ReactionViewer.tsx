@@ -25,6 +25,7 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
 }) => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   let transformedVideoUrl = reaction.videoUrl;
   if (reaction.videoUrl) {
@@ -127,6 +128,39 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
             </div>
           </div>
         )
+      )}
+
+      {reaction.moderationStatus && (
+        <div className="mt-4 rounded-md bg-neutral-100 p-3 text-sm dark:bg-neutral-700">
+          <p className="text-neutral-700 dark:text-neutral-300">
+            Moderation Status: {reaction.moderationStatus}
+          </p>
+          {reaction.moderationDetails && (
+            <p className="text-neutral-500 dark:text-neutral-400">
+              Reason: {reaction.moderationDetails}
+            </p>
+          )}
+          {reaction.moderationStatus === 'rejected' && (
+            <Button
+              size="sm"
+              className="mt-2"
+              onClick={async () => {
+                setIsSubmittingReview(true);
+                try {
+                  await reactionsApi.submitForManualReview(reaction.id);
+                  toast.success('Submitted for manual review');
+                } catch (err) {
+                  toast.error('Failed to submit review');
+                } finally {
+                  setIsSubmittingReview(false);
+                }
+              }}
+              isLoading={isSubmittingReview}
+            >
+              Request Review
+            </Button>
+          )}
+        </div>
       )}
 
       {/* Delete Confirmation Modal */}

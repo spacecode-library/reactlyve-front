@@ -23,6 +23,8 @@ interface UserLimitInputs {
   maxReactionsPerMonth: string;
   maxReactionsPerMessage: string;
   lastUsageResetDate: string; // Added
+  moderateImages: boolean;
+  moderateVideos: boolean;
 }
 
 const AdminPortalPage: React.FC = () => {
@@ -44,6 +46,8 @@ const AdminPortalPage: React.FC = () => {
     maxReactionsPerMonth: '',
     maxReactionsPerMessage: '',
     lastUsageResetDate: '', // Added
+    moderateImages: false,
+    moderateVideos: false,
   });
   const [isLoadingUserDetails, setIsLoadingUserDetails] = useState(false);
   const [isUpdatingLimits, setIsUpdatingLimits] = useState(false);
@@ -77,10 +81,12 @@ const AdminPortalPage: React.FC = () => {
   }, [users, lastUpdatedUserId]);
 
   const handleLimitInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    // console.log('handleLimitInputChange called. Name:', name, 'Value:', value, 'Type:', e.target.type); // Removed
-    if (e.target.type === 'number' && value !== '' && !/^\d+$/.test(value) && value !== '-') {
-      // Allow only numbers, empty string, or a single hyphen for potential negative (though we use min="0")
+    const { name, value, type, checked } = e.target;
+    if (type === 'checkbox') {
+      setLimitInputs(prev => ({ ...prev, [name]: checked }));
+      return;
+    }
+    if (type === 'number' && value !== '' && !/^\d+$/.test(value) && value !== '-') {
       return;
     }
     setLimitInputs(prev => ({ ...prev, [name]: value }));
@@ -154,6 +160,8 @@ const AdminPortalPage: React.FC = () => {
       max_reactions_per_month: maxReactions,
       max_reactions_per_message: maxReactionsMsg,
       last_usage_reset_date: formattedDateForPayload,
+      moderate_images: limitInputs.moderateImages,
+      moderate_videos: limitInputs.moderateVideos,
     };
 
     // console.log('Parsed payload to be sent:', finalPayload); // Removed
@@ -182,6 +190,8 @@ const AdminPortalPage: React.FC = () => {
           maxReactionsPerMonth: maxReactions,
           maxReactionsPerMessage: maxReactionsMsg,
           lastUsageResetDate: formattedDateForPayload, // This is the ISO string or null
+          moderateImages: limitInputs.moderateImages,
+          moderateVideos: limitInputs.moderateVideos,
       };
       setUsers(prevUsers => prevUsers.map(u =>
         u.id === selectedUserForLimits.id
@@ -476,6 +486,8 @@ const AdminPortalPage: React.FC = () => {
                               maxReactionsPerMonth: userDetailsToDisplay.maxReactionsPerMonth?.toString() || '',
                               maxReactionsPerMessage: userDetailsToDisplay.maxReactionsPerMessage?.toString() || '',
                               lastUsageResetDate: resetDateForInput,
+                              moderateImages: !!userDetailsToDisplay.moderateImages,
+                              moderateVideos: !!userDetailsToDisplay.moderateVideos,
                             });
                             setIsEditLimitsModalOpen(true);
                           } catch (err) {
@@ -636,6 +648,36 @@ const AdminPortalPage: React.FC = () => {
                   className="mt-1"
                   disabled={isUpdatingLimits}
                 />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  name="moderateImages"
+                  id="moderateImages"
+                  checked={limitInputs.moderateImages}
+                  onChange={handleLimitInputChange}
+                  className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-600 dark:border-neutral-700 dark:bg-neutral-900"
+                  disabled={isUpdatingLimits}
+                />
+                <label htmlFor="moderateImages" className="text-sm text-neutral-800 dark:text-neutral-100">
+                  Moderate image uploads
+                </label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  name="moderateVideos"
+                  id="moderateVideos"
+                  checked={limitInputs.moderateVideos}
+                  onChange={handleLimitInputChange}
+                  className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-600 dark:border-neutral-700 dark:bg-neutral-900"
+                  disabled={isUpdatingLimits}
+                />
+                <label htmlFor="moderateVideos" className="text-sm text-neutral-800 dark:text-neutral-100">
+                  Moderate video uploads
+                </label>
               </div>
             </div>
             <div className="mt-6 flex justify-end space-x-3">
