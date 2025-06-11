@@ -16,7 +16,7 @@ interface ImageUploaderProps {
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   onImageSelect,
   onError,
-  maxSizeInBytes = 100 * 1024 * 1024, // 100MB default
+  maxSizeInBytes = 20 * 1024 * 1024, // 20MB default
   allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp',    'video/mp4',
     'video/webm',
     'video/ogg'],

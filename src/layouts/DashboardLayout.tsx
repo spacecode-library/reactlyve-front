@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer'; // New import
+import GuestBanner from '../components/common/GuestBanner';
 import { classNames } from '../utils/classNames';
 
 interface DashboardLayoutProps {
@@ -64,7 +65,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   return (
     <div className="flex min-h-screen flex-col bg-neutral-50 dark:bg-neutral-900">
       <Navbar />
-      
+      <GuestBanner />
+
       <div className="flex flex-1 max-w-screen-xl mx-auto w-full">
         {/* Mobile sidebar toggle and related elements removed */}
             

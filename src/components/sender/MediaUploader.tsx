@@ -1,7 +1,7 @@
 import { FFmpeg, FileData } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { X, Upload, Check } from 'lucide-react';
+import { X, Upload, Check, AlertTriangle } from 'lucide-react';
 import { classNames } from '../../utils/classNames';
 
 interface MediaUploaderProps {
@@ -12,7 +12,7 @@ interface MediaUploaderProps {
 }
 
 const FFMPEG_CORE_BASE_URL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
-const COMPRESSION_THRESHOLD_BYTES = 10 * 1024 * 1024; // 10MB
+const COMPRESSION_THRESHOLD_BYTES = 20 * 1024 * 1024; // 20MB
 
 const MediaUploader: React.FC<MediaUploaderProps> = ({
   onMediaSelect,
@@ -27,7 +27,9 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   const [preview, setPreview] = useState<string | null>(null);
   const [isVideo, setIsVideo] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
-  
+  const [isFFmpegReady, setIsFFmpegReady] = useState<boolean>(false);
+  const [ffmpegLoadError, setFfmpegLoadError] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Convert MB to bytes
@@ -37,11 +39,45 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     const ffmpegInstance = ffmpegRef.current;
     return () => {
       if (ffmpegInstance && ffmpegInstance.loaded) {
-        // console.log('Terminating FFmpeg on component unmount');
         ffmpegInstance.terminate();
+        setIsFFmpegReady(false); // Reset ready state
       }
     };
+  }, []); // Empty dependency array means this runs once on mount and cleanup on unmount
+
+  const loadFFmpeg = useCallback(async () => {
+    setFfmpegLoadError(null);
+    if (ffmpegRef.current && ffmpegRef.current.loaded) {
+      setIsFFmpegReady(true);
+      return true;
+    }
+    try {
+      ffmpegRef.current = new FFmpeg(); // Ensure a fresh instance if not already loaded or if previous load failed
+      const ffmpeg = ffmpegRef.current;
+      const coreURL = await toBlobURL(`${FFMPEG_CORE_BASE_URL}/ffmpeg-core.js`, 'text/javascript');
+      const wasmURL = await toBlobURL(`${FFMPEG_CORE_BASE_URL}/ffmpeg-core.wasm`, 'application/wasm');
+      await ffmpeg.load({ coreURL, wasmURL });
+      setIsFFmpegReady(true);
+      // Setup listeners once after successful load
+      ffmpeg.on('progress', ({ progress }) => {
+        setCompressionProgress(progress < 0 ? 0 : progress > 1 ? 1 : progress);
+      });
+      ffmpeg.on('log', (_logEntry) => {
+        // Potentially handle specific log messages if needed for non-error states
+        // For now, we are removing the console.error for FFmpeg internal logs.
+        // if (typeof logEntry.message === 'string' && logEntry.message.toLowerCase().includes('error')) {
+        //     console.error(`FFmpeg Error Log: ${logEntry.message}`);
+        // }
+      });
+      return true;
+    } catch (error) {
+      console.error('Failed to load FFmpeg (loadFFmpeg):', error);
+      setFfmpegLoadError('Failed to load FFmpeg. Video compression will not be available.');
+      setIsFFmpegReady(false);
+      return false;
+    }
   }, []);
+
 
   const handleMediaSelect = useCallback(async (file: File | null) => {
     if (file) {
@@ -58,7 +94,6 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
       }
 
       const isVideoFile = file.type.startsWith('video/');
-      const ffmpeg = ffmpegRef.current;
 
       if (isVideoFile) {
         // --- Video Duration Check ---
@@ -93,14 +128,12 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
             video.src = videoUrl;
           });
         } catch (error) {
-          // console.error("Video duration check error:", error);
           return; // Stop processing if duration check fails or errors out
         }
         // --- End Video Duration Check ---
 
         // --- Conditional Compression Logic ---
         if (file.size > COMPRESSION_THRESHOLD_BYTES) {
-          // console.log(`MediaUploader: File size (${file.size} bytes) > threshold (${COMPRESSION_THRESHOLD_BYTES} bytes). Compressing.`);
           setIsCompressing(true);
           setCompressionProgress(0);
           // Show original file info and preview while preparing for compression
@@ -110,63 +143,62 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           setIsVideo(true);
 
           try {
-            if (!ffmpeg.loaded) {
-            const coreURL = await toBlobURL(`${FFMPEG_CORE_BASE_URL}/ffmpeg-core.js`, 'text/javascript');
-            const wasmURL = await toBlobURL(`${FFMPEG_CORE_BASE_URL}/ffmpeg-core.wasm`, 'application/wasm');
-            // console.log('Loading FFmpeg core...');
-            await ffmpeg.load({ coreURL, wasmURL });
-            // console.log('FFmpeg core loaded.');
-          }
-
-          ffmpeg.on('progress', ({ progress }) => {
-            setCompressionProgress(progress < 0 ? 0 : progress > 1 ? 1 : progress);
-          });
-          ffmpeg.on('log', (logEntry) => {
-            // console.log(`FFmpeg internal log: ${logEntry.message}`);
-            // Check if message content indicates an error, as 'level' is not reliably typed
-            if (typeof logEntry.message === 'string' && logEntry.message.toLowerCase().includes('error')) {
-                console.error(`FFmpeg Error Log: ${logEntry.message}`);
+            const ffmpegLoaded = await loadFFmpeg();
+            if (!ffmpegLoaded || !ffmpegRef.current || !ffmpegRef.current.loaded) {
+              onError(ffmpegLoadError || 'FFmpeg could not be loaded. Cannot compress video.');
+              // Revert to original file if FFmpeg fails to load
+              if (preview) URL.revokeObjectURL(preview);
+              const originalPreviewUrl = URL.createObjectURL(file);
+              setPreview(originalPreviewUrl);
+              setSelectedMedia(file);
+              onMediaSelect(file);
+              setIsVideo(true);
+              setIsCompressing(false);
+              setCompressionProgress(0);
+              return;
             }
-         });
+            const ffmpeg = ffmpegRef.current;
 
-          const inputFileName = file.name;
-          // Sanitize filename for ffmpeg's virtual FS if necessary, though often not an issue with modern ffmpeg.wasm
+            // Listeners are now set in loadFFmpeg to avoid re-assigning them.
+            // ffmpeg.on('progress', ({ progress }) => {
+            //   setCompressionProgress(progress < 0 ? 0 : progress > 1 ? 1 : progress);
+            // });
+            // ffmpeg.on('log', (logEntry) => {
+            //   // console.log(`FFmpeg internal log: ${logEntry.message}`);
+            //   if (typeof logEntry.message === 'string' && logEntry.message.toLowerCase().includes('error')) {
+            //       console.error(`FFmpeg Error Log: ${logEntry.message}`);
+            //   }
+            // });
+
+            const inputFileName = file.name;
+            // Sanitize filename for ffmpeg's virtual FS if necessary, though often not an issue with modern ffmpeg.wasm
           const safeInputFileName = "input." + file.name.split('.').pop(); // e.g., input.mp4
           const outputFileName = safeInputFileName.replace(/\.[^/.]+$/, "") + "_compressed.mp4"; // e.g., input_compressed.mp4
 
-          // console.log(`Writing file to FFmpeg FS: ${safeInputFileName}`);
           await ffmpeg.writeFile(safeInputFileName, await fetchFile(file));
 
-          // console.log(`FFmpeg: Input file name for exec: ${safeInputFileName}`);
-          // console.log(`FFmpeg: Output file name for exec: ${outputFileName}`);
           const ffmpegCommand = [
             '-i', safeInputFileName,
             '-vf', "scale='if(gt(iw,ih),1280,-2)':'if(gt(iw,ih),-2,1280)'", // Updated scaling
             '-c:v', 'libx264',
-            '-crf', '25', // New CRF
+            '-crf', '28', // New CRF
             '-preset', 'ultrafast',
             '-movflags', '+faststart', // Added for better streamability
             '-loglevel', 'error',     // Added to capture more detailed errors from FFmpeg
             outputFileName
           ];
-          // console.log('FFmpeg: Executing command:', ffmpegCommand.join(' '));
           await ffmpeg.exec(ffmpegCommand);
-          // console.log('FFmpeg command finished.');
 
           const fileData: FileData = await ffmpeg.readFile(outputFileName);
-          // console.log('FFmpeg: readFile command finished.');
 
           let compressedFile: File;
           if (fileData instanceof Uint8Array) {
-            // console.log(`FFmpeg: Output fileData is Uint8Array. Length: ${fileData.length}`);
             if (fileData.length === 0) {
               console.error('FFmpeg: Critical Error - Output fileData is Uint8Array but its length is 0. This will result in an empty blob.');
             }
             compressedFile = new File([fileData.buffer], file.name.replace(/\.[^/.]+$/, "_c.mp4"), { type: 'video/mp4' });
-            // console.log(`FFmpeg: Created compressedFile. Name: ${compressedFile.name}, Size: ${compressedFile.size}, Type: ${compressedFile.type}`);
           } else {
             console.error(`FFmpeg: Critical Error - Output fileData is NOT Uint8Array. Type: ${typeof fileData}. This is unexpected for video data.`);
-            // This will throw the error defined in the previous step, which is good.
             throw new Error('FFmpeg output was not in the expected format (Uint8Array).');
           }
 
@@ -194,9 +226,15 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
 
           // console.log(`FFmpeg: Created compressedFile. Name: ${compressedFile.name}, Size: ${compressedFile.size}, Type: ${compressedFile.type}`);
           // Clean up virtual file system
-          await ffmpeg.deleteFile(safeInputFileName);
-          await ffmpeg.deleteFile(outputFileName);
-
+            // Ensure ffmpeg and deleteFile are valid before calling
+            if (ffmpeg && ffmpeg.loaded) {
+              try {
+                await ffmpeg.deleteFile(safeInputFileName);
+                await ffmpeg.deleteFile(outputFileName);
+              } catch (deleteError) {
+                // console.warn("FFmpeg: Error deleting files from FS, FFmpeg might have been terminated:", deleteError);
+              }
+            }
           // Revoke old preview URL
           if (originalPreviewUrlWhileCompressing) URL.revokeObjectURL(originalPreviewUrlWhileCompressing);
 
@@ -206,10 +244,9 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           setSelectedMedia(compressedFile);
           onMediaSelect(compressedFile); // Pass compressed file to parent
           setIsVideo(true); // Ensure isVideo is true for the compressed file
-          // console.log('Compression successful.');
 
         } catch (err) {
-          console.error("Error during video compression (MediaUploader):", err);
+          // console.error("Error during video compression (MediaUploader):", err); // Removed as onError is called
           onError('Failed to compress video. Uploading original or try another file.');
           // Revert to original file if compression fails
           if (preview && preview !== originalPreviewUrlWhileCompressing) URL.revokeObjectURL(preview as string);
@@ -226,7 +263,6 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         }
       } else {
         // --- File is <= threshold, bypass compression ---
-        // console.log(`MediaUploader: File size (${file.size} bytes) <= threshold (${COMPRESSION_THRESHOLD_BYTES} bytes). Skipping compression.`);
         if (preview) URL.revokeObjectURL(preview); // Clean up any existing preview from a previous selection
 
         // Create a blob URL preview for videos (more consistent with compressed path):
@@ -257,7 +293,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     setIsVideo(false);
     onMediaSelect(null);
   }
-}, [maxSizeBytes, maxSizeMB, onError, onMediaSelect, preview]); // Added `preview` to dependencies for revokeObjectURL
+}, [maxSizeBytes, maxSizeMB, onError, onMediaSelect, preview, loadFFmpeg, ffmpegLoadError]);
   
   const handleBrowseClick = useCallback(() => {
     if (fileInputRef.current) {
@@ -275,10 +311,10 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
       URL.revokeObjectURL(preview);
     }
     const ffmpeg = ffmpegRef.current;
-    if (isCompressing && ffmpeg && ffmpeg.loaded) {
-      // console.log('Terminating FFmpeg due to media removal during compression.');
-      await ffmpeg.terminate(); // Terminate if removal happens during compression
-      ffmpegRef.current = new FFmpeg(); // Re-initialize for next use to ensure clean state
+    if (isCompressing && ffmpeg && ffmpeg.loaded) { // Check ffmpeg.loaded
+      await ffmpeg.terminate();
+      ffmpegRef.current = new FFmpeg(); // Create a new instance for next time
+      setIsFFmpegReady(false); // Mark as not ready
     }
     setIsCompressing(false);
     setCompressionProgress(0);
@@ -327,11 +363,18 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         accept="image/*,video/*"
         className="hidden"
         name="media"
-        disabled={disabled} // Add this
+        disabled={disabled}
       />
 
+      {ffmpegLoadError && (
+        <div className="mb-4 flex items-center rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-700 dark:bg-red-900/30 dark:text-red-300">
+          <AlertTriangle className="mr-2 h-5 w-5 flex-shrink-0" />
+          {ffmpegLoadError}
+        </div>
+      )}
+
       {isCompressing ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 p-6">
+        <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 p-6 dark:border-neutral-700">
           <p className="mb-2 text-lg font-medium text-neutral-700 dark:text-neutral-300">
             Compressing video...
           </p>
@@ -351,7 +394,6 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           </p>
         </div>
       ) : !selectedMedia ? (
-        // Drag and drop / browse UI (existing code)
         <div
           className={classNames(
             'flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors',

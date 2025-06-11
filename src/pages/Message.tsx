@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import { useAuth } from '../context/AuthContext'; // Adjust path if necessary
 import { formatDistance, format } from 'date-fns'; // Added format
-import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon, Trash2Icon, Edit3Icon } from 'lucide-react';
+import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon, Trash2Icon, Edit3Icon, Share2Icon } from 'lucide-react';
 import api, { messagesApi, reactionsApi } from '@/services/api';
 import { MESSAGE_ROUTES } from '@/components/constants/apiRoutes';
 import type { MessageWithReactions } from '../types/message';
@@ -247,6 +247,32 @@ const Message: React.FC = () => {
     }, 2000);
   };
 
+  const handleShare = () => {
+    if (!normalizedMessage?.shareableLink) return;
+
+    if (navigator.share) {
+      let shareText;
+      if (message?.passcode) {
+        shareText = `Check out my surprise message!\nPasscode: ${message.passcode}\n`;
+      } else {
+        shareText = 'Check out my surprise message!\n\n';
+      }
+
+      navigator
+        .share({
+          title: 'Reactlyve Message',
+          text: shareText,
+          url: normalizedMessage.shareableLink,
+        })
+        .catch(error => {
+          console.error('Error sharing:', error);
+          copyToClipboard(normalizedMessage.shareableLink, 'link');
+        });
+    } else {
+      copyToClipboard(normalizedMessage.shareableLink, 'link');
+    }
+  };
+
   const downloadVideo = async (url: string, filename: string) => {
     try {
       const res = await fetch(url);
@@ -426,10 +452,33 @@ const Message: React.FC = () => {
                         {copied.link ? <ClipboardIcon size={16} /> : <CopyIcon size={16} />}
                       </button>
                       <button
-                        onClick={() => setShowQrCode(!showQrCode)}
-                        className="ml-2 rounded-md bg-green-600 p-2 text-white hover:bg-green-700"
+                        onClick={handleShare}
+                        className="ml-2 rounded-md bg-secondary-600 p-2 text-white hover:bg-secondary-700"
                       >
-                        {showQrCode ? 'Hide QR' : 'Show QR'}
+                        <Share2Icon size={16} />
+                      </button>
+                      <button
+                        onClick={() => setShowQrCode(!showQrCode)}
+                        aria-label={showQrCode ? 'Hide QR Code' : 'Show QR Code'}
+                        className={`ml-2 rounded-md p-2 transition-colors ${
+                          showQrCode
+                            ? 'bg-neutral-300 text-neutral-800 hover:bg-neutral-400 dark:bg-neutral-600 dark:text-white dark:hover:bg-neutral-500'
+                            : 'bg-green-600 text-white hover:bg-green-700'
+                        }`}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 3a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1V4a1 1 0 00-1-1h-3zm1 2v1h1V5h-1z"
+                            clipRule="evenodd"
+                          />
+                          <path d="M11 4a1 1 0 10-2 0v1a1 1 0 002 0V4zM10 7a1 1 0 011 1v1h2a1 1 0 110 2h-3a1 1 0 01-1-1V8a1 1 0 011-1zM16 9a1 1 0 100 2 1 1 0 000-2zM9 13a1 1 0 011-1h1a1 1 0 110 2v2a1 1 0 11-2 0v-3zM7 11a1 1 0 100-2H4a1 1 0 100 2h3zM17 13a1 1 0 01-1 1h-2a1 1 0 110-2h2a1 1 0 011 1zM16 17a1 1 0 100-2h-3a1 1 0 100 2h3z" />
+                        </svg>
                       </button>
                     </div>
                     {copied.link && (

@@ -51,14 +51,17 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({
     }
   };
 
-  // Handle email sharing
   const handleEmailShare = () => {
     if (shareableLink) {
       const subject = 'Check out my surprise message!';
-      let body = `I've sent you a surprise message. Click the link below to view it:\n\n${shareableLink}`;
+      let body = `I've sent you a surprise message. Click the link below to view it:
+
+${shareableLink}`;
       
       if (hasPasscode && passcode) {
-        body += `\n\nYou'll need this passcode to view it: ${passcode}`;
+        body += `
+
+Passcode: ${passcode}`; // Ensures only this is added for the passcode
       }
 
       const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -66,19 +69,23 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({
     }
   };
 
-  // Handle share via Web Share API if available
   const handleShare = () => {
     if (!shareableLink) return;
     
     if (navigator.share) {
-      let text = 'Check out my surprise message!';
+      let shareText;
       if (hasPasscode && passcode) {
-        text += ` (Passcode: ${passcode})`;
+        shareText = `Check out my surprise message!
+Passcode: ${passcode}
+
+`; // Added double trailing
+      } else {
+        shareText = 'Check out my surprise message!\n\n'; // Added double trailing
       }
       
       navigator.share({
         title: 'Reactlyve Message',
-        text,
+        text: shareText,
         url: shareableLink,
       }).catch(error => {
         console.error('Error sharing:', error);
