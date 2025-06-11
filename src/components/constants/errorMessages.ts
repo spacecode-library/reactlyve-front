@@ -46,6 +46,7 @@ export const GENERAL_ERRORS = {
     ALREADY_VIEWED: 'This message has already been viewed.',
     GUEST_MESSAGE_LIMIT_REACHED: "You have reached your message limit. To send more messages, please contact support@reactlyve.com to request an increase or sign up for an account.",
     USER_MESSAGE_LIMIT_REACHED: "You have reached your monthly message limit. You will be able to send more messages next month.",
+    CONTENT_UNAVAILABLE: 'Message cannot be shown. Please contact the sender.',
   };
   
   // Reaction error messages
