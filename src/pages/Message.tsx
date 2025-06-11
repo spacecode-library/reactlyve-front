@@ -702,7 +702,9 @@ const Message: React.FC = () => {
                         </Button>
                       </div>
 
-                      {reaction.videoUrl && reaction.moderationStatus !== 'rejected' ? (
+                      {reaction.videoUrl &&
+                        reaction.moderationStatus !== 'rejected' &&
+                        reaction.moderationStatus !== 'manual_review' ? (
                         <>
                           {(() => {
                             let transformedReactionVideoUrl = reaction.videoUrl;
