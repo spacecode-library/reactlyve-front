@@ -133,13 +133,14 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
       )}
 
       {(reaction.moderationStatus === "rejected" || reaction.moderationStatus === "manual_review") && (
-        <div className="mt-4 rounded-md bg-neutral-100 p-3 text-sm dark:bg-neutral-700">
-          <p className="text-neutral-500 dark:text-neutral-400 mb-1">
+        <div className="mt-4 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
+          <p className="mb-1 text-base font-medium text-neutral-500 dark:text-neutral-400">
             {reaction.moderationDetails ? `This video was rejected: ${reaction.moderationDetails}` : 'This video failed moderation.'}
           </p>
           <Button
             size="sm"
             className="mt-2"
+            disabled={reaction.moderationStatus === 'manual_review'}
             onClick={async () => {
               setIsSubmittingReview(true);
               try {
@@ -154,7 +155,7 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
             }}
             isLoading={isSubmittingReview}
           >
-            Request Review
+            {reaction.moderationStatus === 'manual_review' ? 'Manual Review Pending' : 'Request Review'}
           </Button>
         </div>
       )}

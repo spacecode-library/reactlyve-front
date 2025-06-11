@@ -139,13 +139,14 @@ const ReactionPage: React.FC = () => {
           )}
           {(reaction?.moderationStatus === 'rejected' ||
             reaction?.moderationStatus === 'manual_review') && (
-            <div className="mt-2 text-sm text-neutral-700 dark:text-neutral-300">
-              <p className="text-neutral-500 dark:text-neutral-400 mb-1">
+            <div className="mt-2 text-neutral-700 dark:text-neutral-300">
+              <p className="mb-1 text-base font-medium text-neutral-500 dark:text-neutral-400">
                 {reaction.moderationDetails ? `This video was rejected: ${reaction.moderationDetails}` : 'This video failed moderation.'}
               </p>
               <Button
                 size="sm"
                 className="mt-1"
+                disabled={reaction?.moderationStatus === 'manual_review'}
                 onClick={async () => {
                   setIsSubmittingReview(true);
                   try {
@@ -160,7 +161,7 @@ const ReactionPage: React.FC = () => {
                 }}
                 isLoading={isSubmittingReview}
               >
-                Request Review
+                {reaction?.moderationStatus === 'manual_review' ? 'Manual Review Pending' : 'Request Review'}
               </Button>
             </div>
           )}

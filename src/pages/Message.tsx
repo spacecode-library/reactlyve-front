@@ -447,12 +447,13 @@ const Message: React.FC = () => {
             {(normalizedMessage.moderationStatus === 'rejected' ||
               normalizedMessage.moderationStatus === 'manual_review') && (
               <div className="mb-6 rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
-                <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-1">
+                <p className="mb-1 text-base font-medium text-neutral-500 dark:text-neutral-400">
                   {normalizedMessage.moderationDetails ? `This image was rejected: ${normalizedMessage.moderationDetails}` : 'This media failed moderation.'}
                 </p>
                 <Button
                   size="sm"
                   className="mt-2"
+                  disabled={normalizedMessage.moderationStatus === 'manual_review'}
                   onClick={async () => {
                     setIsSubmittingManualReview(true);
                     try {
@@ -467,7 +468,7 @@ const Message: React.FC = () => {
                   }}
                   isLoading={isSubmittingManualReview}
                 >
-                  Request Manual Review
+                  {normalizedMessage.moderationStatus === 'manual_review' ? 'Manual Review Pending' : 'Request Manual Review'}
                 </Button>
               </div>
             )}
@@ -660,7 +661,7 @@ const Message: React.FC = () => {
                           {(reaction.moderationStatus === 'rejected' ||
                             reaction.moderationStatus === 'manual_review') && (
                             <>
-                              <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                              <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
                                 {reaction.moderationDetails
                                   ? `Rejected: ${reaction.moderationDetails}`
                                   : 'This reaction failed moderation.'}
@@ -668,6 +669,7 @@ const Message: React.FC = () => {
                               <Button
                                 size="sm"
                                 className="mt-1"
+                                disabled={reaction.moderationStatus === 'manual_review'}
                                 onClick={async () => {
                                   setManualReviewReactionId(reaction.id);
                                   try {
@@ -682,7 +684,7 @@ const Message: React.FC = () => {
                                 }}
                                 isLoading={manualReviewReactionId === reaction.id}
                               >
-                                Request Manual Review
+                                {reaction.moderationStatus === 'manual_review' ? 'Manual Review Pending' : 'Request Manual Review'}
                               </Button>
                             </>
                           )}
