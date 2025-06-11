@@ -5,7 +5,7 @@ import { MESSAGE_ERRORS } from '../components/constants/errorMessages';
 import PasscodeEntry from '../components/recipient/PasscodeEntry';
 import MessageViewer from '../components/recipient/MessageViewer';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import api, { reactionsApi, repliesApi } from '../services/api';
+import api, { repliesApi } from '../services/api';
 import { Message as MessageData } from '../types/message';
 
 const View: React.FC = () => {
@@ -86,7 +86,7 @@ const View: React.FC = () => {
     }
   };
 
-  const handleRecordReaction = async (_messageId: string, _videoBlob: Blob): Promise<void> => {
+  const handleRecordReaction = async (): Promise<void> => {
     toast.success('Your reaction has been recorded!');
   };
 
@@ -120,11 +120,11 @@ const View: React.FC = () => {
 
   if (loading) {
     return (
-     <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 dark:bg-neutral-900">
-       <LoadingSpinner size="lg" />
-       <p className="mt-4 text-neutral-600 dark:text-neutral-300">Loading message...</p>
-     </div>
-   );
+      <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 dark:bg-neutral-900">
+        <LoadingSpinner size="lg" />
+        <p className="mt-4 text-neutral-600 dark:text-neutral-300">Loading message...</p>
+      </div>
+    );
   }
 
   if (error) {
@@ -160,15 +160,12 @@ const View: React.FC = () => {
 
   if (message && (passcodeVerified || !needsPasscode)) {
     return (
-      <div className="flex min-h-screen items-center justify-start bg-neutral-50 px-4 pt-16 pb-8 sm:py-12 dark:bg-neutral-900">
+      <div className="flex min-h-screen items-center justify-start bg-neutral-50 px-4 pb-8 pt-16 dark:bg-neutral-900 sm:py-12">
         <MessageViewer
           message={message}
           onRecordReaction={async () => {}} // Changed to an async no-op function
           onLocalRecordingComplete={() => {
-            // Create dummy arguments to satisfy the signature of handleRecordReaction
-            const dummyMessageId = message?.id || 'local_recording'; // Use message.id if available, else a placeholder
-            const dummyBlob = new Blob();
-            handleRecordReaction(dummyMessageId, dummyBlob);
+            handleRecordReaction();
           }}
           onSkipReaction={handleSkipReaction}
           onSubmitPasscode={handleSubmitPasscode}
