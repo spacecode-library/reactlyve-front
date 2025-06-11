@@ -8,6 +8,7 @@ import Modal from '../components/common/Modal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import DashboardLayout from '../layouts/DashboardLayout'; // Import DashboardLayout
 import Input from '../components/common/Input'; // Import Input component
+import { normalizeUser } from '../utils/normalizeKeys';
 
 // Define the available roles for the select dropdown
 // type SettableUserRole = 'user' | 'admin'; // No longer strictly needed here
@@ -59,7 +60,8 @@ const AdminPortalPage: React.FC = () => {
         setIsLoading(true);
         setError(null);
         const response = await adminApi.getUsers();
-        setUsers(response.data.users || response.data);
+        const fetchedUsers = response.data.users || response.data;
+        setUsers(fetchedUsers.map(normalizeUser));
       } catch (err) {
         setError('Failed to fetch users. Please try again later.');
         console.error('Fetch users error:', err);
@@ -473,7 +475,7 @@ const AdminPortalPage: React.FC = () => {
                           setIsLoadingUserDetails(true);
                           try {
                             const apiResponse = await adminApi.getUserDetails(user.id);
-                            const userDetailsToDisplay: User = apiResponse.data;
+                            const userDetailsToDisplay: User = normalizeUser(apiResponse.data);
 
                             setSelectedUserForLimits(userDetailsToDisplay);
 
