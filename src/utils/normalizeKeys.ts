@@ -69,7 +69,9 @@ export const normalizeReaction = (reaction: any) => {
 export const normalizeUser = (user: any) => {
   if (!user) return user;
 
-  return {
+  console.log('[normalizeUser] input', user);
+
+  const normalized = {
     ...user,
     id: user.id,
     email: user.email,
@@ -95,4 +97,7 @@ export const normalizeUser = (user: any) => {
     moderateImages: user.moderateImages ?? user.moderate_images ?? false,
     moderateVideos: user.moderateVideos ?? user.moderate_videos ?? false,
   } as const;
+
+  console.log('[normalizeUser] output', normalized);
+  return normalized;
 };

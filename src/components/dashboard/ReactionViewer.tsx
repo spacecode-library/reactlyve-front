@@ -149,6 +149,7 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
               onClick={async () => {
                 setIsSubmittingReview(true);
                 try {
+                  console.log('[ReactionViewer] submit manual review', reaction.id);
                   await reactionsApi.submitForManualReview(reaction.id);
                   toast.success('Submitted for manual review');
                 } catch (err) {

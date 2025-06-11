@@ -170,13 +170,23 @@ export const adminApi = {
     if (lastUsageResetDate) {
       payload.last_usage_reset_date = lastUsageResetDate;
     }
+    console.log('[adminApi] updateUserRole payload', { userId, payload });
     return api.put(`/admin/users/${userId}/role`, payload);
   },
   deleteUser: (userId: string) => api.delete(`/admin/users/${userId}`),
   getStats: () => api.get('/admin/stats'), // Assuming this endpoint returns data; check its casing if complex.
-  getUserDetails: (userId: string) => api.get(`/admin/users/${userId}/details`),
-  updateUserLimits: (userId: string, limits: UpdateUserLimitsPayload) =>
-    api.put(`/admin/users/${userId}/limits`, limits),
+  getUserDetails: async (userId: string) => {
+    console.log('[adminApi] getUserDetails', userId);
+    const res = await api.get(`/admin/users/${userId}/details`);
+    console.log('[adminApi] getUserDetails response', res.data);
+    return res;
+  },
+  updateUserLimits: async (userId: string, limits: UpdateUserLimitsPayload) => {
+    console.log('[adminApi] updateUserLimits payload', { userId, limits });
+    const response = await api.put(`/admin/users/${userId}/limits`, limits);
+    console.log('[adminApi] updateUserLimits response', response.data);
+    return response;
+  },
 };
 
 // ------------------ PROFILE API ------------------

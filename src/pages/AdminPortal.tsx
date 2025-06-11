@@ -60,8 +60,11 @@ const AdminPortalPage: React.FC = () => {
         setIsLoading(true);
         setError(null);
         const response = await adminApi.getUsers();
+        console.log('[AdminPortal] fetched users raw', response.data);
         const fetchedUsers = response.data.users || response.data;
-        setUsers(fetchedUsers.map(normalizeUser));
+        const normalized = fetchedUsers.map(normalizeUser);
+        console.log('[AdminPortal] normalized users', normalized);
+        setUsers(normalized);
       } catch (err) {
         setError('Failed to fetch users. Please try again later.');
         console.error('Fetch users error:', err);
@@ -76,8 +79,8 @@ const AdminPortalPage: React.FC = () => {
 
   useEffect(() => {
     if (lastUpdatedUserId) {
-      // const updatedUser = users.find(u => u.id === lastUpdatedUserId);
-      // console.log('[AdminPortal] useEffect after users change, updated user:', updatedUser); // Removed
+      const updatedUser = users.find(u => u.id === lastUpdatedUserId);
+      console.log('[AdminPortal] user updated', updatedUser);
       setLastUpdatedUserId(null); // Reset for next update
     }
   }, [users, lastUpdatedUserId]);
@@ -86,12 +89,14 @@ const AdminPortalPage: React.FC = () => {
     const { name, value, type, checked } = e.target;
     if (type === 'checkbox') {
       setLimitInputs(prev => ({ ...prev, [name]: checked }));
+      console.log('[AdminPortal] limit input change', name, checked);
       return;
     }
     if (type === 'number' && value !== '' && !/^\d+$/.test(value) && value !== '-') {
       return;
     }
     setLimitInputs(prev => ({ ...prev, [name]: value }));
+    console.log('[AdminPortal] limit input change', name, value);
   };
 
   const handleSaveLimits = async () => {
@@ -166,7 +171,7 @@ const AdminPortalPage: React.FC = () => {
       moderate_videos: limitInputs.moderateVideos,
     };
 
-    // console.log('Parsed payload to be sent:', finalPayload); // Removed
+    console.log('[AdminPortal] finalPayload', finalPayload);
 
     // Check if all payload properties are null
     const allNull = Object.values(finalPayload).every(value => value === null);
@@ -182,9 +187,8 @@ const AdminPortalPage: React.FC = () => {
       //   userId: selectedUserForLimits.id,
       //   payload: finalPayload
       // }); // Removed
-      await adminApi.updateUserLimits(selectedUserForLimits.id, finalPayload);
-      // const response = await adminApi.updateUserLimits(selectedUserForLimits.id, finalPayload); // Keep if response is used
-      // console.log('[AdminPortal] handleSaveLimits: adminApi.updateUserLimits - Backend response:', response); // Removed
+      const updateRes = await adminApi.updateUserLimits(selectedUserForLimits.id, finalPayload);
+      console.log('[AdminPortal] updateUserLimits result', updateRes.data);
 
       // Optimistic update for local state (uses camelCase as per User type)
       const camelCaseUpdateData = {
@@ -291,6 +295,7 @@ const AdminPortalPage: React.FC = () => {
           // Note: If newRole is 'guest', this might overwrite parts of finalUserUpdate from earlier.
           // Consider merging:
           const guestLimitsResponse = await adminApi.updateUserLimits(userId, apiGuestPayload);
+          console.log('[AdminPortal] guest limits response', guestLimitsResponse.data);
           toast.success(`User ${userId} limits reset to guest defaults.`);
           // The finalUserUpdate should now primarily be based on guestLimitsResponse.data
           if (guestLimitsResponse.data) {
@@ -475,7 +480,9 @@ const AdminPortalPage: React.FC = () => {
                           setIsLoadingUserDetails(true);
                           try {
                             const apiResponse = await adminApi.getUserDetails(user.id);
+                            console.log('[AdminPortal] getUserDetails response', apiResponse.data);
                             const userDetailsToDisplay: User = normalizeUser(apiResponse.data);
+                            console.log('[AdminPortal] normalized user details', userDetailsToDisplay);
 
                             setSelectedUserForLimits(userDetailsToDisplay);
 
@@ -490,6 +497,10 @@ const AdminPortalPage: React.FC = () => {
                               lastUsageResetDate: resetDateForInput,
                               moderateImages: !!userDetailsToDisplay.moderateImages,
                               moderateVideos: !!userDetailsToDisplay.moderateVideos,
+                            });
+                            console.log('[AdminPortal] limitInputs after fetch', {
+                              ...userDetailsToDisplay,
+                              resetDateForInput,
                             });
                             setIsEditLimitsModalOpen(true);
                           } catch (err) {

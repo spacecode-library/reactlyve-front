@@ -150,6 +150,7 @@ const ReactionPage: React.FC = () => {
                   onClick={async () => {
                     setIsSubmittingReview(true);
                     try {
+                      console.log('[ReactionPage] submit manual review', reaction.id);
                       await reactionsApi.submitForManualReview(reaction.id);
                       toast.success('Submitted for manual review');
                     } catch (err) {

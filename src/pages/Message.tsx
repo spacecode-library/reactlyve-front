@@ -449,6 +449,7 @@ const Message: React.FC = () => {
                     onClick={async () => {
                       setIsSubmittingManualReview(true);
                       try {
+                        console.log('[MessagePage] submit manual review', id);
                         await messagesApi.submitForManualReview(id!);
                         toast.success('Submitted for manual review');
                       } catch (err) {
@@ -663,6 +664,7 @@ const Message: React.FC = () => {
                               onClick={async () => {
                                 setManualReviewReactionId(reaction.id);
                                 try {
+                                  console.log('[MessagePage] submit reaction review', reaction.id);
                                   await reactionsApi.submitForManualReview(reaction.id);
                                   toast.success('Reaction sent for review');
                                 } catch (err) {
