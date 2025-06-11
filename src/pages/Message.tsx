@@ -339,7 +339,12 @@ const Message: React.FC = () => {
   let imageElement = null;
   // normalizedMessage could be null if message was null, but the `if (error || !message)` block handles that.
   // However, to be extremely safe, we can add a check for normalizedMessage here.
-  if (normalizedMessage && normalizedMessage.mediaType === 'image' && normalizedMessage.imageUrl) {
+  if (
+    normalizedMessage &&
+    normalizedMessage.moderationStatus !== 'rejected' &&
+    normalizedMessage.mediaType === 'image' &&
+    normalizedMessage.imageUrl
+  ) {
       const transformedImgUrl = normalizedMessage.imageUrl ? getTransformedCloudinaryUrl(normalizedMessage.imageUrl, normalizedMessage.fileSizeInBytes || 0) : '';
       // console.log('[MessagePage] Image - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.imageUrl, 'Transformed URL:', transformedImgUrl);
       imageElement = (
@@ -352,7 +357,12 @@ const Message: React.FC = () => {
 
   let videoElement = null;
   // Similar safety check for normalizedMessage
-  if (normalizedMessage && normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl) {
+  if (
+    normalizedMessage &&
+    normalizedMessage.moderationStatus !== 'rejected' &&
+    normalizedMessage.mediaType === 'video' &&
+    normalizedMessage.videoUrl
+  ) {
       const transformedVidUrl = normalizedMessage.videoUrl ? getTransformedCloudinaryUrl(normalizedMessage.videoUrl, normalizedMessage.fileSizeInBytes || 0) : '';
       // console.log('[MessagePage] Video - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.videoUrl, 'Transformed URL:', transformedVidUrl);
       videoElement = (
@@ -688,7 +698,7 @@ const Message: React.FC = () => {
                         </Button>
                       </div>
 
-                      {reaction.videoUrl ? (
+                      {reaction.videoUrl && reaction.moderationStatus !== 'rejected' ? (
                         <>
                           {(() => {
                             let transformedReactionVideoUrl = reaction.videoUrl;
@@ -801,7 +811,8 @@ const Message: React.FC = () => {
                           )}
                         </>
                       ) : (
-                        (!reaction.replies || reaction.replies.length === 0) && (
+                        (!reaction.replies || reaction.replies.length === 0) &&
+                        reaction.moderationStatus !== 'rejected' && (
                           <p className="my-4 text-sm text-neutral-600 dark:text-neutral-400">
                             No reaction video recorded or replies.
                           </p>

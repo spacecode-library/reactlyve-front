@@ -168,7 +168,7 @@ const ReactionPage: React.FC = () => {
         </div>
       </div>
 
-      {processedVideoUrl ? (
+      {processedVideoUrl && reaction?.moderationStatus !== 'rejected' ? (
         <div className="px-4 py-8">
           <VideoPlayer
             src={processedVideoUrl || ''}
@@ -222,7 +222,11 @@ const ReactionPage: React.FC = () => {
           </button>
         </div>
       ) : (
-        <p className="mt-4 text-center text-neutral-600 dark:text-neutral-400">No video attached to this reaction.</p>
+        reaction?.moderationStatus !== 'rejected' && (
+          <p className="mt-4 text-center text-neutral-600 dark:text-neutral-400">
+            No video attached to this reaction.
+          </p>
+        )
       )}
 
       {/* Replies */}

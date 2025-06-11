@@ -61,7 +61,7 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
         </div>
 
         <div className="flex space-x-2">
-          {reaction.videoUrl && (
+          {reaction.videoUrl && reaction.moderationStatus !== 'rejected' && (
             <>
               <Button size="sm" variant="outline" onClick={handlePlayToggle}>
                 {isPlaying ? 'Pause' : 'Play'}
@@ -103,7 +103,7 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
       )}
 
       {/* Video */}
-      {reaction.videoUrl ? (
+      {reaction.videoUrl && reaction.moderationStatus !== 'rejected' ? (
         <div className="overflow-hidden rounded-md">
           <VideoPlayer
             src={transformedVideoUrl || ''}
