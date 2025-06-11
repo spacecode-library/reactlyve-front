@@ -1,5 +1,6 @@
 // Base API URL
-export const API_BASE_URL = 'https://api.reactlyve.com/api';
+export const API_BASE_URL =
+  import.meta.env.VITE_API_URL || 'https://api.reactlyve.com/api';
 
 // Auth Routes
 export const AUTH_ROUTES = {

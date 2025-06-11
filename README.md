@@ -74,10 +74,11 @@ reactlyve-frontend/
    npm install
    ```
 
-3. Create a `.env` file in the root directory with the following variables:
+3. Create a `.env` file in the root directory with the following variable:
    ```
    VITE_API_URL=http://localhost:8000/api
    ```
+   If omitted, the app defaults to `https://api.reactlyve.com/api`.
 
 4. Start the development server:
    ```bash
@@ -101,7 +102,7 @@ Reactlyve uses Google OAuth for authentication. The authentication flow is handl
 ```typescript
 // Example of initiating Google OAuth
 const handleLogin = () => {
-  window.location.href = 'http://localhost:8000/api/auth/google';
+  window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
 };
 ```
 
