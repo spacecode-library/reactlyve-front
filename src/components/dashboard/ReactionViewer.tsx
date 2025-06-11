@@ -61,7 +61,7 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
         </div>
 
         <div className="flex space-x-2">
-          {reaction.videoUrl && reaction.moderationStatus !== 'rejected' && (
+          {reaction.videoUrl && reaction.moderationStatus !== "rejected" && reaction.moderationStatus !== "manual_review" && (
             <>
               <Button size="sm" variant="outline" onClick={handlePlayToggle}>
                 {isPlaying ? 'Pause' : 'Play'}
@@ -103,7 +103,7 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
       )}
 
       {/* Video */}
-      {reaction.videoUrl && reaction.moderationStatus !== 'rejected' ? (
+      {reaction.videoUrl && reaction.moderationStatus !== "rejected" && reaction.moderationStatus !== "manual_review" ? (
         <div className="overflow-hidden rounded-md">
           <VideoPlayer
             src={transformedVideoUrl || ''}
@@ -132,13 +132,11 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
         )
       )}
 
-      {reaction.moderationStatus === 'rejected' && (
+      {(reaction.moderationStatus === "rejected" || reaction.moderationStatus === "manual_review") && (
         <div className="mt-4 rounded-md bg-neutral-100 p-3 text-sm dark:bg-neutral-700">
-          {reaction.moderationDetails && (
-            <p className="text-neutral-500 dark:text-neutral-400 mb-1">
-              This video was rejected: {reaction.moderationDetails}
-            </p>
-          )}
+          <p className="text-neutral-500 dark:text-neutral-400 mb-1">
+            {reaction.moderationDetails ? `This video was rejected: ${reaction.moderationDetails}` : 'This video failed moderation.'}
+          </p>
           <Button
             size="sm"
             className="mt-2"

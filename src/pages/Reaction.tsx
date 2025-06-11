@@ -137,13 +137,12 @@ const ReactionPage: React.FC = () => {
               <strong>From:</strong> {reaction.name}
             </p>
           )}
-          {reaction?.moderationStatus === 'rejected' && (
+          {(reaction?.moderationStatus === 'rejected' ||
+            reaction?.moderationStatus === 'manual_review') && (
             <div className="mt-2 text-sm text-neutral-700 dark:text-neutral-300">
-              {reaction.moderationDetails && (
-                <p className="text-neutral-500 dark:text-neutral-400 mb-1">
-                  This video was rejected: {reaction.moderationDetails}
-                </p>
-              )}
+              <p className="text-neutral-500 dark:text-neutral-400 mb-1">
+                {reaction.moderationDetails ? `This video was rejected: ${reaction.moderationDetails}` : 'This video failed moderation.'}
+              </p>
               <Button
                 size="sm"
                 className="mt-1"
@@ -168,7 +167,9 @@ const ReactionPage: React.FC = () => {
         </div>
       </div>
 
-      {processedVideoUrl && reaction?.moderationStatus !== 'rejected' ? (
+      {processedVideoUrl &&
+        reaction?.moderationStatus !== 'rejected' &&
+        reaction?.moderationStatus !== 'manual_review' ? (
         <div className="px-4 py-8">
           <VideoPlayer
             src={processedVideoUrl || ''}
@@ -222,7 +223,8 @@ const ReactionPage: React.FC = () => {
           </button>
         </div>
       ) : (
-        reaction?.moderationStatus !== 'rejected' && (
+        reaction?.moderationStatus !== 'rejected' &&
+        reaction?.moderationStatus !== 'manual_review' && (
           <p className="mt-4 text-center text-neutral-600 dark:text-neutral-400">
             No video attached to this reaction.
           </p>

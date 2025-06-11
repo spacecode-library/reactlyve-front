@@ -342,6 +342,7 @@ const Message: React.FC = () => {
   if (
     normalizedMessage &&
     normalizedMessage.moderationStatus !== 'rejected' &&
+    normalizedMessage.moderationStatus !== 'manual_review' &&
     normalizedMessage.mediaType === 'image' &&
     normalizedMessage.imageUrl
   ) {
@@ -360,6 +361,7 @@ const Message: React.FC = () => {
   if (
     normalizedMessage &&
     normalizedMessage.moderationStatus !== 'rejected' &&
+    normalizedMessage.moderationStatus !== 'manual_review' &&
     normalizedMessage.mediaType === 'video' &&
     normalizedMessage.videoUrl
   ) {
@@ -442,13 +444,12 @@ const Message: React.FC = () => {
               </div>
             </div>
 
-            {normalizedMessage.moderationStatus === 'rejected' && (
+            {(normalizedMessage.moderationStatus === 'rejected' ||
+              normalizedMessage.moderationStatus === 'manual_review') && (
               <div className="mb-6 rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
-                {normalizedMessage.moderationDetails && (
-                  <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-1">
-                    This image was rejected: {normalizedMessage.moderationDetails}
-                  </p>
-                )}
+                <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-1">
+                  {normalizedMessage.moderationDetails ? `This image was rejected: ${normalizedMessage.moderationDetails}` : 'This media failed moderation.'}
+                </p>
                 <Button
                   size="sm"
                   className="mt-2"
@@ -656,13 +657,14 @@ const Message: React.FC = () => {
                           <p className="text-sm text-neutral-700 dark:text-neutral-300">
                             Received on {new Date(reaction.createdAt).toLocaleString()}
                           </p>
-                          {reaction.moderationStatus === 'rejected' && (
+                          {(reaction.moderationStatus === 'rejected' ||
+                            reaction.moderationStatus === 'manual_review') && (
                             <>
-                              {reaction.moderationDetails && (
-                                <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                                  Rejected: {reaction.moderationDetails}
-                                </p>
-                              )}
+                              <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                                {reaction.moderationDetails
+                                  ? `Rejected: ${reaction.moderationDetails}`
+                                  : 'This reaction failed moderation.'}
+                              </p>
                               <Button
                                 size="sm"
                                 className="mt-1"
@@ -812,7 +814,8 @@ const Message: React.FC = () => {
                         </>
                       ) : (
                         (!reaction.replies || reaction.replies.length === 0) &&
-                        reaction.moderationStatus !== 'rejected' && (
+                        reaction.moderationStatus !== 'rejected' &&
+                        reaction.moderationStatus !== 'manual_review' && (
                           <p className="my-4 text-sm text-neutral-600 dark:text-neutral-400">
                             No reaction video recorded or replies.
                           </p>
