@@ -137,33 +137,32 @@ const ReactionPage: React.FC = () => {
               <strong>From:</strong> {reaction.name}
             </p>
           )}
-          {reaction?.moderationStatus && (
+          {reaction?.moderationStatus === 'rejected' && (
             <div className="mt-2 text-sm text-neutral-700 dark:text-neutral-300">
-              <p>Moderation Status: {reaction.moderationStatus}</p>
               {reaction.moderationDetails && (
-                <p className="text-neutral-500 dark:text-neutral-400">Reason: {reaction.moderationDetails}</p>
+                <p className="text-neutral-500 dark:text-neutral-400 mb-1">
+                  This video was rejected: {reaction.moderationDetails}
+                </p>
               )}
-              {reaction.moderationStatus === 'rejected' && (
-                <Button
-                  size="sm"
-                  className="mt-1"
-                  onClick={async () => {
-                    setIsSubmittingReview(true);
-                    try {
-                      console.log('[ReactionPage] submit manual review', reaction.id);
-                      await reactionsApi.submitForManualReview(reaction.id);
-                      toast.success('Submitted for manual review');
-                    } catch (err) {
-                      toast.error('Failed to submit review');
-                    } finally {
-                      setIsSubmittingReview(false);
-                    }
-                  }}
-                  isLoading={isSubmittingReview}
-                >
-                  Request Review
-                </Button>
-              )}
+              <Button
+                size="sm"
+                className="mt-1"
+                onClick={async () => {
+                  setIsSubmittingReview(true);
+                  try {
+                    console.log('[ReactionPage] submit manual review', reaction.id);
+                    await reactionsApi.submitForManualReview(reaction.id);
+                    toast.success('Submitted for manual review');
+                  } catch (err) {
+                    toast.error('Failed to submit review');
+                  } finally {
+                    setIsSubmittingReview(false);
+                  }
+                }}
+                isLoading={isSubmittingReview}
+              >
+                Request Review
+              </Button>
             </div>
           )}
         </div>

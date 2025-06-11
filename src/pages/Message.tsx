@@ -432,37 +432,32 @@ const Message: React.FC = () => {
               </div>
             </div>
 
-            {normalizedMessage.moderationStatus && (
+            {normalizedMessage.moderationStatus === 'rejected' && (
               <div className="mb-6 rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
-                <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                  Moderation Status: {normalizedMessage.moderationStatus}
-                </p>
                 {normalizedMessage.moderationDetails && (
-                  <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                    Reason: {normalizedMessage.moderationDetails}
+                  <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-1">
+                    This image was rejected: {normalizedMessage.moderationDetails}
                   </p>
                 )}
-                {normalizedMessage.moderationStatus === 'rejected' && (
-                  <Button
-                    size="sm"
-                    className="mt-2"
-                    onClick={async () => {
-                      setIsSubmittingManualReview(true);
-                      try {
-                        console.log('[MessagePage] submit manual review', id);
-                        await messagesApi.submitForManualReview(id!);
-                        toast.success('Submitted for manual review');
-                      } catch (err) {
-                        toast.error('Failed to submit for review');
-                      } finally {
-                        setIsSubmittingManualReview(false);
-                      }
-                    }}
-                    isLoading={isSubmittingManualReview}
-                  >
-                    Request Manual Review
-                  </Button>
-                )}
+                <Button
+                  size="sm"
+                  className="mt-2"
+                  onClick={async () => {
+                    setIsSubmittingManualReview(true);
+                    try {
+                      console.log('[MessagePage] submit manual review', id);
+                      await messagesApi.submitForManualReview(id!);
+                      toast.success('Submitted for manual review');
+                    } catch (err) {
+                      toast.error('Failed to submit for review');
+                    } finally {
+                      setIsSubmittingManualReview(false);
+                    }
+                  }}
+                  isLoading={isSubmittingManualReview}
+                >
+                  Request Manual Review
+                </Button>
               </div>
             )}
 

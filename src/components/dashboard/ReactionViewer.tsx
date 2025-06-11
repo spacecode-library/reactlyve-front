@@ -132,37 +132,32 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
         )
       )}
 
-      {reaction.moderationStatus && (
+      {reaction.moderationStatus === 'rejected' && (
         <div className="mt-4 rounded-md bg-neutral-100 p-3 text-sm dark:bg-neutral-700">
-          <p className="text-neutral-700 dark:text-neutral-300">
-            Moderation Status: {reaction.moderationStatus}
-          </p>
           {reaction.moderationDetails && (
-            <p className="text-neutral-500 dark:text-neutral-400">
-              Reason: {reaction.moderationDetails}
+            <p className="text-neutral-500 dark:text-neutral-400 mb-1">
+              This video was rejected: {reaction.moderationDetails}
             </p>
           )}
-          {reaction.moderationStatus === 'rejected' && (
-            <Button
-              size="sm"
-              className="mt-2"
-              onClick={async () => {
-                setIsSubmittingReview(true);
-                try {
-                  console.log('[ReactionViewer] submit manual review', reaction.id);
-                  await reactionsApi.submitForManualReview(reaction.id);
-                  toast.success('Submitted for manual review');
-                } catch (err) {
-                  toast.error('Failed to submit review');
-                } finally {
-                  setIsSubmittingReview(false);
-                }
-              }}
-              isLoading={isSubmittingReview}
-            >
-              Request Review
-            </Button>
-          )}
+          <Button
+            size="sm"
+            className="mt-2"
+            onClick={async () => {
+              setIsSubmittingReview(true);
+              try {
+                console.log('[ReactionViewer] submit manual review', reaction.id);
+                await reactionsApi.submitForManualReview(reaction.id);
+                toast.success('Submitted for manual review');
+              } catch (err) {
+                toast.error('Failed to submit review');
+              } finally {
+                setIsSubmittingReview(false);
+              }
+            }}
+            isLoading={isSubmittingReview}
+          >
+            Request Review
+          </Button>
         </div>
       )}
 
