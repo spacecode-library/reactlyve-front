@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import { useAuth } from '../context/AuthContext'; // Adjust path if necessary
 import { formatDistance, format } from 'date-fns'; // Added format
-import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon, Trash2Icon, Edit3Icon } from 'lucide-react';
+import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon, Trash2Icon, Edit3Icon, Share2Icon } from 'lucide-react';
 import api, { messagesApi, reactionsApi } from '@/services/api';
 import { MESSAGE_ROUTES } from '@/components/constants/apiRoutes';
 import type { MessageWithReactions } from '../types/message';
@@ -247,6 +247,32 @@ const Message: React.FC = () => {
     }, 2000);
   };
 
+  const handleShare = () => {
+    if (!normalizedMessage?.shareableLink) return;
+
+    if (navigator.share) {
+      let shareText;
+      if (message?.passcode) {
+        shareText = `Check out my surprise message!\nPasscode: ${message.passcode}\n`;
+      } else {
+        shareText = 'Check out my surprise message!\n\n';
+      }
+
+      navigator
+        .share({
+          title: 'Reactlyve Message',
+          text: shareText,
+          url: normalizedMessage.shareableLink,
+        })
+        .catch(error => {
+          console.error('Error sharing:', error);
+          copyToClipboard(normalizedMessage.shareableLink, 'link');
+        });
+    } else {
+      copyToClipboard(normalizedMessage.shareableLink, 'link');
+    }
+  };
+
   const downloadVideo = async (url: string, filename: string) => {
     try {
       const res = await fetch(url);
@@ -424,6 +450,12 @@ const Message: React.FC = () => {
                         className="rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700"
                       >
                         {copied.link ? <ClipboardIcon size={16} /> : <CopyIcon size={16} />}
+                      </button>
+                      <button
+                        onClick={handleShare}
+                        className="ml-2 rounded-md bg-secondary-600 p-2 text-white hover:bg-secondary-700"
+                      >
+                        <Share2Icon size={16} />
                       </button>
                       <button
                         onClick={() => setShowQrCode(!showQrCode)}
