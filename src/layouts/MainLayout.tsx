@@ -1,6 +1,7 @@
 import React from 'react';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
+import GuestBanner from '../components/common/GuestBanner';
 import { classNames } from '../utils/classNames';
 
 interface MainLayoutProps {
@@ -19,6 +20,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   return (
     <div className="flex min-h-screen flex-col bg-neutral-50 dark:bg-neutral-900">
       {!hideNavbar && <Navbar />}
+      <GuestBanner />
       <main className={classNames('flex-grow', className || '')}>
         {children}
       </main>
