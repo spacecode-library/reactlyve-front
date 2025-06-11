@@ -77,9 +77,10 @@ Passcode: ${passcode}`; // Ensures only this is added for the passcode
       if (hasPasscode && passcode) {
         shareText = `Check out my surprise message!
 Passcode: ${passcode}
-`; // Added trailing
+
+`; // Added double trailing
       } else {
-        shareText = 'Check out my surprise message!\n'; // Added trailing
+        shareText = 'Check out my surprise message!\n\n'; // Added double trailing
       }
       
       navigator.share({
