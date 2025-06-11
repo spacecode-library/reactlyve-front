@@ -76,9 +76,10 @@ Passcode: ${passcode}`; // Ensures only this is added for the passcode
       let shareText;
       if (hasPasscode && passcode) {
         shareText = `Check out my surprise message!
-Passcode: ${passcode}`; // Ensures this exact format
+Passcode: ${passcode}
+`; // Added trailing
       } else {
-        shareText = 'Check out my surprise message!';
+        shareText = 'Check out my surprise message!\n'; // Added trailing
       }
       
       navigator.share({
