@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 // axios import is not directly used here anymore for requests, api service is.
 import api, { profileApi } from '../services/api'; // Import profileApi
 import { User } from '../types/user'; // Import User from types
+import { API_BASE_URL } from '../components/constants/apiRoutes';
 
 interface AuthContextType {
   user: User | null; // Use the imported User type
@@ -69,11 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = () => {
     setIsLoading(true);
-    const isLocal = window.location.hostname === 'localhost';
-    const baseUrl = isLocal
-    ? 'http://localhost:8000'
-    : 'https://reactlyve-backend.onrender.com'; // 🔁 Update this to match your actual backend Render URL
-    window.location.href = `${baseUrl}/api/auth/google`;
+    window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
   const logout = async () => {
