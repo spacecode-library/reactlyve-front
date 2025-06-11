@@ -6,6 +6,8 @@ import { classNames } from '../../utils/classNames';
 import VideoPlayer from './VideoPlayer';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
+import { reactionsApi } from '../../services/api';
+import toast from 'react-hot-toast';
 
 interface ReactionViewerProps {
   reaction: Reaction;

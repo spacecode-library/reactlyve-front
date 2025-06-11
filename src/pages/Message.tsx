@@ -658,7 +658,7 @@ const Message: React.FC = () => {
                           )}
                           {reaction.moderationStatus === 'rejected' && (
                             <Button
-                              size="xs"
+                              size="sm"
                               className="mt-1"
                               onClick={async () => {
                                 setManualReviewReactionId(reaction.id);
