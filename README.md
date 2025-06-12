@@ -90,10 +90,10 @@ reactlyve-frontend/
 
 ### Build for Production
 
-Install dependencies and run the production build:
+Install dependencies (including dev dependencies) and run the production build. Even for production builds the TypeScript compiler relies on dev packages such as `@types/jest` and `@types/node`, so avoid using `--omit=dev` when installing:
 
 ```bash
-npm install --legacy-peer-deps
+npm install --legacy-peer-deps  # ensure dev dependencies are installed
 npm run build
 ```
 
@@ -196,9 +196,9 @@ Some common TypeScript errors and solutions:
 
 3. **Missing Jest/Node Types**: If you encounter errors like `Cannot find type definition file for 'jest'` or `'node'`, ensure you've installed dependencies first. Use:
    ```bash
-   npm install --legacy-peer-deps
-   ```
-   This installs all dev dependencies such as `@types/jest` and `@types/node` required for the TypeScript build.
+    npm install --legacy-peer-deps
+    ```
+    This installs all dev dependencies such as `@types/jest` and `@types/node` required for the TypeScript build. Avoid passing `--omit=dev` or `--production` when installing.
 
 ### API Integration
 
