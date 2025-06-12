@@ -11,6 +11,7 @@ import type { Reaction } from '@/types/reaction';
 import { normalizeReaction } from '../utils/normalizeKeys';
 import { getTransformedCloudinaryUrl } from '../utils/mediaHelpers';
 import toast from 'react-hot-toast'; // For user feedback
+import { logDev } from '../utils/logDev';
 
 const ReactionPage: React.FC = () => {
   const { reactionId } = useParams<{ reactionId: string }>();
@@ -150,7 +151,7 @@ const ReactionPage: React.FC = () => {
                 onClick={async () => {
                   setIsSubmittingReview(true);
                   try {
-                    console.log('[ReactionPage] submit manual review', reaction.id);
+                    logDev('[ReactionPage] submit manual review', reaction.id);
                     await reactionsApi.submitForManualReview(reaction.id);
                     toast.success('Submitted for manual review');
                   } catch (err) {

@@ -1,7 +1,8 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import type { User } from '../types/user'; // Import User type
+import type { User } from '../types/user';
 import { API_BASE_URL, REPLY_ROUTES } from '../components/constants/apiRoutes';
+import { logDev } from '../utils/logDev';
 
 // Axios instance for authenticated requests
 const api = axios.create({
@@ -173,42 +174,42 @@ export const adminApi = {
     if (lastUsageResetDate) {
       payload.last_usage_reset_date = lastUsageResetDate;
     }
-    console.log('[adminApi] updateUserRole payload', { userId, payload });
+    logDev('[adminApi] updateUserRole payload', { userId, payload });
     return api.put(`/admin/users/${userId}/role`, payload);
   },
   deleteUser: (userId: string) => api.delete(`/admin/users/${userId}`),
   getStats: () => api.get('/admin/stats'), // Assuming this endpoint returns data; check its casing if complex.
   getUserDetails: async (userId: string) => {
-    console.log('[adminApi] getUserDetails', userId);
+    logDev('[adminApi] getUserDetails', userId);
     const res = await api.get(`/admin/users/${userId}/details`);
-    console.log('[adminApi] getUserDetails response', res.data);
+    logDev('[adminApi] getUserDetails response', res.data);
     return res;
   },
   updateUserLimits: async (userId: string, limits: UpdateUserLimitsPayload) => {
-    console.log('[adminApi] updateUserLimits payload', { userId, limits });
+    logDev('[adminApi] updateUserLimits payload', { userId, limits });
     const response = await api.put(`/admin/users/${userId}/limits`, limits);
-    console.log('[adminApi] updateUserLimits response', response.data);
+    logDev('[adminApi] updateUserLimits response', response.data);
     return response;
   },
   updateUserModeration: async (
     userId: string,
     moderation: UpdateUserModerationPayload,
   ) => {
-    console.log('[adminApi] updateUserModeration payload', { userId, moderation });
+    logDev('[adminApi] updateUserModeration payload', { userId, moderation });
     const response = await api.put(`/admin/users/${userId}/moderation`, moderation);
-    console.log('[adminApi] updateUserModeration response', response.data);
+    logDev('[adminApi] updateUserModeration response', response.data);
     return response;
   },
   getModerationSummary: async () => {
-    console.log('[adminApi] getModerationSummary');
+    logDev('[adminApi] getModerationSummary');
     const res = await api.get('/admin/moderation/pending-counts');
-    console.log('[adminApi] getModerationSummary response', res.data);
+    logDev('[adminApi] getModerationSummary response', res.data);
     return res;
   },
   getUserPendingModeration: async (userId: string) => {
-    console.log('[adminApi] getUserPendingModeration', userId);
+    logDev('[adminApi] getUserPendingModeration', userId);
     const res = await api.get(`/admin/users/${userId}/pending-moderation`);
-    console.log('[adminApi] getUserPendingModeration response', res.data);
+    logDev('[adminApi] getUserPendingModeration response', res.data);
     return res;
   },
 };

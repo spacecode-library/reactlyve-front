@@ -1,4 +1,5 @@
 // src/utils/normalizeKeys.ts
+import { logDev } from './logDev';
 
 export const normalizeMessage = (message: any) => {
   if (!message) return message;
@@ -69,7 +70,7 @@ export const normalizeReaction = (reaction: any) => {
 export const normalizeUser = (user: any) => {
   if (!user) return user;
 
-  console.log('[normalizeUser] input', user);
+  logDev('[normalizeUser] input', user);
 
   const normalized = {
     ...user,
@@ -100,6 +101,6 @@ export const normalizeUser = (user: any) => {
       user.pendingManualReviews ?? user.pending_manual_reviews ?? 0,
   } as const;
 
-  console.log('[normalizeUser] output', normalized);
+  logDev('[normalizeUser] output', normalized);
   return normalized;
 };
