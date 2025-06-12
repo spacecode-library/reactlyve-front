@@ -77,7 +77,23 @@ const ProfilePage: React.FC = () => {
   const email = profileData.email || authUser?.email;
   const picture = profileData.picture || authUser?.picture;
 
+  const handleDeleteButtonClick = () => {
+    if (profileData.role === 'guest') {
+      toast.error(
+        'You are not able to delete a guest account, please contact support@reactlyve.com to request account deletion.'
+      );
+    } else {
+      setIsDeleteModalOpen(true);
+    }
+  };
+
   const handleDeleteAccount = async () => {
+    if (profileData.role === 'guest') {
+      toast.error(
+        'You are not able to delete a guest account, please contact support@reactlyve.com to request account deletion.'
+      );
+      return;
+    }
     setIsDeleting(true);
     try {
       await profileApi.deleteProfileMe();
@@ -177,9 +193,9 @@ const ProfilePage: React.FC = () => {
 
       <div className="mt-8">
         <h3 className="text-xl font-semibold mb-3">Account Management</h3>
-        <Button 
+        <Button
           variant="danger"
-          onClick={() => setIsDeleteModalOpen(true)}
+          onClick={handleDeleteButtonClick}
         >
           Delete Account
         </Button>
