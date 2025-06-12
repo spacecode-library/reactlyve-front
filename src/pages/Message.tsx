@@ -447,7 +447,7 @@ const Message: React.FC = () => {
             {(normalizedMessage.moderationStatus === 'rejected' ||
               normalizedMessage.moderationStatus === 'manual_review') && (
               <div className="mb-6 rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
-                <p className="mb-1 text-base font-medium text-neutral-500 dark:text-neutral-400">
+                <p className="mb-1 break-words text-base font-medium text-neutral-500 dark:text-neutral-400">
                   {normalizedMessage.moderationDetails ? `This image was rejected: ${normalizedMessage.moderationDetails}` : 'This media failed moderation.'}
                 </p>
                 <Button
@@ -661,7 +661,7 @@ const Message: React.FC = () => {
                           {(reaction.moderationStatus === 'rejected' ||
                             reaction.moderationStatus === 'manual_review') && (
                             <div className="mt-2">
-                              <p className="mb-1 text-sm font-medium text-neutral-500 dark:text-neutral-400">
+                              <p className="mb-1 break-words text-sm font-medium text-neutral-500 dark:text-neutral-400">
                                 {reaction.moderationDetails
                                   ? `Rejected: ${reaction.moderationDetails}`
                                   : 'This reaction failed moderation.'}

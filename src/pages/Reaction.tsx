@@ -140,7 +140,7 @@ const ReactionPage: React.FC = () => {
           {(reaction?.moderationStatus === 'rejected' ||
             reaction?.moderationStatus === 'manual_review') && (
             <div className="mt-2 text-neutral-700 dark:text-neutral-300">
-              <p className="mb-1 text-base font-medium text-neutral-500 dark:text-neutral-400">
+              <p className="mb-1 break-words text-base font-medium text-neutral-500 dark:text-neutral-400">
                 {reaction.moderationDetails ? `This video was rejected: ${reaction.moderationDetails}` : 'This video failed moderation.'}
               </p>
               <Button
