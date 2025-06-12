@@ -14,7 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
 import VideoPlayer from '../dashboard/VideoPlayer'; // Added VideoPlayer import
 import { getTransformedCloudinaryUrl } from '../../utils/mediaHelpers';
-import { REACTION_ERRORS } from '../../components/constants/errorMessages';
+import { MESSAGE_ERRORS, REACTION_ERRORS } from '../../components/constants/errorMessages';
 
 interface MessageViewerProps {
   message: Message;
@@ -219,6 +219,16 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       setPermissionError("Please enter your name to start the reaction.");
       return;
     }
+    if (
+      (normalizedMessage.mediaType === 'image' || normalizedMessage.mediaType === 'video') &&
+      normalizedMessage.moderationStatus === 'rejected'
+    ) {
+      toast.error(MESSAGE_ERRORS.CONTENT_UNAVAILABLE);
+      setPermissionError(MESSAGE_ERRORS.CONTENT_UNAVAILABLE);
+      setIsNameSubmitted(false);
+      setTriggerCountdown(false);
+      return;
+    }
     try {
       const currentSessionId = String(sessionId); // Ensure it's a string
       // The console log should use currentSessionId too
@@ -306,6 +316,21 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
                 Refresh Page
               </button>
             </div>
+          </div>
+        </div>
+      );
+    } else if (permissionError === MESSAGE_ERRORS.CONTENT_UNAVAILABLE) {
+      return (
+        <div className="flex min-h-screen w-full flex-col items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900 sm:py-12">
+          <div className="card mx-auto max-w-md p-6 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900 mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-neutral-900 dark:text-white text-center">
+              {MESSAGE_ERRORS.CONTENT_UNAVAILABLE}
+            </h3>
           </div>
         </div>
       );

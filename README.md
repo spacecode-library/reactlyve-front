@@ -78,7 +78,7 @@ reactlyve-frontend/
    ```
    VITE_API_URL=http://localhost:8000/api
    ```
-   If omitted, the app defaults to `https://api.reactlyve.com/api`.
+   If `VITE_API_URL` is omitted, the app defaults to `https://api.reactlyve.com/api`.
 
 4. Start the development server:
    ```bash
@@ -89,8 +89,17 @@ reactlyve-frontend/
 
 ### Build for Production
 
+Install dependencies (including dev dependencies) and run the production build. Even for production builds the TypeScript compiler relies on dev packages such as `@types/jest` and `@types/node`, so avoid using `--omit=dev` when installing:
+
 ```bash
+npm install --legacy-peer-deps  # ensure dev dependencies are installed
 npm run build
+```
+
+To serve the built app locally:
+
+```bash
+npm start
 ```
 
 ## Key Components
@@ -183,6 +192,12 @@ Some common TypeScript errors and solutions:
      console.error(errorEvent.error);
    };
    ```
+
+3. **Missing Jest/Node Types**: If you encounter errors like `Cannot find type definition file for 'jest'` or `'node'`, ensure you've installed dependencies first. Use:
+   ```bash
+    npm install --legacy-peer-deps
+    ```
+    This installs all dev dependencies such as `@types/jest` and `@types/node` required for the TypeScript build. Avoid passing `--omit=dev` or `--production` when installing.
 
 ### API Integration
 

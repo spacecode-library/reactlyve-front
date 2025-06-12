@@ -1,6 +1,6 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import type { User } from '../types/user'; // Import User type
+import type { User } from '../types/user';
 import { API_BASE_URL, REPLY_ROUTES } from '../components/constants/apiRoutes';
 
 // Axios instance for authenticated requests
@@ -90,6 +90,8 @@ export const messagesApi = {
   updateMessageDetails: async (messageId: string, data: { reaction_length?: number; passcode?: string | null }) => {
     return api.put(`/messages/${messageId}`, data);
   },
+  submitForManualReview: (messageId: string) =>
+    api.post(`/messages/${messageId}/manual-review`),
 };
 
 // ------------------ REACTIONS API ------------------
@@ -129,6 +131,8 @@ export const reactionsApi = {
   getById: (id: string) => api.get(`/reactions/${id}`),
   deleteReactionById: (reactionId: string) => api.delete(`/reactions/${reactionId}/delete`),
   deleteAllForMessage: (messageId: string) => api.delete(`/messages/${messageId}/reactions/delete`),
+  submitForManualReview: (reactionId: string) =>
+    api.post(`/reactions/${reactionId}/manual-review`),
 };
 
 // ------------------ REPLIES API ------------------
@@ -153,6 +157,11 @@ interface UpdateUserLimitsPayload {
   last_usage_reset_date?: string | null; // Should be an ISO date string
 }
 
+interface UpdateUserModerationPayload {
+  moderate_images?: boolean;
+  moderate_videos?: boolean;
+}
+
 // Note: Backend responses for getUsers and updateUserRole now return user objects with camelCase keys
 // (e.g., user.googleId, user.createdAt)
 export const adminApi = {
@@ -168,9 +177,29 @@ export const adminApi = {
   },
   deleteUser: (userId: string) => api.delete(`/admin/users/${userId}`),
   getStats: () => api.get('/admin/stats'), // Assuming this endpoint returns data; check its casing if complex.
-  getUserDetails: (userId: string) => api.get(`/admin/users/${userId}/details`),
-  updateUserLimits: (userId: string, limits: UpdateUserLimitsPayload) =>
-    api.put(`/admin/users/${userId}/limits`, limits),
+  getUserDetails: async (userId: string) => {
+    const res = await api.get(`/admin/users/${userId}/details`);
+    return res;
+  },
+  updateUserLimits: async (userId: string, limits: UpdateUserLimitsPayload) => {
+    const response = await api.put(`/admin/users/${userId}/limits`, limits);
+    return response;
+  },
+  updateUserModeration: async (
+    userId: string,
+    moderation: UpdateUserModerationPayload,
+  ) => {
+    const response = await api.put(`/admin/users/${userId}/moderation`, moderation);
+    return response;
+  },
+  getModerationSummary: async () => {
+    const res = await api.get('/admin/moderation/pending-counts');
+    return res;
+  },
+  getUserPendingModeration: async (userId: string) => {
+    const res = await api.get(`/admin/users/${userId}/pending-moderation`);
+    return res;
+  },
 };
 
 // ------------------ PROFILE API ------------------

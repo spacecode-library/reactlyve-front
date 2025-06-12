@@ -4,6 +4,7 @@ import MainLayout from '../layouts/MainLayout';
 import { format } from 'date-fns';
 import { DownloadIcon } from 'lucide-react';
 import { reactionsApi, messagesApi } from '@/services/api';
+import Button from '../components/common/Button';
 import VideoPlayer from '../components/dashboard/VideoPlayer';
 import type { MessageWithReactions } from '@/types/message';
 import type { Reaction } from '@/types/reaction';
@@ -17,6 +18,7 @@ const ReactionPage: React.FC = () => {
   const [parentMessage, setParentMessage] = useState<MessageWithReactions | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   // Define processedVideoUrl
   let processedVideoUrl: string | null | undefined = null;
@@ -135,10 +137,39 @@ const ReactionPage: React.FC = () => {
               <strong>From:</strong> {reaction.name}
             </p>
           )}
+          {(reaction?.moderationStatus === 'rejected' ||
+            reaction?.moderationStatus === 'manual_review') && (
+            <div className="mt-2 text-neutral-700 dark:text-neutral-300">
+              <p className="mb-1 break-words text-base font-medium text-neutral-500 dark:text-neutral-400">
+                {reaction.moderationDetails ? `This video was rejected: ${reaction.moderationDetails}` : 'This video failed moderation.'}
+              </p>
+              <Button
+                size="sm"
+                className="mt-1"
+                disabled={reaction?.moderationStatus === 'manual_review'}
+                onClick={async () => {
+                  setIsSubmittingReview(true);
+                  try {
+                    await reactionsApi.submitForManualReview(reaction.id);
+                    toast.success('Submitted for manual review');
+                  } catch (err) {
+                    toast.error('Failed to submit review');
+                  } finally {
+                    setIsSubmittingReview(false);
+                  }
+                }}
+                isLoading={isSubmittingReview}
+              >
+                {reaction?.moderationStatus === 'manual_review' ? 'Manual Review Pending' : 'Request Review'}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
-      {processedVideoUrl ? (
+      {processedVideoUrl &&
+        reaction?.moderationStatus !== 'rejected' &&
+        reaction?.moderationStatus !== 'manual_review' ? (
         <div className="px-4 py-8">
           <VideoPlayer
             src={processedVideoUrl || ''}
@@ -192,7 +223,12 @@ const ReactionPage: React.FC = () => {
           </button>
         </div>
       ) : (
-        <p className="mt-4 text-center text-neutral-600 dark:text-neutral-400">No video attached to this reaction.</p>
+        reaction?.moderationStatus !== 'rejected' &&
+        reaction?.moderationStatus !== 'manual_review' && (
+          <p className="mt-4 text-center text-neutral-600 dark:text-neutral-400">
+            No video attached to this reaction.
+          </p>
+        )
       )}
 
       {/* Replies */}

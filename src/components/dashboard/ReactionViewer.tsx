@@ -6,6 +6,8 @@ import { classNames } from '../../utils/classNames';
 import VideoPlayer from './VideoPlayer';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
+import { reactionsApi } from '../../services/api';
+import toast from 'react-hot-toast';
 
 interface ReactionViewerProps {
   reaction: Reaction;
@@ -25,6 +27,7 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
 }) => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   let transformedVideoUrl = reaction.videoUrl;
   if (reaction.videoUrl) {
@@ -58,7 +61,7 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
         </div>
 
         <div className="flex space-x-2">
-          {reaction.videoUrl && (
+          {reaction.videoUrl && reaction.moderationStatus !== "rejected" && reaction.moderationStatus !== "manual_review" && (
             <>
               <Button size="sm" variant="outline" onClick={handlePlayToggle}>
                 {isPlaying ? 'Pause' : 'Play'}
@@ -100,13 +103,12 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
       )}
 
       {/* Video */}
-      {reaction.videoUrl ? (
+      {reaction.videoUrl && reaction.moderationStatus !== "rejected" && reaction.moderationStatus !== "manual_review" ? (
         <div className="overflow-hidden rounded-md">
           <VideoPlayer
             src={transformedVideoUrl || ''}
             poster={reaction.thumbnailUrl}
             autoPlay={isPlaying}
-            onError={(err) => console.error('Video error:', err)}
           />
         </div>
       ) : (
@@ -127,6 +129,33 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
             </div>
           </div>
         )
+      )}
+
+      {(reaction.moderationStatus === "rejected" || reaction.moderationStatus === "manual_review") && (
+        <div className="mt-4 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
+          <p className="mb-1 break-words text-base font-medium text-neutral-500 dark:text-neutral-400">
+            {reaction.moderationDetails ? `This video was rejected: ${reaction.moderationDetails}` : 'This video failed moderation.'}
+          </p>
+          <Button
+            size="sm"
+            className="mt-2"
+            disabled={reaction.moderationStatus === 'manual_review'}
+            onClick={async () => {
+              setIsSubmittingReview(true);
+              try {
+                await reactionsApi.submitForManualReview(reaction.id);
+                toast.success('Submitted for manual review');
+              } catch (err) {
+                toast.error('Failed to submit review');
+              } finally {
+                setIsSubmittingReview(false);
+              }
+            }}
+            isLoading={isSubmittingReview}
+          >
+            {reaction.moderationStatus === 'manual_review' ? 'Manual Review Pending' : 'Request Review'}
+          </Button>
+        </div>
       )}
 
       {/* Delete Confirmation Modal */}

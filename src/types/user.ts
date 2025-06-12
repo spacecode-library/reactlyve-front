@@ -14,4 +14,7 @@ export interface User {
     reactionsReceivedThisMonth: number; // Added
     lastUsageResetDate: string | null;
     maxReactionsPerMessage: number | null;
-  }
+    moderateImages?: boolean;
+    moderateVideos?: boolean;
+    pendingManualReviews?: number;
+}

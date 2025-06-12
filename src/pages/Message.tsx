@@ -27,6 +27,7 @@ const Message: React.FC = () => {
   const [isDeletingReaction, setIsDeletingReaction] = useState(false);
   const [showDeleteAllReactionsModal, setShowDeleteAllReactionsModal] = useState(false);
   const [isDeletingAllReactions, setIsDeletingAllReactions] = useState(false);
+  const [manualReviewReactionId, setManualReviewReactionId] = useState<string | null>(null);
   const [message, setMessage] = useState<MessageWithReactions | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +46,7 @@ const Message: React.FC = () => {
   const [isReactionLengthModalOpen, setIsReactionLengthModalOpen] = useState(false);
   const [currentReactionLengthValue, setCurrentReactionLengthValue] = useState(15); // Default to 15s, will be clamped
   const [isUpdatingReactionLength, setIsUpdatingReactionLength] = useState(false);
+  const [isSubmittingManualReview, setIsSubmittingManualReview] = useState(false);
 
   useEffect(() => {
     const fetchMessageDetails = async () => {
@@ -53,10 +55,8 @@ const Message: React.FC = () => {
         const response = await api.get(MESSAGE_ROUTES.GET_BY_ID(id!));
         if (!response.data) throw new Error('No message found');
         setMessage(response.data);
-        // console.log('🔍 Message data from API:', response.data); // Removed for final version
       } catch (err) {
         setError('Failed to load message details');
-        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -337,9 +337,14 @@ const Message: React.FC = () => {
   let imageElement = null;
   // normalizedMessage could be null if message was null, but the `if (error || !message)` block handles that.
   // However, to be extremely safe, we can add a check for normalizedMessage here.
-  if (normalizedMessage && normalizedMessage.mediaType === 'image' && normalizedMessage.imageUrl) {
+  if (
+    normalizedMessage &&
+    normalizedMessage.moderationStatus !== 'rejected' &&
+    normalizedMessage.moderationStatus !== 'manual_review' &&
+    normalizedMessage.mediaType === 'image' &&
+    normalizedMessage.imageUrl
+  ) {
       const transformedImgUrl = normalizedMessage.imageUrl ? getTransformedCloudinaryUrl(normalizedMessage.imageUrl, normalizedMessage.fileSizeInBytes || 0) : '';
-      // console.log('[MessagePage] Image - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.imageUrl, 'Transformed URL:', transformedImgUrl);
       imageElement = (
           <div className="mb-6">
               <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Image</h2>
@@ -350,9 +355,14 @@ const Message: React.FC = () => {
 
   let videoElement = null;
   // Similar safety check for normalizedMessage
-  if (normalizedMessage && normalizedMessage.mediaType === 'video' && normalizedMessage.videoUrl) {
+  if (
+    normalizedMessage &&
+    normalizedMessage.moderationStatus !== 'rejected' &&
+    normalizedMessage.moderationStatus !== 'manual_review' &&
+    normalizedMessage.mediaType === 'video' &&
+    normalizedMessage.videoUrl
+  ) {
       const transformedVidUrl = normalizedMessage.videoUrl ? getTransformedCloudinaryUrl(normalizedMessage.videoUrl, normalizedMessage.fileSizeInBytes || 0) : '';
-      // console.log('[MessagePage] Video - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.videoUrl, 'Transformed URL:', transformedVidUrl);
       videoElement = (
           <div className="mb-6">
               <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Video</h2>
@@ -429,6 +439,34 @@ const Message: React.FC = () => {
                 <p className="text-neutral-700 dark:text-neutral-200">{message.content}</p>
               </div>
             </div>
+
+            {(normalizedMessage.moderationStatus === 'rejected' ||
+              normalizedMessage.moderationStatus === 'manual_review') && (
+              <div className="mb-6 rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
+                <p className="mb-1 break-words text-base font-medium text-neutral-500 dark:text-neutral-400">
+                  {normalizedMessage.moderationDetails ? `This image was rejected: ${normalizedMessage.moderationDetails}` : 'This media failed moderation.'}
+                </p>
+                <Button
+                  size="sm"
+                  className="mt-2"
+                  disabled={normalizedMessage.moderationStatus === 'manual_review'}
+                  onClick={async () => {
+                    setIsSubmittingManualReview(true);
+                    try {
+                      await messagesApi.submitForManualReview(id!);
+                      toast.success('Submitted for manual review');
+                    } catch (err) {
+                      toast.error('Failed to submit for review');
+                    } finally {
+                      setIsSubmittingManualReview(false);
+                    }
+                  }}
+                  isLoading={isSubmittingManualReview}
+                >
+                  {normalizedMessage.moderationStatus === 'manual_review' ? 'Manual Review Pending' : 'Request Manual Review'}
+                </Button>
+              </div>
+            )}
 
             {/* Media */}
             {imageElement}
@@ -615,6 +653,34 @@ const Message: React.FC = () => {
                           <p className="text-sm text-neutral-700 dark:text-neutral-300">
                             Received on {new Date(reaction.createdAt).toLocaleString()}
                           </p>
+                          {(reaction.moderationStatus === 'rejected' ||
+                            reaction.moderationStatus === 'manual_review') && (
+                            <div className="mt-2">
+                              <p className="mb-1 break-words text-sm font-medium text-neutral-500 dark:text-neutral-400">
+                                {reaction.moderationDetails
+                                  ? `Rejected: ${reaction.moderationDetails}`
+                                  : 'This reaction failed moderation.'}
+                              </p>
+                              <Button
+                                size="sm"
+                                disabled={reaction.moderationStatus === 'manual_review'}
+                                onClick={async () => {
+                                  setManualReviewReactionId(reaction.id);
+                                  try {
+                                    await reactionsApi.submitForManualReview(reaction.id);
+                                    toast.success('Reaction sent for review');
+                                  } catch (err) {
+                                    toast.error('Failed to submit reaction');
+                                  } finally {
+                                    setManualReviewReactionId(null);
+                                  }
+                                }}
+                                isLoading={manualReviewReactionId === reaction.id}
+                              >
+                                {reaction.moderationStatus === 'manual_review' ? 'Manual Review Pending' : 'Request Manual Review'}
+                              </Button>
+                            </div>
+                          )}
                         </div>
                         <Button
                           variant="outline"
@@ -629,7 +695,9 @@ const Message: React.FC = () => {
                         </Button>
                       </div>
 
-                      {reaction.videoUrl ? (
+                      {reaction.videoUrl &&
+                        reaction.moderationStatus !== 'rejected' &&
+                        reaction.moderationStatus !== 'manual_review' ? (
                         <>
                           {(() => {
                             let transformedReactionVideoUrl = reaction.videoUrl;
@@ -742,7 +810,9 @@ const Message: React.FC = () => {
                           )}
                         </>
                       ) : (
-                        (!reaction.replies || reaction.replies.length === 0) && (
+                        (!reaction.replies || reaction.replies.length === 0) &&
+                        reaction.moderationStatus !== 'rejected' &&
+                        reaction.moderationStatus !== 'manual_review' && (
                           <p className="my-4 text-sm text-neutral-600 dark:text-neutral-400">
                             No reaction video recorded or replies.
                           </p>

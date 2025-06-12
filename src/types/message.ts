@@ -25,6 +25,8 @@ export interface Message {
   max_reactions_allowed?: number | null; // Add this line
   reactions_used?: number;
   reactions_remaining?: number;
+  moderation_status?: string | null;
+  moderation_details?: string | null;
   isreply?: string;
   sender?: {
     name: string;
@@ -51,3 +53,4 @@ export interface MessageFormData {
 export interface MessageWithReactions extends Message {
   reactions: Reaction[];
 }
+

@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../services/api';
 import { User } from '../types/user';
-import { formatDate, formatDateTime } from '../utils/formatters'; // Import formatDateTime
+import { formatDate, formatDateTime } from '../utils/formatters';
 import Button from '../components/common/Button';
 import toast from 'react-hot-toast';
 import Modal from '../components/common/Modal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import DashboardLayout from '../layouts/DashboardLayout'; // Import DashboardLayout
-import Input from '../components/common/Input'; // Import Input component
+import DashboardLayout from '../layouts/DashboardLayout';
+import Input from '../components/common/Input';
+import { normalizeUser } from '../utils/normalizeKeys';
 
-// Define the available roles for the select dropdown
-// type SettableUserRole = 'user' | 'admin'; // No longer strictly needed here
+
+
 const ROLES_FOR_SELECT: User['role'][] = ['user', 'admin', 'guest'];
 
 interface UserToDelete {
@@ -22,7 +23,13 @@ interface UserLimitInputs {
   maxMessagesPerMonth: string;
   maxReactionsPerMonth: string;
   maxReactionsPerMessage: string;
-  lastUsageResetDate: string; // Added
+  lastUsageResetDate: string;
+}
+
+interface UserModerationInputs {
+  moderateImages: boolean;
+  moderateVideos: boolean;
+  pending?: { id: string; type: string; cloudinaryId: string }[];
 }
 
 const AdminPortalPage: React.FC = () => {
@@ -31,34 +38,75 @@ const AdminPortalPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [updatingRoleId, setUpdatingRoleId] = useState<string | null>(null);
 
-  // State for delete confirmation modal
+
   const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<UserToDelete | null>(null);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
 
-  // State for Edit Limits Modal
+
   const [isEditLimitsModalOpen, setIsEditLimitsModalOpen] = useState(false);
   const [selectedUserForLimits, setSelectedUserForLimits] = useState<User | null>(null);
   const [limitInputs, setLimitInputs] = useState<UserLimitInputs>({
     maxMessagesPerMonth: '',
     maxReactionsPerMonth: '',
     maxReactionsPerMessage: '',
-    lastUsageResetDate: '', // Added
+    lastUsageResetDate: '',
   });
   const [isLoadingUserDetails, setIsLoadingUserDetails] = useState(false);
   const [isUpdatingLimits, setIsUpdatingLimits] = useState(false);
   const [lastUpdatedUserId, setLastUpdatedUserId] = useState<string | null>(null);
+
+
+  const [isModerationModalOpen, setIsModerationModalOpen] = useState(false);
+  const [selectedUserForModeration, setSelectedUserForModeration] = useState<User | null>(null);
+  const [moderationInputs, setModerationInputs] = useState<UserModerationInputs>({
+    moderateImages: false,
+    moderateVideos: false,
+    pending: [],
+  });
+  const [isUpdatingModeration, setIsUpdatingModeration] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await adminApi.getUsers();
-        setUsers(response.data.users || response.data);
+        const [usersRes, countsRes] = await Promise.all([
+          adminApi.getUsers(),
+          adminApi.getModerationSummary(),
+        ]);
+        const fetchedUsers = usersRes.data.users || usersRes.data;
+        const normalized = fetchedUsers.map(normalizeUser);
+        const countsData = countsRes.data || {};
+        let counts: Record<string, number> = {};
+        if (Array.isArray(countsData)) {
+          countsData.forEach((item: any) => {
+            const id = item.id || item.userId || item.user_id;
+            if (!id) return;
+            const fromKeys =
+              item.pending_manual_reviews ??
+              item.pendingManualReviews ??
+              item.pending ??
+              item.count ??
+              item.pendingCount;
+            const combined =
+              typeof item.messages_pending === 'number' || typeof item.reactions_pending === 'number'
+                ? (item.messages_pending || 0) + (item.reactions_pending || 0)
+                : undefined;
+            counts[id] = (fromKeys ?? combined ?? 0) as number;
+          });
+        } else if (countsData.counts) {
+          counts = countsData.counts;
+        } else {
+          counts = countsData;
+        }
+        const withCounts = normalized.map((u: User) => ({
+          ...u,
+          pendingManualReviews: counts[u.id] ?? u.pendingManualReviews ?? 0,
+        }));
+        setUsers(withCounts);
       } catch (err) {
         setError('Failed to fetch users. Please try again later.');
-        console.error('Fetch users error:', err);
         toast.error('Failed to fetch users.');
       } finally {
         setIsLoading(false);
@@ -70,17 +118,14 @@ const AdminPortalPage: React.FC = () => {
 
   useEffect(() => {
     if (lastUpdatedUserId) {
-      // const updatedUser = users.find(u => u.id === lastUpdatedUserId);
-      // console.log('[AdminPortal] useEffect after users change, updated user:', updatedUser); // Removed
-      setLastUpdatedUserId(null); // Reset for next update
+      const updatedUser = users.find(u => u.id === lastUpdatedUserId);
+      setLastUpdatedUserId(null);
     }
   }, [users, lastUpdatedUserId]);
 
   const handleLimitInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    // console.log('handleLimitInputChange called. Name:', name, 'Value:', value, 'Type:', e.target.type); // Removed
-    if (e.target.type === 'number' && value !== '' && !/^\d+$/.test(value) && value !== '-') {
-      // Allow only numbers, empty string, or a single hyphen for potential negative (though we use min="0")
+    const { name, value, type } = e.target;
+    if (type === 'number' && value !== '' && !/^\d+$/.test(value) && value !== '-') {
       return;
     }
     setLimitInputs(prev => ({ ...prev, [name]: value }));
@@ -89,65 +134,58 @@ const AdminPortalPage: React.FC = () => {
   const handleSaveLimits = async () => {
     if (!selectedUserForLimits) return;
 
-    // console.log('handleSaveLimits called. Current limitInputs:', limitInputs); // Removed
-
     setIsUpdatingLimits(true);
 
     const parseInput = (value: string): number | null => {
       if (value === '') return null;
       const num = parseInt(value, 10);
-      return isNaN(num) ? null : num; // Convert NaN (from invalid parse like "abc") to null
+      return isNaN(num) ? null : num;
     };
 
-    const rawDate = limitInputs.lastUsageResetDate; // YYYY-MM-DD string or empty
+    const rawDate = limitInputs.lastUsageResetDate;
     let formattedDateForPayload: string | null = null;
     if (rawDate) {
       try {
-        // new Date('YYYY-MM-DD') can interpret the date in local timezone.
-        // To ensure it's treated as UTC for date-only inputs, parse components.
+
+
         const parts = rawDate.split('-');
         if (parts.length === 3) {
           const year = parseInt(parts[0], 10);
-          const month = parseInt(parts[1], 10); // 1-12
+          const month = parseInt(parts[1], 10);
           const day = parseInt(parts[2], 10);
 
-          // Validate numeric parts
+
           if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-            // Date.UTC expects month to be 0-11
+
             const utcDate = new Date(Date.UTC(year, month - 1, day));
-            if (!isNaN(utcDate.getTime())) { // Check if utcDate is valid
-              // Check if the constructed UTC date corresponds to the input parts
-              // This guards against invalid dates like "2023-02-30" being accepted by new Date()
-              // and rolling over to a different month.
+            if (!isNaN(utcDate.getTime())) {
+
+
+
               if (utcDate.getUTCFullYear() === year &&
                   utcDate.getUTCMonth() === month - 1 &&
                   utcDate.getUTCDate() === day) {
                 formattedDateForPayload = utcDate.toISOString();
-              } // else {
-                // console.warn(`Input date ${rawDate} resulted in an invalid UTC date after construction (e.g., day out of range for month).`); // Removed
-              // }
-            } // else {
-              // console.warn(`Could not construct a valid UTC date from ${rawDate} (Date.UTC returned NaN).`); // Removed
-            // }
-          } // else {
-            // console.warn(`Could not parse numeric components from ${rawDate}.`); // Removed
-          // }
-        } // else {
-          // console.warn(`Date string ${rawDate} is not in YYYY-MM-DD format.`); // Removed
-        // }
+              }
+
+            }
+
+          }
+
+        }
+
       } catch (error) {
-        // console.error(`Error processing date ${rawDate}:`, error); // Removed
-        // formattedDateForPayload remains null
-        // It's generally good to keep actual error handling, but task asks to remove specific logs.
-        // For a production system, one might log this to an error tracking service.
+
+
+
       }
     }
 
-    // Prepare values for both API payload and local state update
+
     const maxMessages = parseInput(limitInputs.maxMessagesPerMonth);
     const maxReactions = parseInput(limitInputs.maxReactionsPerMonth);
     const maxReactionsMsg = parseInput(limitInputs.maxReactionsPerMessage);
-    // formattedDateForPayload is already the ISO string or null
+
 
     const finalPayload = {
       max_messages_per_month: maxMessages,
@@ -156,32 +194,28 @@ const AdminPortalPage: React.FC = () => {
       last_usage_reset_date: formattedDateForPayload,
     };
 
-    // console.log('Parsed payload to be sent:', finalPayload); // Removed
 
-    // Check if all payload properties are null
+
     const allNull = Object.values(finalPayload).every(value => value === null);
 
     if (allNull) {
       toast.error("Please provide at least one limit value to update.");
-      setIsUpdatingLimits(false); // Reset loading state
-      return; // Exit the function
+      setIsUpdatingLimits(false);
+      return;
     }
 
     try {
-      // console.log('[AdminPortal] handleSaveLimits: Preparing to send to adminApi.updateUserLimits', {
-      //   userId: selectedUserForLimits.id,
-      //   payload: finalPayload
-      // }); // Removed
-      await adminApi.updateUserLimits(selectedUserForLimits.id, finalPayload);
-      // const response = await adminApi.updateUserLimits(selectedUserForLimits.id, finalPayload); // Keep if response is used
-      // console.log('[AdminPortal] handleSaveLimits: adminApi.updateUserLimits - Backend response:', response); // Removed
 
-      // Optimistic update for local state (uses camelCase as per User type)
+
+
+      const updateRes = await adminApi.updateUserLimits(selectedUserForLimits.id, finalPayload);
+
+
       const camelCaseUpdateData = {
           maxMessagesPerMonth: maxMessages,
           maxReactionsPerMonth: maxReactions,
           maxReactionsPerMessage: maxReactionsMsg,
-          lastUsageResetDate: formattedDateForPayload, // This is the ISO string or null
+          lastUsageResetDate: formattedDateForPayload,
       };
       setUsers(prevUsers => prevUsers.map(u =>
         u.id === selectedUserForLimits.id
@@ -193,9 +227,48 @@ const AdminPortalPage: React.FC = () => {
       setSelectedUserForLimits(null);
     } catch (err) {
       toast.error('Failed to update limits.');
-      console.error("Update limits error:", err);
     } finally {
       setIsUpdatingLimits(false);
+    }
+  };
+
+  const handleModerationInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const { name, checked } = e.target;
+    setModerationInputs(prev => ({ ...prev, [name]: checked }));
+  };
+
+  const handleSaveModeration = async () => {
+    if (!selectedUserForModeration) return;
+    setIsUpdatingModeration(true);
+    const payload = {
+      moderate_images: moderationInputs.moderateImages,
+      moderate_videos: moderationInputs.moderateVideos,
+    };
+    try {
+      const res = await adminApi.updateUserModeration(
+        selectedUserForModeration.id,
+        payload,
+      );
+      setUsers(prev =>
+        prev.map(u =>
+          u.id === selectedUserForModeration.id
+            ? {
+                ...u,
+                moderateImages: moderationInputs.moderateImages,
+                moderateVideos: moderationInputs.moderateVideos,
+              }
+            : u,
+        ),
+      );
+      toast.success('Moderation settings updated!');
+      setIsModerationModalOpen(false);
+      setSelectedUserForModeration(null);
+    } catch (err) {
+      toast.error('Failed to update moderation');
+    } finally {
+      setIsUpdatingModeration(false);
     }
   };
 
@@ -206,57 +279,51 @@ const AdminPortalPage: React.FC = () => {
     const oldRole = user?.role;
 
     try {
-      let finalApiResponse: any; // To hold the response that updates the state
+      let finalApiResponse: any;
       let updatedUserData: User | undefined;
 
       if (oldRole === 'guest' && newRole === 'user') {
-        // console.log(`[AdminPortal] handleRoleChange (Guest-to-User): Step 1 - Updating role for ${userId} to ${newRole}`); // Removed
-        const roleUpdateResponse = await adminApi.updateUserRole(userId, newRole); // No date here
-        // console.log('[AdminPortal] handleRoleChange (Guest-to-User): Step 1 - Role update API response:', roleUpdateResponse); // Removed
+        const roleUpdateResponse = await adminApi.updateUserRole(userId, newRole);
 
         if (roleUpdateResponse && (roleUpdateResponse.status === 200 || roleUpdateResponse.status === 204 || roleUpdateResponse.data)) {
           const newLastUsageResetDate = new Date().toISOString();
-          // console.log(`[AdminPortal] handleRoleChange (Guest-to-User): Step 2 - Setting lastUsageResetDate for ${userId} to ${newLastUsageResetDate}`); // Removed
           finalApiResponse = await adminApi.updateUserLimits(userId, {
             last_usage_reset_date: newLastUsageResetDate
           });
-          // console.log('[AdminPortal] handleRoleChange (Guest-to-User): Step 2 - Limits update API response:', finalApiResponse); // Removed
           updatedUserData = finalApiResponse.data;
         } else {
           throw new Error(roleUpdateResponse?.data?.message || `Role update to '${newRole}' failed`);
         }
       } else {
-        // Handle other role changes as before
-        // console.log(`[AdminPortal] handleRoleChange (Other role change): Updating role for ${userId} to ${newRole}`); // Removed
+
         finalApiResponse = await adminApi.updateUserRole(userId, newRole);
-        // console.log('[AdminPortal] handleRoleChange (Other role change): Role update API response:', finalApiResponse); // Removed
         updatedUserData = finalApiResponse.data;
       }
 
       toast.success(`User ${userId} role updated to ${newRole}.`);
 
-      // Common logic to update state using finalApiResponse / updatedUserData
+
       let finalUserUpdate: Partial<User> = {};
       if (updatedUserData) {
         finalUserUpdate = {
-            ...updatedUserData, // Spread all fields from the API response
-            role: newRole, // Ensure newRole is set if not already from API response (e.g. updateUserLimits might not return role)
+            ...updatedUserData,
+            role: newRole,
         };
-        // If guest-to-user, ensure the newLastUsageResetDate is in finalUserUpdate
+
         if (oldRole === 'guest' && newRole === 'user' && finalUserUpdate.lastUsageResetDate) {
-            // The lastUsageResetDate from updateUserLimits response should be the correct one
+
         }
       } else if (oldRole === 'guest' && newRole === 'user') {
-        // Fallback if updatedUserData is not available from limits call, but we know the date
-         finalUserUpdate = { role: newRole, lastUsageResetDate: new Date().toISOString() }; // This might be slightly off if limits call failed but role didn't
+
+         finalUserUpdate = { role: newRole, lastUsageResetDate: new Date().toISOString() };
       } else {
-        // Fallback for other role changes if API response structure is unexpected
+
         finalUserUpdate = { role: newRole, lastUsageResetDate: user?.lastUsageResetDate || null };
       }
 
 
-      if (newRole === 'guest' && oldRole !== 'guest') { // Ensure this runs only when changing TO guest
-        // Define guest default limits (values)
+      if (newRole === 'guest' && oldRole !== 'guest') {
+
         const guestMaxMessages = 3;
         const guestMaxReactions = 9;
         const guestMaxReactionsMsg = 3;
@@ -265,7 +332,6 @@ const AdminPortalPage: React.FC = () => {
           const [year, month, day] = "2999-01-19".split('-').map(Number);
           guestLastUsageResetDateIso = new Date(Date.UTC(year, month - 1, day)).toISOString();
         } catch (e) {
-            console.error("Error formatting guest lastUsageResetDate:", e);
         }
 
         const apiGuestPayload = {
@@ -276,17 +342,16 @@ const AdminPortalPage: React.FC = () => {
         };
 
         try {
-          // Note: If newRole is 'guest', this might overwrite parts of finalUserUpdate from earlier.
-          // Consider merging:
+
           const guestLimitsResponse = await adminApi.updateUserLimits(userId, apiGuestPayload);
           toast.success(`User ${userId} limits reset to guest defaults.`);
-          // The finalUserUpdate should now primarily be based on guestLimitsResponse.data
+
           if (guestLimitsResponse.data) {
-             finalUserUpdate = { ...finalUserUpdate, ...guestLimitsResponse.data, role: newRole }; // Ensure role is guest
+             finalUserUpdate = { ...finalUserUpdate, ...guestLimitsResponse.data, role: newRole };
           } else {
-             // Fallback if no data from limits call
+
              finalUserUpdate = {
-                ...finalUserUpdate, // Keep role from previous step
+                ...finalUserUpdate,
                 maxMessagesPerMonth: guestMaxMessages,
                 maxReactionsPerMonth: guestMaxReactions,
                 maxReactionsPerMessage: guestMaxReactionsMsg,
@@ -294,25 +359,23 @@ const AdminPortalPage: React.FC = () => {
              };
           }
         } catch (limitErr) {
-          console.error('Failed to set guest limits:', limitErr);
           toast.error('Role set to guest, but failed to reset limits. Manual limit adjustment might be needed.');
-          // If setting guest limits fails, finalUserUpdate might be from the role change call,
-          // which might not have the guest limits.
+
+
         }
       }
 
-      // Update local state with all changes
-      if (Object.keys(finalUserUpdate).length > 0) { // Ensure there's something to update
+
+      if (Object.keys(finalUserUpdate).length > 0) {
         setUsers(prevUsers =>
           prevUsers.map(u =>
             u.id === userId ? { ...u, ...finalUserUpdate } : u
           )
         );
-        setLastUpdatedUserId(userId); // Trigger useEffect for logging
+        setLastUpdatedUserId(userId);
       }
 
     } catch (err) {
-      console.error('[AdminPortal] handleRoleChange: Role update API call failed', err);
       toast.error(
         (err as any)?.response?.data?.message || 'Failed to update user role.'
       );
@@ -332,12 +395,10 @@ const AdminPortalPage: React.FC = () => {
       setIsDeleteUserModalOpen(false);
       setUserToDelete(null);
     } catch (err) {
-      console.error('Delete user error:', err);
       toast.error(
         (err as any)?.response?.data?.message || 'Failed to delete user.'
       );
-      // Optionally, keep modal open on error for user to retry or cancel, 
-      // or close it as done above for success case. For now, it closes on success and stays open on error.
+
     } finally {
       setIsDeletingUser(false);
     }
@@ -388,13 +449,13 @@ const AdminPortalPage: React.FC = () => {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300">Role</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300 hidden sm:table-cell">Status</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300 hidden sm:table-cell">Last Login</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300 hidden sm:table-cell">Pending Reviews</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300 hidden md:table-cell">Created At</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200 dark:bg-neutral-900 dark:divide-neutral-700">
               {users.map((user) => {
-                // console.log('[AdminPortal] Passing props to child component for user:', user.id, user); // Removed
                 return (
                 <tr key={user.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
@@ -423,12 +484,15 @@ const AdminPortalPage: React.FC = () => {
                       {user.blocked ? 'Blocked' : 'Active'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-300 hidden sm:table-cell">
-                    {user.lastLogin ? formatDateTime(user.lastLogin) : 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-300 hidden md:table-cell">
-                    {user.createdAt ? formatDateTime(user.createdAt) : 'N/A'}
-                  </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-300 hidden sm:table-cell">
+                  {user.lastLogin ? formatDateTime(user.lastLogin) : 'N/A'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-300 hidden sm:table-cell">
+                  {user.pendingManualReviews ?? 0}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-300 hidden md:table-cell">
+                  {user.createdAt ? formatDateTime(user.createdAt) : 'N/A'}
+                </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
                       <select
@@ -463,7 +527,7 @@ const AdminPortalPage: React.FC = () => {
                           setIsLoadingUserDetails(true);
                           try {
                             const apiResponse = await adminApi.getUserDetails(user.id);
-                            const userDetailsToDisplay: User = apiResponse.data;
+                            const userDetailsToDisplay: User = normalizeUser(apiResponse.data);
 
                             setSelectedUserForLimits(userDetailsToDisplay);
 
@@ -480,8 +544,7 @@ const AdminPortalPage: React.FC = () => {
                             setIsEditLimitsModalOpen(true);
                           } catch (err) {
                             toast.error('Failed to fetch user details.');
-                            console.error("Fetch user details error:", err);
-                            setSelectedUserForLimits(null); // Clear optimistic set if fetch fails
+                            setSelectedUserForLimits(null);
                           } finally {
                             setIsLoadingUserDetails(false);
                           }
@@ -490,6 +553,56 @@ const AdminPortalPage: React.FC = () => {
                         isLoading={isLoadingUserDetails && selectedUserForLimits?.id === user.id}
                       >
                         Manage Limits
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          setSelectedUserForModeration(user);
+                          setIsLoadingUserDetails(true);
+                          try {
+                          const [userRes, pendingRes] = await Promise.all([
+                            adminApi.getUserDetails(user.id),
+                            adminApi.getUserPendingModeration(user.id),
+                          ]);
+                          const normalized = normalizeUser(userRes.data);
+                          const pendingRaw = pendingRes.data?.pending || pendingRes.data || {};
+                          const pendingArr = [
+                            ...((pendingRaw.messages || []).map((m: any) => ({
+                              id: m.id,
+                              cloudinaryId: m.publicId || m.public_id || m.cloudinaryId,
+                              type: 'message',
+                            }))),
+                            ...((pendingRaw.reactions || []).map((r: any) => ({
+                              id: r.id,
+                              cloudinaryId: r.publicId || r.public_id || r.cloudinaryId,
+                              type: 'reaction',
+                            }))),
+                          ];
+                          setModerationInputs({
+                            moderateImages: !!normalized.moderateImages,
+                            moderateVideos: !!normalized.moderateVideos,
+                            pending: pendingArr,
+                          });
+                          setUsers(prev =>
+                            prev.map(u =>
+                              u.id === user.id
+                                ? { ...u, pendingManualReviews: pendingArr.length }
+                                : u,
+                            ),
+                          );
+                            setIsModerationModalOpen(true);
+                          } catch (err) {
+                            toast.error('Failed to fetch moderation details.');
+                            setSelectedUserForModeration(null);
+                          } finally {
+                            setIsLoadingUserDetails(false);
+                          }
+                        }}
+                        disabled={(isLoadingUserDetails && selectedUserForModeration?.id === user.id) || isModerationModalOpen}
+                        isLoading={isLoadingUserDetails && selectedUserForModeration?.id === user.id}
+                      >
+                        Manage Moderation
                       </Button>
                     </div>
                   </td>
@@ -554,7 +667,7 @@ const AdminPortalPage: React.FC = () => {
               setSelectedUserForLimits(null);
             }}
             title={`Manage Limits for ${selectedUserForLimits.name}`}
-            size="lg" // Consider 'lg' or 'xl' for more content
+            size="lg"
           >
             <div className="space-y-4">
               <div>
@@ -637,6 +750,7 @@ const AdminPortalPage: React.FC = () => {
                   disabled={isUpdatingLimits}
                 />
               </div>
+
             </div>
             <div className="mt-6 flex justify-end space-x-3">
               <Button
@@ -650,7 +764,7 @@ const AdminPortalPage: React.FC = () => {
                 Cancel
               </Button>
               <Button
-                variant="primary" // Changed from danger to primary for save action
+                variant="primary"
                 onClick={handleSaveLimits}
                 isLoading={isUpdatingLimits}
                 disabled={isUpdatingLimits}
@@ -660,8 +774,85 @@ const AdminPortalPage: React.FC = () => {
             </div>
           </Modal>
         )}
+
+        {/* Manage Moderation Modal */}
+        {isModerationModalOpen && selectedUserForModeration && (
+          <Modal
+            isOpen={isModerationModalOpen}
+            onClose={() => {
+              if (isUpdatingModeration) return;
+              setIsModerationModalOpen(false);
+              setSelectedUserForModeration(null);
+            }}
+            title={`Manage Moderation for ${selectedUserForModeration.name}`}
+            size="lg"
+          >
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  name="moderateImages"
+                  id="moderateImages"
+                  checked={moderationInputs.moderateImages}
+                  onChange={handleModerationInputChange}
+                  className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-600 dark:border-neutral-700 dark:bg-neutral-900"
+                  disabled={isUpdatingModeration}
+                />
+                <label htmlFor="moderateImages" className="text-sm text-neutral-800 dark:text-neutral-100">
+                  Moderate image uploads
+                </label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  name="moderateVideos"
+                  id="moderateVideos"
+                  checked={moderationInputs.moderateVideos}
+                  onChange={handleModerationInputChange}
+                  className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-600 dark:border-neutral-700 dark:bg-neutral-900"
+                  disabled={isUpdatingModeration}
+                />
+                <label htmlFor="moderateVideos" className="text-sm text-neutral-800 dark:text-neutral-100">
+                  Moderate video uploads
+                </label>
+              </div>
+
+              {moderationInputs.pending && moderationInputs.pending.length > 0 && (
+                <div>
+                  <h4 className="text-md font-semibold mb-1">Pending Manual Reviews</h4>
+                  <ul className="list-disc pl-5 text-sm text-neutral-700 dark:text-neutral-300 space-y-1">
+                    {moderationInputs.pending.map(item => (
+                      <li key={item.id}>{item.type} - {item.cloudinaryId}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+            <div className="mt-6 flex justify-end space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsModerationModalOpen(false);
+                  setSelectedUserForModeration(null);
+                }}
+                disabled={isUpdatingModeration}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleSaveModeration}
+                isLoading={isUpdatingModeration}
+                disabled={isUpdatingModeration}
+              >
+                Save Settings
+              </Button>
+            </div>
+          </Modal>
+        )}
       </div> {/* Close main content wrapper div */}
-    </DashboardLayout> 
+    </DashboardLayout>
   );
 };
 
