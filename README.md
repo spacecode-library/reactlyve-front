@@ -185,6 +185,8 @@ Some common TypeScript errors and solutions:
    };
    ```
 
+3. **Missing Jest/Node Types**: If you encounter errors like `Cannot find type definition file for 'jest'` or `'node'`, ensure you've run `npm install` to install all development dependencies, including `@types/jest` and `@types/node`.
+
 ### API Integration
 
 The application expects a backend API at `http://localhost:8000/api`. Ensure the backend server is running and accessible.
