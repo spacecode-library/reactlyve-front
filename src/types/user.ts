@@ -16,4 +16,5 @@ export interface User {
     maxReactionsPerMessage: number | null;
     moderateImages?: boolean;
     moderateVideos?: boolean;
+    pendingManualReviews?: number;
 }

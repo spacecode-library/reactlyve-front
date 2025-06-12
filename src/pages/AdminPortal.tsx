@@ -24,8 +24,12 @@ interface UserLimitInputs {
   maxReactionsPerMonth: string;
   maxReactionsPerMessage: string;
   lastUsageResetDate: string; // Added
+}
+
+interface UserModerationInputs {
   moderateImages: boolean;
   moderateVideos: boolean;
+  pending?: { id: string; type: string; cloudinaryId: string }[];
 }
 
 const AdminPortalPage: React.FC = () => {
@@ -47,12 +51,20 @@ const AdminPortalPage: React.FC = () => {
     maxReactionsPerMonth: '',
     maxReactionsPerMessage: '',
     lastUsageResetDate: '', // Added
-    moderateImages: false,
-    moderateVideos: false,
   });
   const [isLoadingUserDetails, setIsLoadingUserDetails] = useState(false);
   const [isUpdatingLimits, setIsUpdatingLimits] = useState(false);
   const [lastUpdatedUserId, setLastUpdatedUserId] = useState<string | null>(null);
+
+  // State for Moderation Modal
+  const [isModerationModalOpen, setIsModerationModalOpen] = useState(false);
+  const [selectedUserForModeration, setSelectedUserForModeration] = useState<User | null>(null);
+  const [moderationInputs, setModerationInputs] = useState<UserModerationInputs>({
+    moderateImages: false,
+    moderateVideos: false,
+    pending: [],
+  });
+  const [isUpdatingModeration, setIsUpdatingModeration] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -86,12 +98,7 @@ const AdminPortalPage: React.FC = () => {
   }, [users, lastUpdatedUserId]);
 
   const handleLimitInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    if (type === 'checkbox') {
-      setLimitInputs(prev => ({ ...prev, [name]: checked }));
-      console.log('[AdminPortal] limit input change', name, checked);
-      return;
-    }
+    const { name, value, type } = e.target;
     if (type === 'number' && value !== '' && !/^\d+$/.test(value) && value !== '-') {
       return;
     }
@@ -167,8 +174,6 @@ const AdminPortalPage: React.FC = () => {
       max_reactions_per_month: maxReactions,
       max_reactions_per_message: maxReactionsMsg,
       last_usage_reset_date: formattedDateForPayload,
-      moderate_images: limitInputs.moderateImages,
-      moderate_videos: limitInputs.moderateVideos,
     };
 
     console.log('[AdminPortal] finalPayload', finalPayload);
@@ -196,8 +201,6 @@ const AdminPortalPage: React.FC = () => {
           maxReactionsPerMonth: maxReactions,
           maxReactionsPerMessage: maxReactionsMsg,
           lastUsageResetDate: formattedDateForPayload, // This is the ISO string or null
-          moderateImages: limitInputs.moderateImages,
-          moderateVideos: limitInputs.moderateVideos,
       };
       setUsers(prevUsers => prevUsers.map(u =>
         u.id === selectedUserForLimits.id
@@ -212,6 +215,49 @@ const AdminPortalPage: React.FC = () => {
       console.error("Update limits error:", err);
     } finally {
       setIsUpdatingLimits(false);
+    }
+  };
+
+  const handleModerationInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const { name, checked } = e.target;
+    setModerationInputs(prev => ({ ...prev, [name]: checked }));
+    console.log('[AdminPortal] moderation input change', name, checked);
+  };
+
+  const handleSaveModeration = async () => {
+    if (!selectedUserForModeration) return;
+    setIsUpdatingModeration(true);
+    const payload = {
+      moderate_images: moderationInputs.moderateImages,
+      moderate_videos: moderationInputs.moderateVideos,
+    };
+    try {
+      const res = await adminApi.updateUserModeration(
+        selectedUserForModeration.id,
+        payload,
+      );
+      console.log('[AdminPortal] updateUserModeration result', res.data);
+      setUsers(prev =>
+        prev.map(u =>
+          u.id === selectedUserForModeration.id
+            ? {
+                ...u,
+                moderateImages: moderationInputs.moderateImages,
+                moderateVideos: moderationInputs.moderateVideos,
+              }
+            : u,
+        ),
+      );
+      toast.success('Moderation settings updated!');
+      setIsModerationModalOpen(false);
+      setSelectedUserForModeration(null);
+    } catch (err) {
+      toast.error('Failed to update moderation');
+      console.error('Update moderation error:', err);
+    } finally {
+      setIsUpdatingModeration(false);
     }
   };
 
@@ -405,6 +451,7 @@ const AdminPortalPage: React.FC = () => {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300">Role</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300 hidden sm:table-cell">Status</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300 hidden sm:table-cell">Last Login</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300 hidden sm:table-cell">Pending Reviews</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300 hidden md:table-cell">Created At</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-neutral-300">Actions</th>
               </tr>
@@ -440,12 +487,15 @@ const AdminPortalPage: React.FC = () => {
                       {user.blocked ? 'Blocked' : 'Active'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-300 hidden sm:table-cell">
-                    {user.lastLogin ? formatDateTime(user.lastLogin) : 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-300 hidden md:table-cell">
-                    {user.createdAt ? formatDateTime(user.createdAt) : 'N/A'}
-                  </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-300 hidden sm:table-cell">
+                  {user.lastLogin ? formatDateTime(user.lastLogin) : 'N/A'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-300 hidden sm:table-cell">
+                  {user.pendingManualReviews ?? 0}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-300 hidden md:table-cell">
+                  {user.createdAt ? formatDateTime(user.createdAt) : 'N/A'}
+                </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
                       <select
@@ -495,8 +545,6 @@ const AdminPortalPage: React.FC = () => {
                               maxReactionsPerMonth: userDetailsToDisplay.maxReactionsPerMonth?.toString() || '',
                               maxReactionsPerMessage: userDetailsToDisplay.maxReactionsPerMessage?.toString() || '',
                               lastUsageResetDate: resetDateForInput,
-                              moderateImages: !!userDetailsToDisplay.moderateImages,
-                              moderateVideos: !!userDetailsToDisplay.moderateVideos,
                             });
                             console.log('[AdminPortal] limitInputs after fetch', {
                               ...userDetailsToDisplay,
@@ -515,6 +563,34 @@ const AdminPortalPage: React.FC = () => {
                         isLoading={isLoadingUserDetails && selectedUserForLimits?.id === user.id}
                       >
                         Manage Limits
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          setSelectedUserForModeration(user);
+                          setIsLoadingUserDetails(true);
+                          try {
+                            const res = await adminApi.getUserModeration(user.id);
+                            const data = res.data || {};
+                            setModerationInputs({
+                              moderateImages: !!data.moderateImages,
+                              moderateVideos: !!data.moderateVideos,
+                              pending: data.pending || [],
+                            });
+                            setIsModerationModalOpen(true);
+                          } catch (err) {
+                            toast.error('Failed to fetch moderation details.');
+                            console.error('Fetch moderation details error:', err);
+                            setSelectedUserForModeration(null);
+                          } finally {
+                            setIsLoadingUserDetails(false);
+                          }
+                        }}
+                        disabled={(isLoadingUserDetails && selectedUserForModeration?.id === user.id) || isModerationModalOpen}
+                        isLoading={isLoadingUserDetails && selectedUserForModeration?.id === user.id}
+                      >
+                        Manage Moderation
                       </Button>
                     </div>
                   </td>
@@ -663,35 +739,6 @@ const AdminPortalPage: React.FC = () => {
                 />
               </div>
 
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  name="moderateImages"
-                  id="moderateImages"
-                  checked={limitInputs.moderateImages}
-                  onChange={handleLimitInputChange}
-                  className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-600 dark:border-neutral-700 dark:bg-neutral-900"
-                  disabled={isUpdatingLimits}
-                />
-                <label htmlFor="moderateImages" className="text-sm text-neutral-800 dark:text-neutral-100">
-                  Moderate image uploads
-                </label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  name="moderateVideos"
-                  id="moderateVideos"
-                  checked={limitInputs.moderateVideos}
-                  onChange={handleLimitInputChange}
-                  className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-600 dark:border-neutral-700 dark:bg-neutral-900"
-                  disabled={isUpdatingLimits}
-                />
-                <label htmlFor="moderateVideos" className="text-sm text-neutral-800 dark:text-neutral-100">
-                  Moderate video uploads
-                </label>
-              </div>
             </div>
             <div className="mt-6 flex justify-end space-x-3">
               <Button
@@ -715,8 +762,85 @@ const AdminPortalPage: React.FC = () => {
             </div>
           </Modal>
         )}
+
+        {/* Manage Moderation Modal */}
+        {isModerationModalOpen && selectedUserForModeration && (
+          <Modal
+            isOpen={isModerationModalOpen}
+            onClose={() => {
+              if (isUpdatingModeration) return;
+              setIsModerationModalOpen(false);
+              setSelectedUserForModeration(null);
+            }}
+            title={`Manage Moderation for ${selectedUserForModeration.name}`}
+            size="lg"
+          >
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  name="moderateImages"
+                  id="moderateImages"
+                  checked={moderationInputs.moderateImages}
+                  onChange={handleModerationInputChange}
+                  className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-600 dark:border-neutral-700 dark:bg-neutral-900"
+                  disabled={isUpdatingModeration}
+                />
+                <label htmlFor="moderateImages" className="text-sm text-neutral-800 dark:text-neutral-100">
+                  Moderate image uploads
+                </label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  name="moderateVideos"
+                  id="moderateVideos"
+                  checked={moderationInputs.moderateVideos}
+                  onChange={handleModerationInputChange}
+                  className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-600 dark:border-neutral-700 dark:bg-neutral-900"
+                  disabled={isUpdatingModeration}
+                />
+                <label htmlFor="moderateVideos" className="text-sm text-neutral-800 dark:text-neutral-100">
+                  Moderate video uploads
+                </label>
+              </div>
+
+              {moderationInputs.pending && moderationInputs.pending.length > 0 && (
+                <div>
+                  <h4 className="text-md font-semibold mb-1">Pending Manual Reviews</h4>
+                  <ul className="list-disc pl-5 text-sm text-neutral-700 dark:text-neutral-300 space-y-1">
+                    {moderationInputs.pending.map(item => (
+                      <li key={item.id}>{item.type} - {item.cloudinaryId}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+            <div className="mt-6 flex justify-end space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsModerationModalOpen(false);
+                  setSelectedUserForModeration(null);
+                }}
+                disabled={isUpdatingModeration}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleSaveModeration}
+                isLoading={isUpdatingModeration}
+                disabled={isUpdatingModeration}
+              >
+                Save Settings
+              </Button>
+            </div>
+          </Modal>
+        )}
       </div> {/* Close main content wrapper div */}
-    </DashboardLayout> 
+    </DashboardLayout>
   );
 };
 

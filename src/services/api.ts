@@ -155,6 +155,9 @@ interface UpdateUserLimitsPayload {
   max_reactions_per_month?: number | null;
   max_reactions_per_message?: number | null;
   last_usage_reset_date?: string | null; // Should be an ISO date string
+}
+
+interface UpdateUserModerationPayload {
   moderate_images?: boolean;
   moderate_videos?: boolean;
 }
@@ -185,6 +188,21 @@ export const adminApi = {
     console.log('[adminApi] updateUserLimits payload', { userId, limits });
     const response = await api.put(`/admin/users/${userId}/limits`, limits);
     console.log('[adminApi] updateUserLimits response', response.data);
+    return response;
+  },
+  getUserModeration: async (userId: string) => {
+    console.log('[adminApi] getUserModeration', userId);
+    const res = await api.get(`/admin/users/${userId}/moderation`);
+    console.log('[adminApi] getUserModeration response', res.data);
+    return res;
+  },
+  updateUserModeration: async (
+    userId: string,
+    moderation: UpdateUserModerationPayload,
+  ) => {
+    console.log('[adminApi] updateUserModeration payload', { userId, moderation });
+    const response = await api.put(`/admin/users/${userId}/moderation`, moderation);
+    console.log('[adminApi] updateUserModeration response', response.data);
     return response;
   },
 };

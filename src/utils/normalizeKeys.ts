@@ -96,6 +96,8 @@ export const normalizeUser = (user: any) => {
       user.maxReactionsPerMessage ?? user.max_reactions_per_message ?? null,
     moderateImages: user.moderateImages ?? user.moderate_images ?? false,
     moderateVideos: user.moderateVideos ?? user.moderate_videos ?? false,
+    pendingManualReviews:
+      user.pendingManualReviews ?? user.pending_manual_reviews ?? 0,
   } as const;
 
   console.log('[normalizeUser] output', normalized);
