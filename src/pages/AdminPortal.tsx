@@ -83,16 +83,19 @@ const AdminPortalPage: React.FC = () => {
         let counts: Record<string, number> = {};
         if (Array.isArray(countsData)) {
           countsData.forEach((item: any) => {
-            const id = item.userId || item.user_id || item.id;
+            const id = item.id || item.userId || item.user_id;
             if (!id) return;
-            const value =
+            const fromKeys =
+              item.pending_manual_reviews ??
+              item.pendingManualReviews ??
               item.pending ??
               item.count ??
-              item.pendingCount ??
-              (typeof item.messages === 'number' || typeof item.reactions === 'number'
-                ? (item.messages || 0) + (item.reactions || 0)
-                : undefined);
-            counts[id] = value ?? 0;
+              item.pendingCount;
+            const combined =
+              typeof item.messages_pending === 'number' || typeof item.reactions_pending === 'number'
+                ? (item.messages_pending || 0) + (item.reactions_pending || 0)
+                : undefined;
+            counts[id] = (fromKeys ?? combined ?? 0) as number;
           });
         } else if (countsData.counts) {
           counts = countsData.counts;
