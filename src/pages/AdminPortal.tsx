@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../services/api';
 import { User } from '../types/user';
-import { formatDate, formatDateTime } from '../utils/formatters'; // Import formatDateTime
+import { formatDate, formatDateTime } from '../utils/formatters';
 import Button from '../components/common/Button';
 import toast from 'react-hot-toast';
 import Modal from '../components/common/Modal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import DashboardLayout from '../layouts/DashboardLayout'; // Import DashboardLayout
-import Input from '../components/common/Input'; // Import Input component
+import DashboardLayout from '../layouts/DashboardLayout';
+import Input from '../components/common/Input';
 import { normalizeUser } from '../utils/normalizeKeys';
 
-// Define the available roles for the select dropdown
-// type SettableUserRole = 'user' | 'admin'; // No longer strictly needed here
+
+
 const ROLES_FOR_SELECT: User['role'][] = ['user', 'admin', 'guest'];
 
 interface UserToDelete {
@@ -23,7 +23,7 @@ interface UserLimitInputs {
   maxMessagesPerMonth: string;
   maxReactionsPerMonth: string;
   maxReactionsPerMessage: string;
-  lastUsageResetDate: string; // Added
+  lastUsageResetDate: string;
 }
 
 interface UserModerationInputs {
@@ -38,25 +38,25 @@ const AdminPortalPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [updatingRoleId, setUpdatingRoleId] = useState<string | null>(null);
 
-  // State for delete confirmation modal
+
   const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<UserToDelete | null>(null);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
 
-  // State for Edit Limits Modal
+
   const [isEditLimitsModalOpen, setIsEditLimitsModalOpen] = useState(false);
   const [selectedUserForLimits, setSelectedUserForLimits] = useState<User | null>(null);
   const [limitInputs, setLimitInputs] = useState<UserLimitInputs>({
     maxMessagesPerMonth: '',
     maxReactionsPerMonth: '',
     maxReactionsPerMessage: '',
-    lastUsageResetDate: '', // Added
+    lastUsageResetDate: '',
   });
   const [isLoadingUserDetails, setIsLoadingUserDetails] = useState(false);
   const [isUpdatingLimits, setIsUpdatingLimits] = useState(false);
   const [lastUpdatedUserId, setLastUpdatedUserId] = useState<string | null>(null);
 
-  // State for Moderation Modal
+
   const [isModerationModalOpen, setIsModerationModalOpen] = useState(false);
   const [selectedUserForModeration, setSelectedUserForModeration] = useState<User | null>(null);
   const [moderationInputs, setModerationInputs] = useState<UserModerationInputs>({
@@ -93,7 +93,7 @@ const AdminPortalPage: React.FC = () => {
     if (lastUpdatedUserId) {
       const updatedUser = users.find(u => u.id === lastUpdatedUserId);
       console.log('[AdminPortal] user updated', updatedUser);
-      setLastUpdatedUserId(null); // Reset for next update
+      setLastUpdatedUserId(null);
     }
   }, [users, lastUpdatedUserId]);
 
@@ -109,65 +109,58 @@ const AdminPortalPage: React.FC = () => {
   const handleSaveLimits = async () => {
     if (!selectedUserForLimits) return;
 
-    // console.log('handleSaveLimits called. Current limitInputs:', limitInputs); // Removed
-
     setIsUpdatingLimits(true);
 
     const parseInput = (value: string): number | null => {
       if (value === '') return null;
       const num = parseInt(value, 10);
-      return isNaN(num) ? null : num; // Convert NaN (from invalid parse like "abc") to null
+      return isNaN(num) ? null : num;
     };
 
-    const rawDate = limitInputs.lastUsageResetDate; // YYYY-MM-DD string or empty
+    const rawDate = limitInputs.lastUsageResetDate;
     let formattedDateForPayload: string | null = null;
     if (rawDate) {
       try {
-        // new Date('YYYY-MM-DD') can interpret the date in local timezone.
-        // To ensure it's treated as UTC for date-only inputs, parse components.
+
+
         const parts = rawDate.split('-');
         if (parts.length === 3) {
           const year = parseInt(parts[0], 10);
-          const month = parseInt(parts[1], 10); // 1-12
+          const month = parseInt(parts[1], 10);
           const day = parseInt(parts[2], 10);
 
-          // Validate numeric parts
+
           if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-            // Date.UTC expects month to be 0-11
+
             const utcDate = new Date(Date.UTC(year, month - 1, day));
-            if (!isNaN(utcDate.getTime())) { // Check if utcDate is valid
-              // Check if the constructed UTC date corresponds to the input parts
-              // This guards against invalid dates like "2023-02-30" being accepted by new Date()
-              // and rolling over to a different month.
+            if (!isNaN(utcDate.getTime())) {
+
+
+
               if (utcDate.getUTCFullYear() === year &&
                   utcDate.getUTCMonth() === month - 1 &&
                   utcDate.getUTCDate() === day) {
                 formattedDateForPayload = utcDate.toISOString();
-              } // else {
-                // console.warn(`Input date ${rawDate} resulted in an invalid UTC date after construction (e.g., day out of range for month).`); // Removed
-              // }
-            } // else {
-              // console.warn(`Could not construct a valid UTC date from ${rawDate} (Date.UTC returned NaN).`); // Removed
-            // }
-          } // else {
-            // console.warn(`Could not parse numeric components from ${rawDate}.`); // Removed
-          // }
-        } // else {
-          // console.warn(`Date string ${rawDate} is not in YYYY-MM-DD format.`); // Removed
-        // }
+              }
+
+            }
+
+          }
+
+        }
+
       } catch (error) {
-        // console.error(`Error processing date ${rawDate}:`, error); // Removed
-        // formattedDateForPayload remains null
-        // It's generally good to keep actual error handling, but task asks to remove specific logs.
-        // For a production system, one might log this to an error tracking service.
+
+
+
       }
     }
 
-    // Prepare values for both API payload and local state update
+
     const maxMessages = parseInput(limitInputs.maxMessagesPerMonth);
     const maxReactions = parseInput(limitInputs.maxReactionsPerMonth);
     const maxReactionsMsg = parseInput(limitInputs.maxReactionsPerMessage);
-    // formattedDateForPayload is already the ISO string or null
+
 
     const finalPayload = {
       max_messages_per_month: maxMessages,
@@ -178,29 +171,28 @@ const AdminPortalPage: React.FC = () => {
 
     console.log('[AdminPortal] finalPayload', finalPayload);
 
-    // Check if all payload properties are null
+
     const allNull = Object.values(finalPayload).every(value => value === null);
 
     if (allNull) {
       toast.error("Please provide at least one limit value to update.");
-      setIsUpdatingLimits(false); // Reset loading state
-      return; // Exit the function
+      setIsUpdatingLimits(false);
+      return;
     }
 
     try {
-      // console.log('[AdminPortal] handleSaveLimits: Preparing to send to adminApi.updateUserLimits', {
-      //   userId: selectedUserForLimits.id,
-      //   payload: finalPayload
-      // }); // Removed
+
+
+
       const updateRes = await adminApi.updateUserLimits(selectedUserForLimits.id, finalPayload);
       console.log('[AdminPortal] updateUserLimits result', updateRes.data);
 
-      // Optimistic update for local state (uses camelCase as per User type)
+
       const camelCaseUpdateData = {
           maxMessagesPerMonth: maxMessages,
           maxReactionsPerMonth: maxReactions,
           maxReactionsPerMessage: maxReactionsMsg,
-          lastUsageResetDate: formattedDateForPayload, // This is the ISO string or null
+          lastUsageResetDate: formattedDateForPayload,
       };
       setUsers(prevUsers => prevUsers.map(u =>
         u.id === selectedUserForLimits.id
@@ -268,57 +260,51 @@ const AdminPortalPage: React.FC = () => {
     const oldRole = user?.role;
 
     try {
-      let finalApiResponse: any; // To hold the response that updates the state
+      let finalApiResponse: any;
       let updatedUserData: User | undefined;
 
       if (oldRole === 'guest' && newRole === 'user') {
-        // console.log(`[AdminPortal] handleRoleChange (Guest-to-User): Step 1 - Updating role for ${userId} to ${newRole}`); // Removed
-        const roleUpdateResponse = await adminApi.updateUserRole(userId, newRole); // No date here
-        // console.log('[AdminPortal] handleRoleChange (Guest-to-User): Step 1 - Role update API response:', roleUpdateResponse); // Removed
+        const roleUpdateResponse = await adminApi.updateUserRole(userId, newRole);
 
         if (roleUpdateResponse && (roleUpdateResponse.status === 200 || roleUpdateResponse.status === 204 || roleUpdateResponse.data)) {
           const newLastUsageResetDate = new Date().toISOString();
-          // console.log(`[AdminPortal] handleRoleChange (Guest-to-User): Step 2 - Setting lastUsageResetDate for ${userId} to ${newLastUsageResetDate}`); // Removed
           finalApiResponse = await adminApi.updateUserLimits(userId, {
             last_usage_reset_date: newLastUsageResetDate
           });
-          // console.log('[AdminPortal] handleRoleChange (Guest-to-User): Step 2 - Limits update API response:', finalApiResponse); // Removed
           updatedUserData = finalApiResponse.data;
         } else {
           throw new Error(roleUpdateResponse?.data?.message || `Role update to '${newRole}' failed`);
         }
       } else {
-        // Handle other role changes as before
-        // console.log(`[AdminPortal] handleRoleChange (Other role change): Updating role for ${userId} to ${newRole}`); // Removed
+
         finalApiResponse = await adminApi.updateUserRole(userId, newRole);
-        // console.log('[AdminPortal] handleRoleChange (Other role change): Role update API response:', finalApiResponse); // Removed
         updatedUserData = finalApiResponse.data;
       }
 
       toast.success(`User ${userId} role updated to ${newRole}.`);
 
-      // Common logic to update state using finalApiResponse / updatedUserData
+
       let finalUserUpdate: Partial<User> = {};
       if (updatedUserData) {
         finalUserUpdate = {
-            ...updatedUserData, // Spread all fields from the API response
-            role: newRole, // Ensure newRole is set if not already from API response (e.g. updateUserLimits might not return role)
+            ...updatedUserData,
+            role: newRole,
         };
-        // If guest-to-user, ensure the newLastUsageResetDate is in finalUserUpdate
+
         if (oldRole === 'guest' && newRole === 'user' && finalUserUpdate.lastUsageResetDate) {
-            // The lastUsageResetDate from updateUserLimits response should be the correct one
+
         }
       } else if (oldRole === 'guest' && newRole === 'user') {
-        // Fallback if updatedUserData is not available from limits call, but we know the date
-         finalUserUpdate = { role: newRole, lastUsageResetDate: new Date().toISOString() }; // This might be slightly off if limits call failed but role didn't
+
+         finalUserUpdate = { role: newRole, lastUsageResetDate: new Date().toISOString() };
       } else {
-        // Fallback for other role changes if API response structure is unexpected
+
         finalUserUpdate = { role: newRole, lastUsageResetDate: user?.lastUsageResetDate || null };
       }
 
 
-      if (newRole === 'guest' && oldRole !== 'guest') { // Ensure this runs only when changing TO guest
-        // Define guest default limits (values)
+      if (newRole === 'guest' && oldRole !== 'guest') {
+
         const guestMaxMessages = 3;
         const guestMaxReactions = 9;
         const guestMaxReactionsMsg = 3;
@@ -338,18 +324,17 @@ const AdminPortalPage: React.FC = () => {
         };
 
         try {
-          // Note: If newRole is 'guest', this might overwrite parts of finalUserUpdate from earlier.
-          // Consider merging:
+
           const guestLimitsResponse = await adminApi.updateUserLimits(userId, apiGuestPayload);
           console.log('[AdminPortal] guest limits response', guestLimitsResponse.data);
           toast.success(`User ${userId} limits reset to guest defaults.`);
-          // The finalUserUpdate should now primarily be based on guestLimitsResponse.data
+
           if (guestLimitsResponse.data) {
-             finalUserUpdate = { ...finalUserUpdate, ...guestLimitsResponse.data, role: newRole }; // Ensure role is guest
+             finalUserUpdate = { ...finalUserUpdate, ...guestLimitsResponse.data, role: newRole };
           } else {
-             // Fallback if no data from limits call
+
              finalUserUpdate = {
-                ...finalUserUpdate, // Keep role from previous step
+                ...finalUserUpdate,
                 maxMessagesPerMonth: guestMaxMessages,
                 maxReactionsPerMonth: guestMaxReactions,
                 maxReactionsPerMessage: guestMaxReactionsMsg,
@@ -359,19 +344,19 @@ const AdminPortalPage: React.FC = () => {
         } catch (limitErr) {
           console.error('Failed to set guest limits:', limitErr);
           toast.error('Role set to guest, but failed to reset limits. Manual limit adjustment might be needed.');
-          // If setting guest limits fails, finalUserUpdate might be from the role change call,
-          // which might not have the guest limits.
+
+
         }
       }
 
-      // Update local state with all changes
-      if (Object.keys(finalUserUpdate).length > 0) { // Ensure there's something to update
+
+      if (Object.keys(finalUserUpdate).length > 0) {
         setUsers(prevUsers =>
           prevUsers.map(u =>
             u.id === userId ? { ...u, ...finalUserUpdate } : u
           )
         );
-        setLastUpdatedUserId(userId); // Trigger useEffect for logging
+        setLastUpdatedUserId(userId);
       }
 
     } catch (err) {
@@ -399,8 +384,7 @@ const AdminPortalPage: React.FC = () => {
       toast.error(
         (err as any)?.response?.data?.message || 'Failed to delete user.'
       );
-      // Optionally, keep modal open on error for user to retry or cancel, 
-      // or close it as done above for success case. For now, it closes on success and stays open on error.
+
     } finally {
       setIsDeletingUser(false);
     }
@@ -458,7 +442,6 @@ const AdminPortalPage: React.FC = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200 dark:bg-neutral-900 dark:divide-neutral-700">
               {users.map((user) => {
-                // console.log('[AdminPortal] Passing props to child component for user:', user.id, user); // Removed
                 return (
                 <tr key={user.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
@@ -554,7 +537,7 @@ const AdminPortalPage: React.FC = () => {
                           } catch (err) {
                             toast.error('Failed to fetch user details.');
                             console.error("Fetch user details error:", err);
-                            setSelectedUserForLimits(null); // Clear optimistic set if fetch fails
+                            setSelectedUserForLimits(null);
                           } finally {
                             setIsLoadingUserDetails(false);
                           }
@@ -655,7 +638,7 @@ const AdminPortalPage: React.FC = () => {
               setSelectedUserForLimits(null);
             }}
             title={`Manage Limits for ${selectedUserForLimits.name}`}
-            size="lg" // Consider 'lg' or 'xl' for more content
+            size="lg"
           >
             <div className="space-y-4">
               <div>
@@ -752,7 +735,7 @@ const AdminPortalPage: React.FC = () => {
                 Cancel
               </Button>
               <Button
-                variant="primary" // Changed from danger to primary for save action
+                variant="primary"
                 onClick={handleSaveLimits}
                 isLoading={isUpdatingLimits}
                 disabled={isUpdatingLimits}
