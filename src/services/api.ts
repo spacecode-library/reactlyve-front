@@ -205,6 +205,18 @@ export const adminApi = {
     console.log('[adminApi] updateUserModeration response', response.data);
     return response;
   },
+  getModerationSummary: async () => {
+    console.log('[adminApi] getModerationSummary');
+    const res = await api.get('/admin/moderation/pending-counts');
+    console.log('[adminApi] getModerationSummary response', res.data);
+    return res;
+  },
+  getUserPendingModeration: async (userId: string) => {
+    console.log('[adminApi] getUserPendingModeration', userId);
+    const res = await api.get(`/admin/users/${userId}/pending-moderation`);
+    console.log('[adminApi] getUserPendingModeration response', res.data);
+    return res;
+  },
 };
 
 // ------------------ PROFILE API ------------------

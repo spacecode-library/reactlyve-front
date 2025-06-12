@@ -71,12 +71,29 @@ const AdminPortalPage: React.FC = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await adminApi.getUsers();
-        console.log('[AdminPortal] fetched users raw', response.data);
-        const fetchedUsers = response.data.users || response.data;
+        const [usersRes, countsRes] = await Promise.all([
+          adminApi.getUsers(),
+          adminApi.getModerationSummary(),
+        ]);
+        console.log('[AdminPortal] fetched users raw', usersRes.data);
+        const fetchedUsers = usersRes.data.users || usersRes.data;
         const normalized = fetchedUsers.map(normalizeUser);
-        console.log('[AdminPortal] normalized users', normalized);
-        setUsers(normalized);
+        const countsData = countsRes.data || {};
+        let counts: Record<string, number> = {};
+        if (Array.isArray(countsData)) {
+          countsData.forEach((item: any) => {
+            const id = item.userId || item.user_id || item.id;
+            if (id) counts[id] = item.count ?? item.pending ?? 0;
+          });
+        } else {
+          counts = countsData;
+        }
+        const withCounts = normalized.map((u: User) => ({
+          ...u,
+          pendingManualReviews: counts[u.id] ?? u.pendingManualReviews ?? 0,
+        }));
+        console.log('[AdminPortal] normalized users', withCounts);
+        setUsers(withCounts);
       } catch (err) {
         setError('Failed to fetch users. Please try again later.');
         console.error('Fetch users error:', err);
@@ -554,12 +571,16 @@ const AdminPortalPage: React.FC = () => {
                           setSelectedUserForModeration(user);
                           setIsLoadingUserDetails(true);
                           try {
-                            const res = await adminApi.getUserModeration(user.id);
-                            const data = res.data || {};
+                            const [modsRes, pendingRes] = await Promise.all([
+                              adminApi.getUserModeration(user.id),
+                              adminApi.getUserPendingModeration(user.id),
+                            ]);
+                            const modData = modsRes.data || {};
+                            const pendingData = pendingRes.data?.pending || pendingRes.data || [];
                             setModerationInputs({
-                              moderateImages: !!data.moderateImages,
-                              moderateVideos: !!data.moderateVideos,
-                              pending: data.pending || [],
+                              moderateImages: !!modData.moderateImages,
+                              moderateVideos: !!modData.moderateVideos,
+                              pending: pendingData,
                             });
                             setIsModerationModalOpen(true);
                           } catch (err) {
