@@ -194,7 +194,11 @@ Some common TypeScript errors and solutions:
    };
    ```
 
-3. **Missing Jest/Node Types**: If you encounter errors like `Cannot find type definition file for 'jest'` or `'node'`, ensure you've run `npm install` to install all development dependencies, including `@types/jest` and `@types/node`.
+3. **Missing Jest/Node Types**: If you encounter errors like `Cannot find type definition file for 'jest'` or `'node'`, ensure you've installed dependencies first. Use:
+   ```bash
+   npm install --legacy-peer-deps
+   ```
+   This installs all dev dependencies such as `@types/jest` and `@types/node` required for the TypeScript build.
 
 ### API Integration
 
