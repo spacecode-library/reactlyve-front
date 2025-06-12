@@ -90,8 +90,17 @@ reactlyve-frontend/
 
 ### Build for Production
 
+Install dependencies and run the production build:
+
 ```bash
+npm install --legacy-peer-deps
 npm run build
+```
+
+To serve the built app locally:
+
+```bash
+npm start
 ```
 
 ## Key Components
