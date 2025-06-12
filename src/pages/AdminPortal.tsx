@@ -574,20 +574,32 @@ const AdminPortalPage: React.FC = () => {
                           setIsLoadingUserDetails(true);
                           try {
                           const [userRes, pendingRes] = await Promise.all([
-                              adminApi.getUserDetails(user.id),
-                              adminApi.getUserPendingModeration(user.id),
-                            ]);
-                            console.log('[AdminPortal] moderation user details raw', userRes.data);
-                            console.log('[AdminPortal] user pending moderation raw', pendingRes.data);
-                            const normalized = normalizeUser(userRes.data);
-                            const pendingData = pendingRes.data?.pending || pendingRes.data || [];
-                            console.log('[AdminPortal] normalized moderation user', normalized);
-                            console.log('[AdminPortal] pending moderation items', pendingData);
-                            setModerationInputs({
-                              moderateImages: !!normalized.moderateImages,
-                              moderateVideos: !!normalized.moderateVideos,
-                              pending: pendingData,
-                            });
+                            adminApi.getUserDetails(user.id),
+                            adminApi.getUserPendingModeration(user.id),
+                          ]);
+                          console.log('[AdminPortal] moderation user details raw', userRes.data);
+                          console.log('[AdminPortal] user pending moderation raw', pendingRes.data);
+                          const normalized = normalizeUser(userRes.data);
+                          const pendingRaw = pendingRes.data?.pending || pendingRes.data || {};
+                          const pendingArr = [
+                            ...((pendingRaw.messages || []).map((m: any) => ({
+                              id: m.id,
+                              cloudinaryId: m.publicId || m.public_id || m.cloudinaryId,
+                              type: 'message',
+                            }))),
+                            ...((pendingRaw.reactions || []).map((r: any) => ({
+                              id: r.id,
+                              cloudinaryId: r.publicId || r.public_id || r.cloudinaryId,
+                              type: 'reaction',
+                            }))),
+                          ];
+                          console.log('[AdminPortal] normalized moderation user', normalized);
+                          console.log('[AdminPortal] parsed pending moderation', pendingArr);
+                          setModerationInputs({
+                            moderateImages: !!normalized.moderateImages,
+                            moderateVideos: !!normalized.moderateVideos,
+                            pending: pendingArr,
+                          });
                             setIsModerationModalOpen(true);
                           } catch (err) {
                             toast.error('Failed to fetch moderation details.');
