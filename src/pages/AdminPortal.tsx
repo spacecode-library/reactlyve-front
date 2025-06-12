@@ -76,6 +76,7 @@ const AdminPortalPage: React.FC = () => {
           adminApi.getModerationSummary(),
         ]);
         console.log('[AdminPortal] fetched users raw', usersRes.data);
+        console.log('[AdminPortal] moderation summary raw', countsRes.data);
         const fetchedUsers = usersRes.data.users || usersRes.data;
         const normalized = fetchedUsers.map(normalizeUser);
         const countsData = countsRes.data || {};
@@ -88,6 +89,7 @@ const AdminPortalPage: React.FC = () => {
         } else {
           counts = countsData;
         }
+        console.log('[AdminPortal] parsed moderation counts', counts);
         const withCounts = normalized.map((u: User) => ({
           ...u,
           pendingManualReviews: counts[u.id] ?? u.pendingManualReviews ?? 0,
@@ -571,12 +573,16 @@ const AdminPortalPage: React.FC = () => {
                           setSelectedUserForModeration(user);
                           setIsLoadingUserDetails(true);
                           try {
-                            const [userRes, pendingRes] = await Promise.all([
+                          const [userRes, pendingRes] = await Promise.all([
                               adminApi.getUserDetails(user.id),
                               adminApi.getUserPendingModeration(user.id),
                             ]);
+                            console.log('[AdminPortal] moderation user details raw', userRes.data);
+                            console.log('[AdminPortal] user pending moderation raw', pendingRes.data);
                             const normalized = normalizeUser(userRes.data);
                             const pendingData = pendingRes.data?.pending || pendingRes.data || [];
+                            console.log('[AdminPortal] normalized moderation user', normalized);
+                            console.log('[AdminPortal] pending moderation items', pendingData);
                             setModerationInputs({
                               moderateImages: !!normalized.moderateImages,
                               moderateVideos: !!normalized.moderateVideos,
