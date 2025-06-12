@@ -6,7 +6,7 @@ const TermsPage: React.FC = () => {
     <MainLayout> {/* Added MainLayout wrapper */}
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-4">TERMS OF SERVICE</h1>
-        <p className="text-sm text-gray-600 mb-6">Last updated May 28, 2025</p>
+        <p className="text-sm text-gray-600 mb-6">Last updated June 12, 2025</p>
 
         <h2 className="text-2xl font-semibold mt-6 mb-3">AGREEMENT TO OUR LEGAL TERMS</h2>
         <p className="mb-2">
@@ -179,6 +179,7 @@ const TermsPage: React.FC = () => {
         <h2 id="services-management" className="text-2xl font-semibold mt-6 mb-3">8. SERVICES MANAGEMENT</h2>
         <p className="mb-2">We reserve the right, but not the obligation, to:</p>
         <p className="mb-2">Monitor the Services for violations of these Legal Terms;</p>
+        <p className="mb-2">Use automated content moderation services, including AWS Rekognition, to scan images and videos you upload for material that may violate these Legal Terms;</p>
         <p className="mb-2">Take appropriate legal action against anyone who, in our sole discretion, violates the law or these Legal Terms, including without limitation, reporting such user to law enforcement authorities;</p>
         <p className="mb-2">In our sole discretion and without limitation, refuse, restrict access to, limit the availability of, or disable (to the extent technologically feasible) any of your Contributions or any portion thereof;</p>
         <p className="mb-2">In our sole discretion and without limitation, notice, or liability, to remove from the Services or otherwise disable all files and content that are excessive in size or are in any way burdensome to our systems; and</p>

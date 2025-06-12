@@ -6,7 +6,7 @@ const PrivacyPolicyPage: React.FC = () => {
     <MainLayout>
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-4">PRIVACY POLICY</h1>
-        <p className="text-sm text-gray-600 mb-6">Last updated May 28, 2025</p>
+        <p className="text-sm text-gray-600 mb-6">Last updated June 12, 2025</p>
         <p className="mb-2">
           This Privacy Notice for Reactlyve ('<strong>we</strong>', '<strong>us</strong>', or '<strong>our</strong>') describes how and why we might access, collect, store, use, and/or share ('<strong>process</strong>') your personal information when you use our services ('<strong>Services</strong>'), including when you:
         </p>
@@ -86,7 +86,7 @@ const PrivacyPolicyPage: React.FC = () => {
         <p className="mb-1">- Webcam recordings of recipients' reactions, which are only accessible by the sender</p>
         <p className="mb-2">We do not collect personal information through third-party cookies for advertising or profiling purposes. Only an essential cookie is used, as described in our Cookie Policy.</p>
         <h3 className="text-xl font-semibold mt-4 mb-2">Video Data Classification</h3>
-        <p className="mb-2">Webcam reaction recordings are treated as personal data because they may contain identifiable images of users. However, we do not process these videos for biometric recognition, profiling, or automated analysis. They are never used for biometric recognition, emotional profiling, or any automated analysis that could identify or classify individuals.</p>
+        <p className="mb-2">Webcam reaction recordings are treated as personal data because they may contain identifiable images of users. We use automated moderation services, including AWS Rekognition, solely to detect and filter content that may violate our Terms of Service. These scans are not used for biometric recognition, emotional profiling, or any analysis intended to identify or classify individuals beyond determining whether the content is appropriate.</p>
         <p className="mb-2">
           <strong>Sensitive Information:</strong> We do not process special category data as defined under GDPR (e.g. racial or biometric data for the purpose of uniquely identifying a person). However, webcam recordings may contain personally identifiable visual information and are treated as personal data. These are not analysed, scanned, or used for biometric identification and are accessible only to the original sender.
         </p>
@@ -128,6 +128,9 @@ const PrivacyPolicyPage: React.FC = () => {
         <p className="mb-2">We may need to share your personal information in the following situations:</p>
         <p className="mb-2">
           <strong>Business Transfers:</strong> We may share or transfer your information in connection with, or during negotiations of, any merger, sale of company assets, financing, or acquisition of all or a portion of our business to another company.
+        </p>
+        <p className="mb-2">
+          <strong>Service Providers:</strong> We use AWS Rekognition to automatically moderate images and videos you upload. Your content may be shared with Amazon Web Services solely for this moderation process.
         </p>
 
         <h2 id="cookies-and-tracking" className="text-2xl font-semibold mt-6 mb-3">5. DO WE USE COOKIES AND OTHER TRACKING TECHNOLOGIES?</h2>
