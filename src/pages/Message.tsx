@@ -13,7 +13,6 @@ import Input from '@/components/common/Input'; // Added Input
 import toast from 'react-hot-toast';
 import type { Reaction } from '../types/reaction';
 import { normalizeMessage } from '../utils/normalizeKeys';
-import { logDev } from '../utils/logDev';
 import { getTransformedCloudinaryUrl } from '../utils/mediaHelpers';
 import { QRCodeSVG } from 'qrcode.react';
 import VideoPlayer from '../components/dashboard/VideoPlayer'; // Added VideoPlayer import
@@ -56,7 +55,6 @@ const Message: React.FC = () => {
         const response = await api.get(MESSAGE_ROUTES.GET_BY_ID(id!));
         if (!response.data) throw new Error('No message found');
         setMessage(response.data);
-        // logDev('🔍 Message data from API:', response.data); // Removed for final version
       } catch (err) {
         setError('Failed to load message details');
         console.error(err);
@@ -348,7 +346,6 @@ const Message: React.FC = () => {
     normalizedMessage.imageUrl
   ) {
       const transformedImgUrl = normalizedMessage.imageUrl ? getTransformedCloudinaryUrl(normalizedMessage.imageUrl, normalizedMessage.fileSizeInBytes || 0) : '';
-      // logDev('[MessagePage] Image - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.imageUrl, 'Transformed URL:', transformedImgUrl);
       imageElement = (
           <div className="mb-6">
               <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Image</h2>
@@ -367,7 +364,6 @@ const Message: React.FC = () => {
     normalizedMessage.videoUrl
   ) {
       const transformedVidUrl = normalizedMessage.videoUrl ? getTransformedCloudinaryUrl(normalizedMessage.videoUrl, normalizedMessage.fileSizeInBytes || 0) : '';
-      // logDev('[MessagePage] Video - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.videoUrl, 'Transformed URL:', transformedVidUrl);
       videoElement = (
           <div className="mb-6">
               <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Video</h2>
@@ -458,7 +454,6 @@ const Message: React.FC = () => {
                   onClick={async () => {
                     setIsSubmittingManualReview(true);
                     try {
-                      logDev('[MessagePage] submit manual review', id);
                       await messagesApi.submitForManualReview(id!);
                       toast.success('Submitted for manual review');
                     } catch (err) {
@@ -673,7 +668,6 @@ const Message: React.FC = () => {
                                 onClick={async () => {
                                   setManualReviewReactionId(reaction.id);
                                   try {
-                                    logDev('[MessagePage] submit reaction review', reaction.id);
                                     await reactionsApi.submitForManualReview(reaction.id);
                                     toast.success('Reaction sent for review');
                                   } catch (err) {

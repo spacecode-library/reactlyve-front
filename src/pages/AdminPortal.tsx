@@ -9,7 +9,6 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import DashboardLayout from '../layouts/DashboardLayout';
 import Input from '../components/common/Input';
 import { normalizeUser } from '../utils/normalizeKeys';
-import { logDev } from '../utils/logDev';
 
 
 
@@ -76,8 +75,6 @@ const AdminPortalPage: React.FC = () => {
           adminApi.getUsers(),
           adminApi.getModerationSummary(),
         ]);
-        logDev('[AdminPortal] fetched users raw', usersRes.data);
-        logDev('[AdminPortal] moderation summary raw', countsRes.data);
         const fetchedUsers = usersRes.data.users || usersRes.data;
         const normalized = fetchedUsers.map(normalizeUser);
         const countsData = countsRes.data || {};
@@ -103,12 +100,10 @@ const AdminPortalPage: React.FC = () => {
         } else {
           counts = countsData;
         }
-        logDev('[AdminPortal] parsed moderation counts', counts);
         const withCounts = normalized.map((u: User) => ({
           ...u,
           pendingManualReviews: counts[u.id] ?? u.pendingManualReviews ?? 0,
         }));
-        logDev('[AdminPortal] normalized users', withCounts);
         setUsers(withCounts);
       } catch (err) {
         setError('Failed to fetch users. Please try again later.');
@@ -125,7 +120,6 @@ const AdminPortalPage: React.FC = () => {
   useEffect(() => {
     if (lastUpdatedUserId) {
       const updatedUser = users.find(u => u.id === lastUpdatedUserId);
-      logDev('[AdminPortal] user updated', updatedUser);
       setLastUpdatedUserId(null);
     }
   }, [users, lastUpdatedUserId]);
@@ -136,7 +130,6 @@ const AdminPortalPage: React.FC = () => {
       return;
     }
     setLimitInputs(prev => ({ ...prev, [name]: value }));
-    logDev('[AdminPortal] limit input change', name, value);
   };
 
   const handleSaveLimits = async () => {
@@ -202,7 +195,6 @@ const AdminPortalPage: React.FC = () => {
       last_usage_reset_date: formattedDateForPayload,
     };
 
-    logDev('[AdminPortal] finalPayload', finalPayload);
 
 
     const allNull = Object.values(finalPayload).every(value => value === null);
@@ -218,7 +210,6 @@ const AdminPortalPage: React.FC = () => {
 
 
       const updateRes = await adminApi.updateUserLimits(selectedUserForLimits.id, finalPayload);
-      logDev('[AdminPortal] updateUserLimits result', updateRes.data);
 
 
       const camelCaseUpdateData = {
@@ -248,7 +239,6 @@ const AdminPortalPage: React.FC = () => {
   ) => {
     const { name, checked } = e.target;
     setModerationInputs(prev => ({ ...prev, [name]: checked }));
-    logDev('[AdminPortal] moderation input change', name, checked);
   };
 
   const handleSaveModeration = async () => {
@@ -263,7 +253,6 @@ const AdminPortalPage: React.FC = () => {
         selectedUserForModeration.id,
         payload,
       );
-      logDev('[AdminPortal] updateUserModeration result', res.data);
       setUsers(prev =>
         prev.map(u =>
           u.id === selectedUserForModeration.id
@@ -359,7 +348,6 @@ const AdminPortalPage: React.FC = () => {
         try {
 
           const guestLimitsResponse = await adminApi.updateUserLimits(userId, apiGuestPayload);
-          logDev('[AdminPortal] guest limits response', guestLimitsResponse.data);
           toast.success(`User ${userId} limits reset to guest defaults.`);
 
           if (guestLimitsResponse.data) {
@@ -546,9 +534,7 @@ const AdminPortalPage: React.FC = () => {
                           setIsLoadingUserDetails(true);
                           try {
                             const apiResponse = await adminApi.getUserDetails(user.id);
-                            logDev('[AdminPortal] getUserDetails response', apiResponse.data);
                             const userDetailsToDisplay: User = normalizeUser(apiResponse.data);
-                            logDev('[AdminPortal] normalized user details', userDetailsToDisplay);
 
                             setSelectedUserForLimits(userDetailsToDisplay);
 
@@ -561,10 +547,6 @@ const AdminPortalPage: React.FC = () => {
                               maxReactionsPerMonth: userDetailsToDisplay.maxReactionsPerMonth?.toString() || '',
                               maxReactionsPerMessage: userDetailsToDisplay.maxReactionsPerMessage?.toString() || '',
                               lastUsageResetDate: resetDateForInput,
-                            });
-                            logDev('[AdminPortal] limitInputs after fetch', {
-                              ...userDetailsToDisplay,
-                              resetDateForInput,
                             });
                             setIsEditLimitsModalOpen(true);
                           } catch (err) {
@@ -591,8 +573,6 @@ const AdminPortalPage: React.FC = () => {
                             adminApi.getUserDetails(user.id),
                             adminApi.getUserPendingModeration(user.id),
                           ]);
-                          logDev('[AdminPortal] moderation user details raw', userRes.data);
-                          logDev('[AdminPortal] user pending moderation raw', pendingRes.data);
                           const normalized = normalizeUser(userRes.data);
                           const pendingRaw = pendingRes.data?.pending || pendingRes.data || {};
                           const pendingArr = [
@@ -607,8 +587,6 @@ const AdminPortalPage: React.FC = () => {
                               type: 'reaction',
                             }))),
                           ];
-                          logDev('[AdminPortal] normalized moderation user', normalized);
-                          logDev('[AdminPortal] parsed pending moderation', pendingArr);
                           setModerationInputs({
                             moderateImages: !!normalized.moderateImages,
                             moderateVideos: !!normalized.moderateVideos,

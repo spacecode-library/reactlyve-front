@@ -2,7 +2,6 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import type { User } from '../types/user';
 import { API_BASE_URL, REPLY_ROUTES } from '../components/constants/apiRoutes';
-import { logDev } from '../utils/logDev';
 
 // Axios instance for authenticated requests
 const api = axios.create({
@@ -174,42 +173,31 @@ export const adminApi = {
     if (lastUsageResetDate) {
       payload.last_usage_reset_date = lastUsageResetDate;
     }
-    logDev('[adminApi] updateUserRole payload', { userId, payload });
     return api.put(`/admin/users/${userId}/role`, payload);
   },
   deleteUser: (userId: string) => api.delete(`/admin/users/${userId}`),
   getStats: () => api.get('/admin/stats'), // Assuming this endpoint returns data; check its casing if complex.
   getUserDetails: async (userId: string) => {
-    logDev('[adminApi] getUserDetails', userId);
     const res = await api.get(`/admin/users/${userId}/details`);
-    logDev('[adminApi] getUserDetails response', res.data);
     return res;
   },
   updateUserLimits: async (userId: string, limits: UpdateUserLimitsPayload) => {
-    logDev('[adminApi] updateUserLimits payload', { userId, limits });
     const response = await api.put(`/admin/users/${userId}/limits`, limits);
-    logDev('[adminApi] updateUserLimits response', response.data);
     return response;
   },
   updateUserModeration: async (
     userId: string,
     moderation: UpdateUserModerationPayload,
   ) => {
-    logDev('[adminApi] updateUserModeration payload', { userId, moderation });
     const response = await api.put(`/admin/users/${userId}/moderation`, moderation);
-    logDev('[adminApi] updateUserModeration response', response.data);
     return response;
   },
   getModerationSummary: async () => {
-    logDev('[adminApi] getModerationSummary');
     const res = await api.get('/admin/moderation/pending-counts');
-    logDev('[adminApi] getModerationSummary response', res.data);
     return res;
   },
   getUserPendingModeration: async (userId: string) => {
-    logDev('[adminApi] getUserPendingModeration', userId);
     const res = await api.get(`/admin/users/${userId}/pending-moderation`);
-    logDev('[adminApi] getUserPendingModeration response', res.data);
     return res;
   },
 };

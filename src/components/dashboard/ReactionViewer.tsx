@@ -8,7 +8,6 @@ import Button from '../common/Button';
 import Modal from '../common/Modal';
 import { reactionsApi } from '../../services/api';
 import toast from 'react-hot-toast';
-import { logDev } from '../../utils/logDev';
 
 interface ReactionViewerProps {
   reaction: Reaction;
@@ -145,7 +144,6 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
             onClick={async () => {
               setIsSubmittingReview(true);
               try {
-                logDev('[ReactionViewer] submit manual review', reaction.id);
                 await reactionsApi.submitForManualReview(reaction.id);
                 toast.success('Submitted for manual review');
               } catch (err) {

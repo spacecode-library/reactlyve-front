@@ -74,10 +74,9 @@ reactlyve-frontend/
    npm install
    ```
 
-3. Create a `.env` file in the root directory with the following variables:
+3. Create a `.env` file in the root directory with the following variable:
    ```
    VITE_API_URL=http://localhost:8000/api
-   AWS_ACCESS_KEY_ID=your-aws-key
    ```
    If `VITE_API_URL` is omitted, the app defaults to `https://api.reactlyve.com/api`.
 
