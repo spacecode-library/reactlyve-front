@@ -84,8 +84,18 @@ const AdminPortalPage: React.FC = () => {
         if (Array.isArray(countsData)) {
           countsData.forEach((item: any) => {
             const id = item.userId || item.user_id || item.id;
-            if (id) counts[id] = item.count ?? item.pending ?? 0;
+            if (!id) return;
+            const value =
+              item.pending ??
+              item.count ??
+              item.pendingCount ??
+              (typeof item.messages === 'number' || typeof item.reactions === 'number'
+                ? (item.messages || 0) + (item.reactions || 0)
+                : undefined);
+            counts[id] = value ?? 0;
           });
+        } else if (countsData.counts) {
+          counts = countsData.counts;
         } else {
           counts = countsData;
         }
@@ -600,6 +610,13 @@ const AdminPortalPage: React.FC = () => {
                             moderateVideos: !!normalized.moderateVideos,
                             pending: pendingArr,
                           });
+                          setUsers(prev =>
+                            prev.map(u =>
+                              u.id === user.id
+                                ? { ...u, pendingManualReviews: pendingArr.length }
+                                : u,
+                            ),
+                          );
                             setIsModerationModalOpen(true);
                           } catch (err) {
                             toast.error('Failed to fetch moderation details.');
