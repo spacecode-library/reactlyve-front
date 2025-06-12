@@ -571,15 +571,15 @@ const AdminPortalPage: React.FC = () => {
                           setSelectedUserForModeration(user);
                           setIsLoadingUserDetails(true);
                           try {
-                            const [modsRes, pendingRes] = await Promise.all([
-                              adminApi.getUserModeration(user.id),
+                            const [userRes, pendingRes] = await Promise.all([
+                              adminApi.getUserDetails(user.id),
                               adminApi.getUserPendingModeration(user.id),
                             ]);
-                            const modData = modsRes.data || {};
+                            const normalized = normalizeUser(userRes.data);
                             const pendingData = pendingRes.data?.pending || pendingRes.data || [];
                             setModerationInputs({
-                              moderateImages: !!modData.moderateImages,
-                              moderateVideos: !!modData.moderateVideos,
+                              moderateImages: !!normalized.moderateImages,
+                              moderateVideos: !!normalized.moderateVideos,
                               pending: pendingData,
                             });
                             setIsModerationModalOpen(true);

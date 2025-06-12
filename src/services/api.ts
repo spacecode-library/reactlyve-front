@@ -190,12 +190,6 @@ export const adminApi = {
     console.log('[adminApi] updateUserLimits response', response.data);
     return response;
   },
-  getUserModeration: async (userId: string) => {
-    console.log('[adminApi] getUserModeration', userId);
-    const res = await api.get(`/admin/users/${userId}/moderation`);
-    console.log('[adminApi] getUserModeration response', res.data);
-    return res;
-  },
   updateUserModeration: async (
     userId: string,
     moderation: UpdateUserModerationPayload,
