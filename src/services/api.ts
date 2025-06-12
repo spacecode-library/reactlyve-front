@@ -185,11 +185,16 @@ export const adminApi = {
     const response = await api.put(`/admin/users/${userId}/limits`, limits);
     return response;
   },
+  // The backend does not expose a dedicated /moderation endpoint.
+  // Moderation flags are updated via the same limits route.
   updateUserModeration: async (
     userId: string,
     moderation: UpdateUserModerationPayload,
   ) => {
-    const response = await api.put(`/admin/users/${userId}/moderation`, moderation);
+    const response = await api.put(
+      `/admin/users/${userId}/limits`,
+      moderation,
+    );
     return response;
   },
   getModerationSummary: async () => {
