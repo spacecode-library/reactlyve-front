@@ -107,7 +107,6 @@ const AdminPortalPage: React.FC = () => {
         setUsers(withCounts);
       } catch (err) {
         setError('Failed to fetch users. Please try again later.');
-        console.error('Fetch users error:', err);
         toast.error('Failed to fetch users.');
       } finally {
         setIsLoading(false);
@@ -228,7 +227,6 @@ const AdminPortalPage: React.FC = () => {
       setSelectedUserForLimits(null);
     } catch (err) {
       toast.error('Failed to update limits.');
-      console.error("Update limits error:", err);
     } finally {
       setIsUpdatingLimits(false);
     }
@@ -269,7 +267,6 @@ const AdminPortalPage: React.FC = () => {
       setSelectedUserForModeration(null);
     } catch (err) {
       toast.error('Failed to update moderation');
-      console.error('Update moderation error:', err);
     } finally {
       setIsUpdatingModeration(false);
     }
@@ -335,7 +332,6 @@ const AdminPortalPage: React.FC = () => {
           const [year, month, day] = "2999-01-19".split('-').map(Number);
           guestLastUsageResetDateIso = new Date(Date.UTC(year, month - 1, day)).toISOString();
         } catch (e) {
-            console.error("Error formatting guest lastUsageResetDate:", e);
         }
 
         const apiGuestPayload = {
@@ -363,7 +359,6 @@ const AdminPortalPage: React.FC = () => {
              };
           }
         } catch (limitErr) {
-          console.error('Failed to set guest limits:', limitErr);
           toast.error('Role set to guest, but failed to reset limits. Manual limit adjustment might be needed.');
 
 
@@ -381,7 +376,6 @@ const AdminPortalPage: React.FC = () => {
       }
 
     } catch (err) {
-      console.error('[AdminPortal] handleRoleChange: Role update API call failed', err);
       toast.error(
         (err as any)?.response?.data?.message || 'Failed to update user role.'
       );
@@ -401,7 +395,6 @@ const AdminPortalPage: React.FC = () => {
       setIsDeleteUserModalOpen(false);
       setUserToDelete(null);
     } catch (err) {
-      console.error('Delete user error:', err);
       toast.error(
         (err as any)?.response?.data?.message || 'Failed to delete user.'
       );
@@ -551,7 +544,6 @@ const AdminPortalPage: React.FC = () => {
                             setIsEditLimitsModalOpen(true);
                           } catch (err) {
                             toast.error('Failed to fetch user details.');
-                            console.error("Fetch user details error:", err);
                             setSelectedUserForLimits(null);
                           } finally {
                             setIsLoadingUserDetails(false);
@@ -602,7 +594,6 @@ const AdminPortalPage: React.FC = () => {
                             setIsModerationModalOpen(true);
                           } catch (err) {
                             toast.error('Failed to fetch moderation details.');
-                            console.error('Fetch moderation details error:', err);
                             setSelectedUserForModeration(null);
                           } finally {
                             setIsLoadingUserDetails(false);

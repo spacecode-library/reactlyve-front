@@ -109,7 +109,6 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
             src={transformedVideoUrl || ''}
             poster={reaction.thumbnailUrl}
             autoPlay={isPlaying}
-            onError={(err) => console.error('Video error:', err)}
           />
         </div>
       ) : (
