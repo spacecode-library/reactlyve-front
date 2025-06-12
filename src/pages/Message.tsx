@@ -660,15 +660,14 @@ const Message: React.FC = () => {
                           </p>
                           {(reaction.moderationStatus === 'rejected' ||
                             reaction.moderationStatus === 'manual_review') && (
-                            <>
-                              <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+                            <div className="mt-2">
+                              <p className="mb-1 text-sm font-medium text-neutral-500 dark:text-neutral-400">
                                 {reaction.moderationDetails
                                   ? `Rejected: ${reaction.moderationDetails}`
                                   : 'This reaction failed moderation.'}
                               </p>
                               <Button
                                 size="sm"
-                                className="mt-1"
                                 disabled={reaction.moderationStatus === 'manual_review'}
                                 onClick={async () => {
                                   setManualReviewReactionId(reaction.id);
@@ -686,7 +685,7 @@ const Message: React.FC = () => {
                               >
                                 {reaction.moderationStatus === 'manual_review' ? 'Manual Review Pending' : 'Request Manual Review'}
                               </Button>
-                            </>
+                            </div>
                           )}
                         </div>
                         <Button
