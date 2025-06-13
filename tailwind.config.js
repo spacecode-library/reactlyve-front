@@ -73,6 +73,8 @@ module.exports = {
         fadeIn: 'fadeIn 0.5s ease-out',
         slideUp: 'slideUp 0.5s ease-out',
         'record-glow': 'record-glow 1.2s ease-in-out infinite',
+        'record-glow-md': 'record-glow-md 1.2s ease-in-out infinite',
+        'record-glow-lg': 'record-glow-lg 1.2s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -91,6 +93,26 @@ module.exports = {
           '50%': {
             opacity: '1',
             'box-shadow': '0 0 0 4px rgba(239,68,68,1)',
+          },
+        },
+        'record-glow-md': {
+          '0%, 100%': {
+            opacity: '0.6',
+            'box-shadow': '0 0 0 12px rgba(239,68,68,0.5)',
+          },
+          '50%': {
+            opacity: '1',
+            'box-shadow': '0 0 0 12px rgba(239,68,68,1)',
+          },
+        },
+        'record-glow-lg': {
+          '0%, 100%': {
+            opacity: '0.6',
+            'box-shadow': '0 0 0 20px rgba(239,68,68,0.5)',
+          },
+          '50%': {
+            opacity: '1',
+            'box-shadow': '0 0 0 20px rgba(239,68,68,1)',
           },
         },
       },
