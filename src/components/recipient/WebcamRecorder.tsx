@@ -553,11 +553,11 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
         )}
       >
         {!(showCountdown || isRecording || recordingCompleted || isCompressing) && (
-          <h2 className="mb-2 text-xl font-semibold">Record Your Lyve Reaction</h2>
+          <h2 className="mb-1 text-lg font-semibold">Record Your Lyve Reaction</h2>
         )}
 
         {((showCountdown && !previewManuallyToggled) || showPreview) && (
-          <div className="aspect-video relative mb-4 mt-2 w-full max-w-md">
+          <div className="aspect-video relative mb-3 mt-1 w-full max-w-md">
             <video
               ref={videoRef}
               autoPlay
@@ -608,7 +608,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
               setShowPreview(prev => !prev);
               setPreviewManuallyToggled(true);
             }}
-            className="mt-2"
+            className="mt-1"
           >
             {showPreview ? 'Hide Preview' : 'Show Preview'}
           </Button>
