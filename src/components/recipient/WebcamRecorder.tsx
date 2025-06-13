@@ -1,6 +1,6 @@
 import { FFmpeg, FileData } from '@ffmpeg/ffmpeg'; // Added
 import { fetchFile, toBlobURL } from '@ffmpeg/util'; // Added
-import React, { useState, useEffect, useRef } from 'react'; // Added useRef
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
 import useWebcam from '../../hooks/useWebcam';
 import useMediaRecorder from '../../hooks/useMediaRecorder';
@@ -51,6 +51,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
 }) => {
   const ffmpegRef = useRef(new FFmpeg()); // Added
   const stopWebcamRef = useRef<() => void>();
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isCompressing, setIsCompressing] = useState<boolean>(false); // Added
   const [compressionProgress, setCompressionProgress] = useState<number>(0); // Added
   const [showCountdown, setShowCountdown] = useState(false);
@@ -426,6 +427,13 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     }
   }, [isRecording, showCountdown, hidePreviewAfterCountdown, previewManuallyToggled]);
 
+  // Ensure the countdown preview is vertically centered when shown
+  useEffect(() => {
+    if (showCountdown && containerRef.current) {
+      containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [showCountdown]);
+
   useEffect(() => {
     if (showCountdown) setCountdownValue(countdownDuration);
   }, [showCountdown, countdownDuration]);
@@ -547,17 +555,18 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       {' '}
       {/* Use a fragment if adding the overlay as a sibling to the main div */}
       <div
+        ref={containerRef}
         className={classNames(
           'relative flex flex-col items-center justify-center text-center',
           className || ''
         )}
       >
         {!(showCountdown || isRecording || recordingCompleted || isCompressing) && (
-          <h2 className="mb-2 text-xl font-semibold">Record Your Lyve Reaction</h2>
+          <h2 className="mb-1 text-lg font-semibold">Record Your Lyve Reaction</h2>
         )}
 
         {((showCountdown && !previewManuallyToggled) || showPreview) && (
-          <div className="aspect-video relative mb-4 mt-2 w-full max-w-md">
+          <div className="aspect-video relative mb-3 mt-1 w-full max-w-md">
             <video
               ref={videoRef}
               autoPlay
@@ -608,7 +617,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
               setShowPreview(prev => !prev);
               setPreviewManuallyToggled(true);
             }}
-            className="mt-2"
+            className="mt-1"
           >
             {showPreview ? 'Hide Preview' : 'Show Preview'}
           </Button>

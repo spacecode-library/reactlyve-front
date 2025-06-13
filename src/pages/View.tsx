@@ -120,7 +120,7 @@ const View: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 dark:bg-neutral-900">
+      <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-neutral-50 dark:bg-neutral-900">
         <LoadingSpinner size="lg" />
         <p className="mt-4 text-neutral-600 dark:text-neutral-300">Loading message...</p>
       </div>
@@ -129,7 +129,7 @@ const View: React.FC = () => {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
+      <div className="flex min-h-[100dvh] items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
         <div className="max-w-md text-center">
           <h2 className="mt-2 text-2xl font-bold text-neutral-900 dark:text-white">
             {error === MESSAGE_ERRORS.NOT_FOUND
@@ -152,7 +152,7 @@ const View: React.FC = () => {
 
   if (needsPasscode && !passcodeVerified) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
+      <div className="flex min-h-[100dvh] items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
         <PasscodeEntry onSubmitPasscode={handleSubmitPasscode} />
       </div>
     );
@@ -160,7 +160,7 @@ const View: React.FC = () => {
 
   if (message && (passcodeVerified || !needsPasscode)) {
     return (
-      <div className="flex min-h-screen items-center justify-start bg-neutral-50 px-4 pb-8 pt-16 dark:bg-neutral-900 sm:py-12">
+      <div className="flex min-h-[100dvh] items-center justify-start bg-neutral-50 px-4 py-8 dark:bg-neutral-900 sm:py-12">
         <MessageViewer
           message={message}
           onRecordReaction={async () => {}} // Changed to an async no-op function
@@ -177,7 +177,7 @@ const View: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">
+    <div className="flex min-h-[100dvh] items-center justify-center bg-neutral-50 dark:bg-neutral-900">
       <div className="text-center">
         <p className="text-neutral-600 dark:text-neutral-300">
           Something went wrong. Please try again later.

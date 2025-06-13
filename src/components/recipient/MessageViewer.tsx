@@ -283,7 +283,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   if (!passcodeVerified && message.hasPasscode) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
+      <div className="flex min-h-[100dvh] items-center justify-center bg-neutral-50 px-4 py-2 dark:bg-neutral-900">
         <PasscodeEntry onSubmitPasscode={handlePasscodeSubmit} />
       </div>
     );
@@ -293,7 +293,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     if (permissionError === REACTION_ERRORS.REACTION_LIMIT_CONTACT_SENDER) {
       // Dedicated UI for Reaction Limit Error
       return (
-        <div className="flex min-h-screen w-full flex-col items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900 sm:py-12">
+        <div className="flex min-h-[100dvh] w-full flex-col items-center justify-center bg-neutral-50 px-4 py-2 dark:bg-neutral-900 sm:py-6">
           <div className="card mx-auto max-w-md p-6 text-center"> {/* Ensure 'card' class provides appropriate styling */}
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900 mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -321,7 +321,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       );
     } else if (permissionError === MESSAGE_ERRORS.CONTENT_UNAVAILABLE) {
       return (
-        <div className="flex min-h-screen w-full flex-col items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900 sm:py-12">
+        <div className="flex min-h-[100dvh] w-full flex-col items-center justify-center bg-neutral-50 px-4 py-2 dark:bg-neutral-900 sm:py-6">
           <div className="card mx-auto max-w-md p-6 text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900 mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -337,7 +337,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     } else {
       // Fallback to PermissionRequest for other errors that might use this state
       return (
-        <div className="flex min-h-screen w-full flex-col items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900 sm:py-12">
+        <div className="flex min-h-[100dvh] w-full flex-col items-center justify-center bg-neutral-50 px-4 py-2 dark:bg-neutral-900 sm:py-6">
           <PermissionRequest
             onCancel={() => onSkipReaction?.()}
             permissionType="both" // This is still hardcoded; might need review later if other errors use this path
@@ -491,7 +491,9 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     <>
       <RecordingBorder isVisible={isWebcamRecording} />
       <div
-        className={"flex min-h-screen w-full flex-col items-center justify-center bg-neutral-50 px-4 py-8 dark:bg-neutral-900 sm:py-12"}
+        className={
+        "flex min-h-[100dvh] w-full flex-col items-center justify-center bg-neutral-50 px-4 py-2 dark:bg-neutral-900 sm:py-6"
+        }
       >
         {showRecorder && !isReactionRecorded && (
           <div className="w-full max-w-md mx-auto mb-4">
