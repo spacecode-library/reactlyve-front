@@ -222,32 +222,26 @@ const About: React.FC = () => {
             </div>
           </section>
           
-          {/* CTA Section */}
-          <div className="bg-primary-600 dark:bg-primary-700">
-            <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16 lg:px-8">
-              <div className="rounded-lg bg-primary-700 px-6 py-6 md:py-12 md:px-12 lg:flex lg:items-center lg:justify-between dark:bg-primary-800">
-                <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-                  <span className="block">Ready to get started?</span>
-                  <span className="block text-primary-200">Create your first message today.</span>
-                </h2>
-                <div className="mt-8 flex lg:mt-0 lg:flex-shrink-0">
-                  <div className="inline-flex rounded-md shadow">
-                    <Link
-                      to={user ? '/create' : '/login'}
-                      className="inline-flex items-center justify-center rounded-md border border-transparent bg-white px-5 py-3 text-base font-medium text-primary-600 hover:bg-primary-50"
-                    >
-                      {user ? 'Create Message' : 'Get Started'}
-                    </Link>
-                  </div>
-                  <div className="ml-3 inline-flex rounded-md shadow">
-                    <Link
-                      to="/about"
-                      className="inline-flex items-center justify-center rounded-md border border-transparent bg-primary-500 px-5 py-3 text-base font-medium text-white hover:bg-primary-400"
-                    >
-                      Learn More
-                    </Link>
-                  </div>
-                </div>
+          {/* end of content sections */}
+        </div>
+      </div>
+
+      {/* CTA Section */}
+      <div className="bg-primary-600 dark:bg-primary-700">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16 lg:px-8">
+          <div className="rounded-lg bg-primary-700 px-6 py-6 md:py-12 md:px-12 lg:flex lg:items-center lg:justify-between dark:bg-primary-800">
+            <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+              <span className="block">Ready to get started?</span>
+              <span className="block text-primary-200">Create your first message today.</span>
+            </h2>
+            <div className="mt-8 flex lg:mt-0 lg:flex-shrink-0">
+              <div className="inline-flex rounded-md shadow">
+                <Link
+                  to={user ? '/create' : '/login'}
+                  className="inline-flex items-center justify-center rounded-md border border-transparent bg-white px-5 py-3 text-base font-medium text-primary-600 hover:bg-primary-50"
+                >
+                  {user ? 'Create Message' : 'Get Started'}
+                </Link>
               </div>
             </div>
           </div>
