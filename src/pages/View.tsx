@@ -160,7 +160,7 @@ const View: React.FC = () => {
 
   if (message && (passcodeVerified || !needsPasscode)) {
     return (
-      <div className="flex min-h-[100dvh] items-center justify-start bg-neutral-50 px-4 pb-8 pt-16 dark:bg-neutral-900 sm:py-12">
+      <div className="flex min-h-[100dvh] items-center justify-start bg-neutral-50 px-4 py-8 dark:bg-neutral-900 sm:py-12">
         <MessageViewer
           message={message}
           onRecordReaction={async () => {}} // Changed to an async no-op function
