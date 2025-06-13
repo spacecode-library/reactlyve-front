@@ -68,13 +68,17 @@ module.exports = {
       fontFamily: {
         sans: ['Inter var', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
+      borderWidth: {
+        'record-mobile': '3vw',
+        'record-desktop': '1.5vw',
+      },
       // Add animations
       animation: {
         fadeIn: 'fadeIn 0.5s ease-out',
         slideUp: 'slideUp 0.5s ease-out',
-        'record-glow': 'record-glow 1.2s ease-in-out infinite',
-        'record-glow-md': 'record-glow-md 1.2s ease-in-out infinite',
-        'record-glow-lg': 'record-glow-lg 1.2s ease-in-out infinite',
+        'record-glow': 'record-glow 2s ease-in-out infinite',
+        'record-glow-md': 'record-glow-md 2s ease-in-out infinite',
+        'record-glow-lg': 'record-glow-lg 2s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
