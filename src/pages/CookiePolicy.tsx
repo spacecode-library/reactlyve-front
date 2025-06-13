@@ -4,7 +4,7 @@ import MainLayout from '../layouts/MainLayout';
 const CookiePolicyPage: React.FC = () => {
   return (
     <MainLayout>
-      <div className="container mx-auto px-4 py-8">
+      <div className="mx-auto max-w-3xl px-4 py-8">
         <h1 className="text-3xl font-bold mb-4">COOKIE POLICY</h1>
         <p className="text-sm text-gray-600 mb-6">Last updated May 28, 2025</p>
         <p className="mb-2">
