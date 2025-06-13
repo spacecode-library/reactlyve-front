@@ -68,10 +68,6 @@ module.exports = {
       fontFamily: {
         sans: ['Inter var', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
-      borderWidth: {
-        'record-mobile': '1.5vw',
-        'record-desktop': '0.75vw',
-      },
       // Add animations
       animation: {
         fadeIn: 'fadeIn 0.5s ease-out',
