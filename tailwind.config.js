@@ -1,9 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    './index.html',
-    './src/**/*.{js,ts,jsx,tsx}',
-  ],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   darkMode: 'class',
   theme: {
     extend: {
@@ -67,45 +64,37 @@ module.exports = {
         error: '#EF4444',
         warning: '#F59E0B',
         info: '#3B82F6',
+      },
+      fontFamily: {
+        sans: ['Inter var', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
+      // Add animations
+      animation: {
+        fadeIn: 'fadeIn 0.5s ease-out',
+        slideUp: 'slideUp 0.5s ease-out',
+        'record-glow': 'record-glow 1.2s ease-in-out infinite',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
         },
-        fontFamily: {
-          sans: ['Inter var', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
-        // Add animations
-        animation: {
-          fadeIn: 'fadeIn 0.5s ease-out',
-          slideUp: 'slideUp 0.5s ease-out',
-        },
-        keyframes: {
-          fadeIn: {
-            '0%': { opacity: '0' },
-            '100%': { opacity: '1' },
+        'record-glow': {
+          '0%, 100%': {
+            opacity: '0.6',
+            'box-shadow': '0 0 0 4px rgba(239,68,68,0.5)',
           },
-          slideUp: {
-            '0%': { opacity: '0', transform: 'translateY(20px)' },
-            '100%': { opacity: '1', transform: 'translateY(0)' },
+          '50%': {
+            opacity: '1',
+            'box-shadow': '0 0 0 4px rgba(239,68,68,1)',
           },
-          'grow-width': { // Top and Bottom
-            '0%': { width: '0%' },
-            '100%': { width: '100%' },
-          },
-          'grow-height': { // Right and Left
-            '0%': { height: '0%' },
-            '100%': { height: '100%' },
-          },
-        },
-        animation: { // Ensure this is correctly placed within extend: {}
-          fadeIn: 'fadeIn 0.5s ease-out',
-          slideUp: 'slideUp 0.5s ease-out',
-          'snake-border-top': 'grow-width',
-          'snake-border-right': 'grow-height',
-          'snake-border-bottom': 'grow-width',
-          'snake-border-left': 'grow-height',
         },
       },
     },
-  plugins: [
-    require('@tailwindcss/forms'),
-    require('@tailwindcss/aspect-ratio'),
-  ],
+  },
+  plugins: [require('@tailwindcss/forms'), require('@tailwindcss/aspect-ratio')],
 };
