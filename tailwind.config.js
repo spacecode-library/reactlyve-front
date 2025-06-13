@@ -69,8 +69,8 @@ module.exports = {
         sans: ['Inter var', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       borderWidth: {
-        'record-mobile': '3vw',
-        'record-desktop': '1.5vw',
+        'record-mobile': '1.5vw',
+        'record-desktop': '0.75vw',
       },
       // Add animations
       animation: {
@@ -92,31 +92,31 @@ module.exports = {
         'record-glow': {
           '0%, 100%': {
             opacity: '0.6',
-            'box-shadow': '0 0 0 4px rgba(239,68,68,0.5)',
+            'box-shadow': 'inset 0 0 0 4px rgba(239,68,68,0.5)',
           },
           '50%': {
             opacity: '1',
-            'box-shadow': '0 0 0 4px rgba(239,68,68,1)',
+            'box-shadow': 'inset 0 0 0 4px rgba(239,68,68,1)',
           },
         },
         'record-glow-md': {
           '0%, 100%': {
             opacity: '0.6',
-            'box-shadow': '0 0 0 12px rgba(239,68,68,0.5)',
+            'box-shadow': 'inset 0 0 0 8px rgba(239,68,68,0.5)',
           },
           '50%': {
             opacity: '1',
-            'box-shadow': '0 0 0 12px rgba(239,68,68,1)',
+            'box-shadow': 'inset 0 0 0 8px rgba(239,68,68,1)',
           },
         },
         'record-glow-lg': {
           '0%, 100%': {
             opacity: '0.6',
-            'box-shadow': '0 0 0 20px rgba(239,68,68,0.5)',
+            'box-shadow': 'inset 0 0 0 15px rgba(239,68,68,0.5)',
           },
           '50%': {
             opacity: '1',
-            'box-shadow': '0 0 0 20px rgba(239,68,68,1)',
+            'box-shadow': 'inset 0 0 0 15px rgba(239,68,68,1)',
           },
         },
       },
