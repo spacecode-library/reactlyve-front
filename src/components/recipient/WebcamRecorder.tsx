@@ -1,6 +1,6 @@
 import { FFmpeg, FileData } from '@ffmpeg/ffmpeg'; // Added
 import { fetchFile, toBlobURL } from '@ffmpeg/util'; // Added
-import React, { useState, useEffect, useRef } from 'react'; // Added useRef
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
 import useWebcam from '../../hooks/useWebcam';
 import useMediaRecorder from '../../hooks/useMediaRecorder';
@@ -51,6 +51,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
 }) => {
   const ffmpegRef = useRef(new FFmpeg()); // Added
   const stopWebcamRef = useRef<() => void>();
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isCompressing, setIsCompressing] = useState<boolean>(false); // Added
   const [compressionProgress, setCompressionProgress] = useState<number>(0); // Added
   const [showCountdown, setShowCountdown] = useState(false);
@@ -426,6 +427,13 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     }
   }, [isRecording, showCountdown, hidePreviewAfterCountdown, previewManuallyToggled]);
 
+  // Ensure the countdown preview is vertically centered when shown
+  useEffect(() => {
+    if (showCountdown && containerRef.current) {
+      containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [showCountdown]);
+
   useEffect(() => {
     if (showCountdown) setCountdownValue(countdownDuration);
   }, [showCountdown, countdownDuration]);
@@ -547,6 +555,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       {' '}
       {/* Use a fragment if adding the overlay as a sibling to the main div */}
       <div
+        ref={containerRef}
         className={classNames(
           'relative flex flex-col items-center justify-center text-center',
           className || ''
