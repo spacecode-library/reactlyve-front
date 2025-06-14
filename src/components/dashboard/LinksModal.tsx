@@ -5,6 +5,7 @@ import Button from '../common/Button';
 import { messageLinksApi } from '../../services/api';
 import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
+import { CopyIcon, Share2Icon } from 'lucide-react';
 
 interface LinksModalProps {
   isOpen: boolean;
@@ -114,15 +115,21 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId }) =
                   <div className="flex items-center justify-between">
                     <span className="text-sm break-all">{url}</span>
                     <div className="flex space-x-2">
-                      <Button size="sm" variant="outline" onClick={() => copyToClipboard(url)}>
-                        Copy
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => copyToClipboard(url)}
+                        title="Copy Link"
+                      >
+                        <CopyIcon size={16} />
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => navigator.share ? navigator.share({ url }) : copyToClipboard(url)}
+                        onClick={() => (navigator.share ? navigator.share({ url }) : copyToClipboard(url))}
+                        title="Share Link"
                       >
-                        Share
+                        <Share2Icon size={16} />
                       </Button>
                       <Button
                         size="sm"
@@ -141,8 +148,21 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId }) =
                           // @ts-ignore
                           ReactDOM.render(qr, el);
                         }}
+                        title="Show QR"
                       >
-                        QR
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 3a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1V4a1 1 0 00-1-1h-3zm1 2v1h1V5h-1z"
+                            clipRule="evenodd"
+                          />
+                          <path d="M11 4a1 1 0 10-2 0v1a1 1 0 002 0V4zM10 7a1 1 0 011 1v1h2a1 1 0 110 2h-3a1 1 0 01-1-1V8a1 1 0 011-1zM16 9a1 1 0 100 2 1 1 0 000-2zM9 13a1 1 0 011-1h1a1 1 0 110 2v2a1 1 0 11-2 0v-3zM7 11a1 1 0 100-2H4a1 1 0 100 2h3zM17 13a1 1 0 01-1 1h-2a1 1 0 110-2h2a1 1 0 011 1zM16 17a1 1 0 100-2h-3a1 1 0 100 2h3z" />
+                        </svg>
                       </Button>
                       <Button size="sm" variant="danger" onClick={() => handleDelete(link.id)}>
                         Delete

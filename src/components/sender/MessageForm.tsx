@@ -554,12 +554,15 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
               onBlur={field.onBlur}
               name={field.name}
               ref={field.ref}
-              className="mr-2 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              className="h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-600 dark:border-neutral-700 dark:bg-neutral-900 dark:focus:ring-primary-500"
               disabled={isMessageLimitReached}
             />
           )}
         />
-        <label htmlFor="createOneTimeLink" className="text-sm text-neutral-700 dark:text-neutral-300">
+        <label
+          htmlFor="createOneTimeLink"
+          className="ml-2 text-sm font-medium text-neutral-900 dark:text-neutral-100"
+        >
           Create a one-time link
         </label>
       </div>

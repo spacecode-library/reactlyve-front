@@ -518,76 +518,78 @@ const Message: React.FC = () => {
                 {normalizedMessage.shareableLink && (
                   <div>
                     <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Shareable Link</h2>
-                    <div className="flex items-center gap-2 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
-                      <p className="flex-1 truncate text-sm text-neutral-700 dark:text-neutral-300">
-                        {normalizedMessage.shareableLink}
-                      </p>
-                      <button
-                        onClick={() => copyToClipboard(normalizedMessage.shareableLink, 'link')}
-                        className="rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700"
-                      >
-                        {copied.link ? <ClipboardIcon size={16} /> : <CopyIcon size={16} />}
-                      </button>
-                      <button
-                        onClick={handleShare}
-                        className="ml-2 rounded-md bg-secondary-600 p-2 text-white hover:bg-secondary-700"
-                      >
-                        <Share2Icon size={16} />
-                      </button>
-                      <button
-                        onClick={() => setShowQrCode(!showQrCode)}
-                        aria-label={showQrCode ? 'Hide QR Code' : 'Show QR Code'}
-                        className={`ml-2 rounded-md p-2 transition-colors ${
-                          showQrCode
-                            ? 'bg-neutral-300 text-neutral-800 hover:bg-neutral-400 dark:bg-neutral-600 dark:text-white dark:hover:bg-neutral-500'
-                            : 'bg-green-600 text-white hover:bg-green-700'
-                        }`}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 3a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1V4a1 1 0 00-1-1h-3zm1 2v1h1V5h-1z"
-                            clipRule="evenodd"
-                          />
-                          <path d="M11 4a1 1 0 10-2 0v1a1 1 0 002 0V4zM10 7a1 1 0 011 1v1h2a1 1 0 110 2h-3a1 1 0 01-1-1V8a1 1 0 011-1zM16 9a1 1 0 100 2 1 1 0 000-2zM9 13a1 1 0 011-1h1a1 1 0 110 2v2a1 1 0 11-2 0v-3zM7 11a1 1 0 100-2H4a1 1 0 100 2h3zM17 13a1 1 0 01-1 1h-2a1 1 0 110-2h2a1 1 0 011 1zM16 17a1 1 0 100-2h-3a1 1 0 100 2h3z" />
-                        </svg>
-                      </button>
-                    </div>
-                    {copied.link && (
-                      <p className="mt-1 text-xs text-green-600 dark:text-green-400">Link copied to clipboard!</p>
-                    )}
-                    {showQrCode && normalizedMessage.shareableLink && (
-                      <div className="mt-4 text-center">
-                        <h3 className="mb-2 text-md font-semibold text-neutral-900 dark:text-white">Scan QR Code</h3>
-                        <div className="inline-block rounded-lg bg-white p-4 shadow">
-                          <QRCodeSVG
-                            value={normalizedMessage.shareableLink}
-                            size={200}
-                            bgColor={"#ffffff"}
-                            fgColor={"#000000"}
-                            level={"L"}
-                          />
-                        </div>
-                        <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-                          Scan this QR code to access the shareable link.
+                    <div className="rounded-md bg-neutral-100 dark:bg-neutral-700">
+                      <div className="flex items-center gap-2 p-3">
+                        <p className="flex-1 truncate text-sm text-neutral-700 dark:text-neutral-300">
+                          {normalizedMessage.shareableLink}
                         </p>
+                        <button
+                          onClick={() => copyToClipboard(normalizedMessage.shareableLink, 'link')}
+                          className="rounded-md bg-blue-600 p-2 text-white hover:bg-blue-700"
+                        >
+                          {copied.link ? <ClipboardIcon size={16} /> : <CopyIcon size={16} />}
+                        </button>
+                        <button
+                          onClick={handleShare}
+                          className="ml-2 rounded-md bg-secondary-600 p-2 text-white hover:bg-secondary-700"
+                        >
+                          <Share2Icon size={16} />
+                        </button>
+                        <button
+                          onClick={() => setShowQrCode(!showQrCode)}
+                          aria-label={showQrCode ? 'Hide QR Code' : 'Show QR Code'}
+                          className={`ml-2 rounded-md p-2 transition-colors ${
+                            showQrCode
+                              ? 'bg-neutral-300 text-neutral-800 hover:bg-neutral-400 dark:bg-neutral-600 dark:text-white dark:hover:bg-neutral-500'
+                              : 'bg-green-600 text-white hover:bg-green-700'
+                          }`}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 3a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1V4a1 1 0 00-1-1h-3zm1 2v1h1V5h-1z"
+                              clipRule="evenodd"
+                            />
+                            <path d="M11 4a1 1 0 10-2 0v1a1 1 0 002 0V4zM10 7a1 1 0 011 1v1h2a1 1 0 110 2h-3a1 1 0 01-1-1V8a1 1 0 011-1zM16 9a1 1 0 100 2 1 1 0 000-2zM9 13a1 1 0 011-1h1a1 1 0 110 2v2a1 1 0 11-2 0v-3zM7 11a1 1 0 100-2H4a1 1 0 100 2h3zM17 13a1 1 0 01-1 1h-2a1 1 0 110-2h2a1 1 0 011 1zM16 17a1 1 0 100-2h-3a1 1 0 100 2h3z" />
+                          </svg>
+                        </button>
                       </div>
-                    )}
-                  </div>
-                )}
-                {id && (
-                  <div className="mt-4 flex items-center justify-between rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
-                    <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                      One-time: {linkStats.liveOneTime} live / {linkStats.expiredOneTime} viewed
-                    </p>
-                    <button onClick={() => setIsLinksModalOpen(true)} className="text-sm text-blue-600 hover:underline">
-                      Manage Links
-                    </button>
+                      {copied.link && (
+                        <p className="mt-1 text-xs text-green-600 dark:text-green-400">Link copied to clipboard!</p>
+                      )}
+                      {showQrCode && normalizedMessage.shareableLink && (
+                        <div className="mt-4 text-center">
+                          <h3 className="mb-2 text-md font-semibold text-neutral-900 dark:text-white">Scan QR Code</h3>
+                          <div className="inline-block rounded-lg bg-white p-4 shadow">
+                            <QRCodeSVG
+                              value={normalizedMessage.shareableLink}
+                              size={200}
+                              bgColor={"#ffffff"}
+                              fgColor={"#000000"}
+                              level={"L"}
+                            />
+                          </div>
+                          <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                            Scan this QR code to access the shareable link.
+                          </p>
+                        </div>
+                      )}
+                      {id && (
+                        <div className="mt-3 border-t border-neutral-200 p-3 flex items-center justify-between dark:border-neutral-600">
+                          <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                            One-time: {linkStats.liveOneTime} live / {linkStats.expiredOneTime} viewed
+                          </p>
+                          <button onClick={() => setIsLinksModalOpen(true)} className="text-sm text-blue-600 hover:underline">
+                            Manage Links
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
