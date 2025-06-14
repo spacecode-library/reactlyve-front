@@ -22,6 +22,7 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showQrCode, setShowQrCode] = useState(false);
 
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [reactionLengthInput, setReactionLengthInput] = useState(normalizedMessage.reaction_length || 10);
   const [passcodeInput, setPasscodeInput] = useState(normalizedMessage.passcode || '');
@@ -122,7 +123,14 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
         <img src={normalizedMessage.imageUrl} alt="Message media" className="rounded-md mb-4 w-full" />
       )}
       {normalizedMessage.videoUrl && normalizedMessage.mediaType === 'video' && (
-        <video ref={videoRef} src={normalizedMessage.videoUrl} controls autoPlay playsInline className="rounded-md mb-4 w-full" />
+        <video
+          ref={videoRef}
+          src={normalizedMessage.videoUrl}
+          controls
+          autoPlay
+          playsInline
+          className="rounded-md mb-4 w-full"
+        />
       )}
 
       {/* Shareable Link & Options */}

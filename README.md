@@ -81,10 +81,12 @@ reactlyve-frontend/
    ```
    VITE_API_URL=http://localhost:8000/api
    VITE_CLOUDINARY_LOGO_ID=Reactlyve_Logo_bi78md
+  VITE_CLOUDINARY_LOGO_SCALE=0.3
    ```
 
    If `VITE_API_URL` is omitted, the app defaults to `https://api.reactlyve.com/api`.
    `VITE_CLOUDINARY_LOGO_ID` controls the Cloudinary overlay used in generated media.
+  `VITE_CLOUDINARY_LOGO_SCALE` sets the watermark width relative to the asset (default: 0.3).
 
 4. Start the development server:
 
