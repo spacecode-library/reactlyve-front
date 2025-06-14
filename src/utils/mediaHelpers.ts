@@ -3,11 +3,14 @@
 const CLOUDINARY_LOGO_ID =
   import.meta.env.VITE_CLOUDINARY_LOGO_ID || 'Reactlyve_Logo_bi78md';
 
-// Use a fixed overlay width so the watermark size remains consistent
-// regardless of the underlying media resolution.
-// "w_150" sets the overlay to 150px wide.
-export const SMALL_FILE_TRANSFORM_WITH_OVERLAY = `f_auto,q_auto/l_${CLOUDINARY_LOGO_ID}/fl_layer_apply,w_150,g_south_east,x_10,y_10`;
-export const LARGE_FILE_TRANSFORM_WITH_OVERLAY = `w_1280,c_limit,q_auto,f_auto/l_${CLOUDINARY_LOGO_ID}/fl_layer_apply,w_150,g_south_east,x_10,y_10`;
+// Overlay width can be customized via the environment. Defaults to 200px so the
+// watermark isn't too tiny on large assets while remaining reasonable on small
+// files.
+const CLOUDINARY_LOGO_WIDTH =
+  import.meta.env.VITE_CLOUDINARY_LOGO_WIDTH || '200';
+
+export const SMALL_FILE_TRANSFORM_WITH_OVERLAY = `f_auto,q_auto/l_${CLOUDINARY_LOGO_ID}/fl_layer_apply,w_${CLOUDINARY_LOGO_WIDTH},g_south_east,x_10,y_10`;
+export const LARGE_FILE_TRANSFORM_WITH_OVERLAY = `w_1280,c_limit,q_auto,f_auto/l_${CLOUDINARY_LOGO_ID}/fl_layer_apply,w_${CLOUDINARY_LOGO_WIDTH},g_south_east,x_10,y_10`;
 
 /**
  * Request camera and microphone permissions
