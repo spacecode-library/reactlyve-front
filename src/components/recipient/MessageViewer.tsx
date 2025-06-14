@@ -523,8 +523,13 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
             />
           </div>
         )}
-        {showRecorder && !isNameSubmitted && ( 
+        {showRecorder && !isNameSubmitted && (
           <div className="mb-4 w-full max-w-md mx-auto">
+            {message.onetime && (
+              <div className="mb-2 rounded-md bg-red-100 p-2 text-center text-red-700 dark:bg-red-900/40 dark:text-red-300">
+                This link can only be viewed once.
+              </div>
+            )}
             {/* Removed isReactionLimitReached conditional message */}
             <label htmlFor="recipientName" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1 text-center">
               Say hello with your name
