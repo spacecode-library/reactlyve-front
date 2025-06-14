@@ -540,6 +540,30 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
         />
       </div>
 
+      {/* Create first one-time link option */}
+      <div className="flex items-center">
+        <Controller
+          name="createOneTimeLink"
+          control={control}
+          render={({ field }) => (
+            <input
+              type="checkbox"
+              id="createOneTimeLink"
+              checked={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              name={field.name}
+              ref={field.ref}
+              className="mr-2 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              disabled={isMessageLimitReached}
+            />
+          )}
+        />
+        <label htmlFor="createOneTimeLink" className="text-sm text-neutral-700 dark:text-neutral-300">
+          Create a one-time link
+        </label>
+      </div>
+
       {/* Reaction Length Slider */}
       <div>
         <label
@@ -572,30 +596,6 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
         )}
       </div>
 
-      {/* Create first one-time link option */}
-      <div className="flex items-center">
-        <Controller
-          name="createOneTimeLink"
-          control={control}
-          render={({ field }) => (
-            <input
-              type="checkbox"
-              id="createOneTimeLink"
-              checked={field.value}
-              onChange={field.onChange}
-              onBlur={field.onBlur}
-              name={field.name}
-              ref={field.ref}
-              className="mr-2 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-              disabled={isMessageLimitReached}
-            />
-          )}
-        />
-        <label htmlFor="createOneTimeLink" className="text-sm text-neutral-700 dark:text-neutral-300">
-          Create a one-time link
-        </label>
-      </div>
-      
       {/* Submit button */}
       <div className="flex justify-end">
         <Button

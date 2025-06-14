@@ -225,6 +225,17 @@ Passcode: ${passcode}
         </div>
       )}
 
+      {messageId && (
+        <div className="mt-4 flex items-center justify-between rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
+          <p className="text-sm text-neutral-700 dark:text-neutral-300">
+            One-time: {linkStats.liveOneTime} live / {linkStats.expiredOneTime} viewed
+          </p>
+          <Button size="sm" variant="outline" onClick={() => setIsLinksModalOpen(true)}>
+            Manage Links
+          </Button>
+        </div>
+      )}
+
       {/* Share options */}
       <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Button 
@@ -287,16 +298,6 @@ Passcode: ${passcode}
         </div>
       )}
 
-      {messageId && (
-        <div className="mt-5 flex items-center justify-between rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
-          <p className="text-sm text-neutral-700 dark:text-neutral-300">
-            One-time: {linkStats.liveOneTime} live / {linkStats.expiredOneTime} viewed
-          </p>
-          <Button size="sm" variant="outline" onClick={() => setIsLinksModalOpen(true)}>
-            Manage Links
-          </Button>
-        </div>
-      )}
 
       {/* Create another message button */}
       <div className="mt-6 text-center">
