@@ -114,18 +114,18 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId }) =
                   <div className="flex items-center justify-between">
                     <span className="text-sm break-all">{url}</span>
                     <div className="flex space-x-2">
-                      <Button size="xs" variant="outline" onClick={() => copyToClipboard(url)}>
+                      <Button size="sm" variant="outline" onClick={() => copyToClipboard(url)}>
                         Copy
                       </Button>
                       <Button
-                        size="xs"
+                        size="sm"
                         variant="outline"
                         onClick={() => navigator.share ? navigator.share({ url }) : copyToClipboard(url)}
                       >
                         Share
                       </Button>
                       <Button
-                        size="xs"
+                        size="sm"
                         variant="outline"
                         onClick={() => {
                           const el = document.createElement('div');
@@ -144,7 +144,7 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId }) =
                       >
                         QR
                       </Button>
-                      <Button size="xs" variant="danger" onClick={() => handleDelete(link.id)}>
+                      <Button size="sm" variant="danger" onClick={() => handleDelete(link.id)}>
                         Delete
                       </Button>
                     </div>

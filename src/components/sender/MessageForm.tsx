@@ -558,7 +558,11 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
             <input
               type="checkbox"
               id="onetime"
-              {...field}
+              checked={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              name={field.name}
+              ref={field.ref}
               className="mr-2 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
               disabled={isMessageLimitReached}
             />
