@@ -1,11 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import MainLayout from '../layouts/MainLayout';
 
 const About: React.FC = () => {
+  const { user } = useAuth();
   return (
     <MainLayout>
-      <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="text-center">
           <h1 className="text-4xl font-bold tracking-tight text-primary-600 dark:text-primary-400 sm:text-5xl">
             About Reactlyve
@@ -220,27 +222,29 @@ const About: React.FC = () => {
             </div>
           </section>
           
-          {/* Call to Action */}
-          <section className="rounded-lg bg-primary-600 p-8 text-center text-white shadow-lg dark:bg-primary-700">
-            <h2 className="text-2xl font-bold">Ready to create your first message?</h2>
-            <p className="mx-auto mt-3 max-w-xl text-primary-100">
-              Join Reactlyve today and start capturing authentic reactions to your surprise messages.
-            </p>
-            <div className="mt-6 flex justify-center space-x-4">
-              <Link
-                to="/login"
-                className="inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-medium text-primary-600 shadow-sm hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-600"
-              >
-                Sign Up Now
-              </Link>
-              <Link
-                to="/create"
-                className="inline-flex items-center rounded-md border border-white bg-transparent px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-600"
-              >
-                Create a Message
-              </Link>
+          {/* end of content sections */}
+        </div>
+      </div>
+
+      {/* CTA Section */}
+      <div className="bg-primary-600 dark:bg-primary-700">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16 lg:px-8">
+          <div className="rounded-lg bg-primary-700 px-6 py-6 md:py-12 md:px-12 lg:flex lg:items-center lg:justify-between dark:bg-primary-800">
+            <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+              <span className="block">Ready to get started?</span>
+              <span className="block text-primary-200">Create your first message today.</span>
+            </h2>
+            <div className="mt-8 flex lg:mt-0 lg:flex-shrink-0">
+              <div className="inline-flex rounded-md shadow">
+                <Link
+                  to={user ? '/create' : '/login'}
+                  className="inline-flex items-center justify-center rounded-md border border-transparent bg-white px-5 py-3 text-base font-medium text-primary-600 hover:bg-primary-50"
+                >
+                  {user ? 'Create Message' : 'Get Started'}
+                </Link>
+              </div>
             </div>
-          </section>
+          </div>
         </div>
       </div>
     </MainLayout>
