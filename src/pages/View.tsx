@@ -39,6 +39,9 @@ const View: React.FC = () => {
         const response = await api.get(`/messages/view/${id}`);
         const messageId = response.data.id;
         const messageData = (await api.get(`/messages/${messageId}`)).data;
+        if (response.data.onetime !== undefined) {
+          messageData.onetime = response.data.onetime;
+        }
 
         const requiresPasscode = response.data.hasPasscode === true;
         const isVerified = response.data.passcodeVerified === true || !requiresPasscode;
@@ -160,6 +163,7 @@ const View: React.FC = () => {
           onSubmitPasscode={handleSubmitPasscode}
           onSendTextReply={handleSendTextReply}
           onInitReactionId={handleInitReactionId}
+          linkId={id}
         />
       </div>
     );

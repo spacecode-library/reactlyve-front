@@ -255,6 +255,7 @@ const messageSchema = z.object({
     .min(10, VALIDATION_ERRORS.REACTION_LENGTH_MIN)
     .max(30, VALIDATION_ERRORS.REACTION_LENGTH_MAX)
     .default(15),
+  onetime: z.boolean().default(false),
 });
 
 type MessageFormValues = z.infer<typeof messageSchema>;
@@ -275,6 +276,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [shareableLink, setShareableLink] = useState<string>('');
+  const [shareableOnetime, setShareableOnetime] = useState(false);
   
   // React Hook Form setup
   const {
@@ -291,6 +293,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
       hasPasscode: false,
       passcode: '',
       reaction_length: 15,
+      onetime: false,
     },
   });
   
@@ -298,6 +301,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
   const hasPasscode = watch('hasPasscode');
   const passcode = watch('passcode');
   const reactionLengthValue = watch('reaction_length');
+  const onetime = watch('onetime');
   
   // Handle media upload
   const handleMediaSelect = useCallback((file: File | null) => {
@@ -357,13 +361,17 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
 
       // Add reaction length
       formData.append('reaction_length', data.reaction_length.toString());
+      formData.append('onetime', data.onetime.toString());
       
       // Call API to create message with FormData
       const response = await messagesApi.createWithFormData(formData);
-      
+
       // Set the shareable link from the response
       if (response.data.shareableLink) {
         setShareableLink(response.data.shareableLink);
+      }
+      if (response.data.onetime !== undefined) {
+        setShareableOnetime(response.data.onetime);
       }
       
       // Show success message
@@ -416,6 +424,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
         shareableLink={shareableLink}
         hasPasscode={hasPasscode}
         passcode={passcode}
+        onetime={shareableOnetime}
         className={className}
       />
     );
@@ -538,6 +547,26 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
             {errors.reaction_length.message}
           </p>
         )}
+      </div>
+
+      {/* One-time Link Option */}
+      <div className="flex items-center">
+        <Controller
+          name="onetime"
+          control={control}
+          render={({ field }) => (
+            <input
+              type="checkbox"
+              id="onetime"
+              {...field}
+              className="mr-2 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              disabled={isMessageLimitReached}
+            />
+          )}
+        />
+        <label htmlFor="onetime" className="text-sm text-neutral-700 dark:text-neutral-300">
+          One-time view link
+        </label>
       </div>
       
       {/* Submit button */}

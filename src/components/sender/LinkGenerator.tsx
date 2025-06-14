@@ -8,6 +8,7 @@ interface LinkGeneratorProps {
   shareableLink: string;
   hasPasscode: boolean;
   passcode?: string;
+  onetime?: boolean;
   className?: string;
 }
 
@@ -15,6 +16,7 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({
   shareableLink,
   hasPasscode,
   passcode,
+  onetime,
   className,
 }) => {
   const [showQrCode, setShowQrCode] = useState(false);
@@ -110,6 +112,11 @@ Passcode: ${passcode}
         <p className="mt-1 text-neutral-600 dark:text-neutral-300">
           Share this link with someone to capture their reaction
         </p>
+        {onetime && (
+          <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+            This link can be viewed only once.
+          </p>
+        )}
       </div>
 
       {/* Shareable link input */}

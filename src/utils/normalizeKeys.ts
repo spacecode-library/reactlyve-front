@@ -34,6 +34,8 @@ export const normalizeMessage = (message: any) => {
     passcode: message.passcode,
     senderId: message.senderId || message.senderid,
     shareableLink: message.shareableLink || message.shareablelink,
+    onetime: message.onetime ?? message.one_time,
+    linkId: message.linkId || message.link_id,
     fileSizeInBytes: message.fileSizeInBytes || message.mediaSize || message.file_size || undefined,
     reaction_length: message.reaction_length ?? message.reactionLength,
     reactions: (message.reactions || []).map(normalizeReaction),
