@@ -81,15 +81,12 @@ reactlyve-frontend/
    ```
    VITE_API_URL=http://localhost:8000/api
    VITE_CLOUDINARY_LOGO_ID=Reactlyve_Logo_bi78md
-  # Optional: adjust the watermark scale (default 0.3 = 30% of asset width)
   VITE_CLOUDINARY_LOGO_SCALE=0.3
    ```
 
    If `VITE_API_URL` is omitted, the app defaults to `https://api.reactlyve.com/api`.
    `VITE_CLOUDINARY_LOGO_ID` controls the Cloudinary overlay used in generated media.
-  `VITE_CLOUDINARY_LOGO_SCALE` defines the overlay width relative to the underlying asset using Cloudinary's `fl_relative` flag (default: 0.3),
-   producing consistent results across different resolutions. Restart the dev server after updating this variable so the new scale is applied.
-   Message previews skip applying a new transformation when the URL already contains the overlay, so the environment change affects only newly generated assets.
+  `VITE_CLOUDINARY_LOGO_SCALE` sets the watermark width relative to the asset (default: 0.3).
 
 4. Start the development server:
 

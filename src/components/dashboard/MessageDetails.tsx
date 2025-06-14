@@ -4,7 +4,6 @@ import ReactionViewer from './ReactionViewer';
 import { formatDate } from '../../utils/formatters';
 import Button from '../common/Button';
 import { normalizeMessage } from '../../utils/normalizeKeys';
-import { getTransformedCloudinaryUrl } from '../../utils/mediaHelpers';
 import Modal from '../common/Modal';
 import Input from '../common/Input';
 import { messagesApi } from '../../services/api';
@@ -23,23 +22,6 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showQrCode, setShowQrCode] = useState(false);
 
-  const transformedImgUrl = useMemo(() => {
-    return normalizedMessage.imageUrl
-      ? getTransformedCloudinaryUrl(
-          normalizedMessage.imageUrl,
-          normalizedMessage.fileSizeInBytes || 0
-        )
-      : '';
-  }, [normalizedMessage.imageUrl, normalizedMessage.fileSizeInBytes]);
-
-  const transformedVideoUrl = useMemo(() => {
-    return normalizedMessage.videoUrl
-      ? getTransformedCloudinaryUrl(
-          normalizedMessage.videoUrl,
-          normalizedMessage.fileSizeInBytes || 0
-        )
-      : '';
-  }, [normalizedMessage.videoUrl, normalizedMessage.fileSizeInBytes]);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [reactionLengthInput, setReactionLengthInput] = useState(normalizedMessage.reaction_length || 10);
@@ -138,16 +120,12 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
 
       {/* Media Preview */}
       {normalizedMessage.imageUrl && normalizedMessage.mediaType === 'image' && (
-        <img
-          src={transformedImgUrl || normalizedMessage.imageUrl}
-          alt="Message media"
-          className="rounded-md mb-4 w-full"
-        />
+        <img src={normalizedMessage.imageUrl} alt="Message media" className="rounded-md mb-4 w-full" />
       )}
       {normalizedMessage.videoUrl && normalizedMessage.mediaType === 'video' && (
         <video
           ref={videoRef}
-          src={transformedVideoUrl || normalizedMessage.videoUrl}
+          src={normalizedMessage.videoUrl}
           controls
           autoPlay
           playsInline
