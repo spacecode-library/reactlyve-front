@@ -88,7 +88,8 @@ reactlyve-frontend/
    If `VITE_API_URL` is omitted, the app defaults to `https://api.reactlyve.com/api`.
    `VITE_CLOUDINARY_LOGO_ID` controls the Cloudinary overlay used in generated media.
   `VITE_CLOUDINARY_LOGO_SCALE` defines the overlay width relative to the underlying asset using Cloudinary's `fl_relative` flag (default: 0.3),
-   producing consistent results across different resolutions.
+   producing consistent results across different resolutions. Message previews skip applying a new transformation when the URL already contains the overlay,
+   so updates to the environment variable are reflected once new assets are generated.
 
 4. Start the development server:
 

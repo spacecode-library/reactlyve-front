@@ -258,13 +258,21 @@ export const getTransformedCloudinaryUrl = (
   originalUrl: string,
   fileSizeInBytes: number
 ): string => {
+  const uploadMarker = '/upload/';
+  const partsCheck = originalUrl.split(uploadMarker);
+  if (partsCheck.length === 2) {
+    const [, pathAfterUploadCheck] = partsCheck;
+    if (pathAfterUploadCheck.includes(`l_${CLOUDINARY_LOGO_ID}`)) {
+      // URL already has our overlay transformation applied; return as-is
+      return originalUrl;
+    }
+  }
   const tenMBInBytes = 10 * 1024 * 1024; // 10MB threshold
 
   const transformationString = fileSizeInBytes < tenMBInBytes
     ? SMALL_FILE_TRANSFORM_WITH_OVERLAY
     : LARGE_FILE_TRANSFORM_WITH_OVERLAY;
 
-  const uploadMarker = '/upload/';
   const parts = originalUrl.split(uploadMarker);
 
   if (parts.length === 2) {
