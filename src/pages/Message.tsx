@@ -585,7 +585,7 @@ const Message: React.FC = () => {
                             One-time: {linkStats.liveOneTime} live / {linkStats.expiredOneTime} viewed
                           </p>
                           <button onClick={() => setIsLinksModalOpen(true)} className="text-sm text-blue-600 hover:underline">
-                            Manage Links
+                            Manage
                           </button>
                         </div>
                       )}

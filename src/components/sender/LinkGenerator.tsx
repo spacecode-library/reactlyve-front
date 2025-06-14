@@ -231,7 +231,7 @@ Passcode: ${passcode}
             One-time: {linkStats.liveOneTime} live / {linkStats.expiredOneTime} viewed
           </p>
           <Button size="sm" variant="outline" onClick={() => setIsLinksModalOpen(true)}>
-            Manage Links
+            Manage
           </Button>
         </div>
       )}
