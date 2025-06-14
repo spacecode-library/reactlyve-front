@@ -9,8 +9,10 @@ const CLOUDINARY_LOGO_ID =
 const CLOUDINARY_LOGO_SCALE =
   import.meta.env.VITE_CLOUDINARY_LOGO_SCALE || '0.15';
 
-export const SMALL_FILE_TRANSFORM_WITH_OVERLAY = `f_auto,q_auto/l_${CLOUDINARY_LOGO_ID}/fl_layer_apply,w_${CLOUDINARY_LOGO_SCALE},g_south_east,x_10,y_10`;
-export const LARGE_FILE_TRANSFORM_WITH_OVERLAY = `w_1280,c_limit,q_auto,f_auto/l_${CLOUDINARY_LOGO_ID}/fl_layer_apply,w_${CLOUDINARY_LOGO_SCALE},g_south_east,x_10,y_10`;
+export const SMALL_FILE_TRANSFORM_WITH_OVERLAY =
+  `f_auto,q_auto/l_${CLOUDINARY_LOGO_ID},w_${CLOUDINARY_LOGO_SCALE},fl_relative/fl_layer_apply,g_south_east,x_10,y_10`;
+export const LARGE_FILE_TRANSFORM_WITH_OVERLAY =
+  `w_1280,c_limit,q_auto,f_auto/l_${CLOUDINARY_LOGO_ID},w_${CLOUDINARY_LOGO_SCALE},fl_relative/fl_layer_apply,g_south_east,x_10,y_10`;
 
 /**
  * Request camera and microphone permissions
