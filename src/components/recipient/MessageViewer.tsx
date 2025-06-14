@@ -24,6 +24,7 @@ interface MessageViewerProps {
   onSendTextReply?: (messageId: string, text: string) => Promise<void>;
   onInitReactionId?: (id: string) => void;
   onLocalRecordingComplete?: () => void;
+  linkId?: string;
 }
 
 const MessageViewer: React.FC<MessageViewerProps> = ({
@@ -34,6 +35,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   onSendTextReply,
   onInitReactionId,
   onLocalRecordingComplete,
+  linkId,
 }) => {
   const { user } = useAuth();
 
@@ -230,7 +232,12 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     try {
       const currentSessionId = String(sessionId); // Ensure it's a string
       // The console log should use currentSessionId too
-      const res = await reactionsApi.init(message.id, currentSessionId, recipientName || undefined);
+      const res = await reactionsApi.init(
+        message.id,
+        currentSessionId,
+        recipientName || undefined,
+        linkId
+      );
       if (res.data.reactionId) {
         setReactionId(res.data.reactionId);
         onInitReactionId?.(res.data.reactionId); 
@@ -347,6 +354,11 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   const renderMessageContent = () => (
     <div className="card w-full max-w-2xl mx-auto animate-slide-up">
+      {message.onetime && (
+        <div className="mb-4 rounded-md bg-red-100 p-2 text-center text-red-700 dark:bg-red-900/40 dark:text-red-300">
+          This link can only be viewed once.
+        </div>
+      )}
       {message.sender && (
         <div className="mb-4 flex items-center">
           <div className="h-10 w-10 rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
@@ -511,8 +523,13 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
             />
           </div>
         )}
-        {showRecorder && !isNameSubmitted && ( 
+        {showRecorder && !isNameSubmitted && (
           <div className="mb-4 w-full max-w-md mx-auto">
+            {message.onetime && (
+              <div className="mb-2 rounded-md bg-red-100 p-2 text-center text-red-700 dark:bg-red-900/40 dark:text-red-300">
+                This link can only be viewed once.
+              </div>
+            )}
             {/* Removed isReactionLimitReached conditional message */}
             <label htmlFor="recipientName" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1 text-center">
               Say hello with your name

@@ -4,7 +4,7 @@ import MainLayout from '../layouts/MainLayout';
 import { useAuth } from '../context/AuthContext'; // Adjust path if necessary
 import { formatDistance, format } from 'date-fns'; // Added format
 import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon, Trash2Icon, Edit3Icon, Share2Icon } from 'lucide-react';
-import api, { messagesApi, reactionsApi } from '@/services/api';
+import api, { messagesApi, reactionsApi, messageLinksApi } from '@/services/api';
 import { MESSAGE_ROUTES } from '@/components/constants/apiRoutes';
 import type { MessageWithReactions } from '../types/message';
 import Modal from '@/components/common/Modal';
@@ -16,6 +16,7 @@ import { normalizeMessage } from '../utils/normalizeKeys';
 import { getTransformedCloudinaryUrl } from '../utils/mediaHelpers';
 import { QRCodeSVG } from 'qrcode.react';
 import VideoPlayer from '../components/dashboard/VideoPlayer'; // Added VideoPlayer import
+import LinksModal from '../components/dashboard/LinksModal';
 
 const Message: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +34,8 @@ const Message: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState({ passcode: false, link: false });
   const [showQrCode, setShowQrCode] = useState(false);
+  const [isLinksModalOpen, setIsLinksModalOpen] = useState(false);
+  const [linkStats, setLinkStats] = useState({ liveOneTime: 0, expiredOneTime: 0 });
 
   const { user: loggedInUser } = useAuth();
   const isGuestUser = loggedInUser?.role === 'guest';
@@ -65,6 +68,24 @@ const Message: React.FC = () => {
     if (id) fetchMessageDetails();
   }, [id]);
 
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!id) return;
+      try {
+        const res = await messageLinksApi.list(id);
+        if (res.data.stats) {
+          setLinkStats({
+            liveOneTime: res.data.stats.liveOneTime || 0,
+            expiredOneTime: res.data.stats.expiredOneTime || 0,
+          });
+        }
+      } catch (e) {
+        console.error('Failed to fetch link stats');
+      }
+    };
+    fetchStats();
+  }, [id]);
+
   // Scroll to top when message details are loaded (keep this effect separate)
   useEffect(() => {
     if (message) {
@@ -80,6 +101,23 @@ const Message: React.FC = () => {
 
   const handleClosePasscodeModal = () => {
     setIsPasscodeModalOpen(false);
+  };
+
+  const handleLinksModalClose = () => {
+    setIsLinksModalOpen(false);
+    if (id) {
+      messageLinksApi
+        .list(id)
+        .then(res => {
+          if (res.data.stats) {
+            setLinkStats({
+              liveOneTime: res.data.stats.liveOneTime || 0,
+              expiredOneTime: res.data.stats.expiredOneTime || 0,
+            });
+          }
+        })
+        .catch(() => {});
+    }
   };
 
   const handleSavePasscode = async () => {
@@ -539,6 +577,17 @@ const Message: React.FC = () => {
                         </p>
                       </div>
                     )}
+                    <div className="mt-2 flex items-center justify-between">
+                      <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                        One-time: {linkStats.liveOneTime} live / {linkStats.expiredOneTime} viewed
+                      </p>
+                      <button
+                        onClick={() => setIsLinksModalOpen(true)}
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        Manage Links
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -1017,6 +1066,12 @@ const Message: React.FC = () => {
             </p>
           </div>
         </Modal>
+
+        <LinksModal
+          isOpen={isLinksModalOpen}
+          onClose={handleLinksModalClose}
+          messageId={id!}
+        />
       </div>
     </MainLayout>
   );
