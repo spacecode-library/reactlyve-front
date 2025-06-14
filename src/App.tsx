@@ -5,7 +5,7 @@ import ScrollToTop from './components/common/ScrollToTop';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import CookieBanner from './components/common/CookieBanner';
+// import CookieBanner from './components/common/CookieBanner';
 import LoadingSpinner from './components/common/LoadingSpinner'; // Import LoadingSpinner
 
 // Page components using React.lazy
@@ -84,7 +84,7 @@ function App() {
             },
           }}
         />
-        <CookieBanner /> {/* Add CookieBanner here */}
+        {/* <CookieBanner /> */} {/* Cookie management bar disabled */}
       </AuthProvider>
     </ThemeProvider>
   );

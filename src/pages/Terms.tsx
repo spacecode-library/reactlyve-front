@@ -4,7 +4,7 @@ import MainLayout from '../layouts/MainLayout'; // Added import
 const TermsPage: React.FC = () => {
   return (
     <MainLayout> {/* Added MainLayout wrapper */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="mx-auto max-w-3xl px-4 py-8">
         <h1 className="text-3xl font-bold mb-4">TERMS OF SERVICE</h1>
         <p className="text-sm text-gray-600 mb-6">Last updated June 12, 2025</p>
 

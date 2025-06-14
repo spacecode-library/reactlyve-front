@@ -2,6 +2,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import type { User } from '../types/user';
 import { API_BASE_URL, REPLY_ROUTES } from '../components/constants/apiRoutes';
+import { getToken } from '../utils/tokenStorage';
 
 // Axios instance for authenticated requests
 const api = axios.create({
@@ -14,20 +15,20 @@ const api = axios.create({
 
 // Request interceptor to add auth token
 api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
+  config => {
+    const token = getToken();
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  error => Promise.reject(error)
 );
 
 // Global response error handler
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  response => response,
+  error => {
     let errorMessage = 'Something went wrong';
     if (error.response?.data?.error) {
       errorMessage = error.response.data.error; // Use the 'error' field if present
@@ -35,7 +36,8 @@ api.interceptors.response.use(
       errorMessage = error.response.data.message; // Fallback to 'message' field
     }
 
-    if (error.response?.status !== 401) { // Keep existing 401 behavior
+    if (error.response?.status !== 401) {
+      // Keep existing 401 behavior
       toast.error(errorMessage);
     }
     return Promise.reject(error);
@@ -72,9 +74,7 @@ export const messagesApi = {
       timeout: 5000, // It's good practice to have a timeout for public APIs
     });
 
-    const encodedLinkId = linkId.includes('http')
-      ? encodeURIComponent(linkId)
-      : linkId;
+    const encodedLinkId = linkId.includes('http') ? encodeURIComponent(linkId) : linkId;
     // Backend for this route also returns camelCased message objects if passcode not required
     return publicApi.get(`/messages/shared/${encodedLinkId}`);
   },
@@ -87,11 +87,13 @@ export const messagesApi = {
     // Backend returns camelCased message object upon success
     return publicApi.post(`/messages/${messageId}/verify-passcode`, { passcode });
   },
-  updateMessageDetails: async (messageId: string, data: { reaction_length?: number; passcode?: string | null }) => {
+  updateMessageDetails: async (
+    messageId: string,
+    data: { reaction_length?: number; passcode?: string | null }
+  ) => {
     return api.put(`/messages/${messageId}`, data);
   },
-  submitForManualReview: (messageId: string) =>
-    api.post(`/messages/${messageId}/manual-review`),
+  submitForManualReview: (messageId: string) => api.post(`/messages/${messageId}/manual-review`),
 };
 
 // ------------------ REACTIONS API ------------------
@@ -131,8 +133,7 @@ export const reactionsApi = {
   getById: (id: string) => api.get(`/reactions/${id}`),
   deleteReactionById: (reactionId: string) => api.delete(`/reactions/${reactionId}/delete`),
   deleteAllForMessage: (messageId: string) => api.delete(`/messages/${messageId}/reactions/delete`),
-  submitForManualReview: (reactionId: string) =>
-    api.post(`/reactions/${reactionId}/manual-review`),
+  submitForManualReview: (reactionId: string) => api.post(`/reactions/${reactionId}/manual-review`),
 };
 
 // ------------------ REPLIES API ------------------
@@ -187,14 +188,8 @@ export const adminApi = {
   },
   // The backend does not expose a dedicated /moderation endpoint.
   // Moderation flags are updated via the same limits route.
-  updateUserModeration: async (
-    userId: string,
-    moderation: UpdateUserModerationPayload,
-  ) => {
-    const response = await api.put(
-      `/admin/users/${userId}/limits`,
-      moderation,
-    );
+  updateUserModeration: async (userId: string, moderation: UpdateUserModerationPayload) => {
+    const response = await api.put(`/admin/users/${userId}/limits`, moderation);
     return response;
   },
   getModerationSummary: async () => {

@@ -64,23 +64,28 @@ reactlyve-frontend/
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/spacecode-library/reactlyve-frontend.git
    cd reactlyve-frontend
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Create a `.env` file in the root directory with the following variable:
+
    ```
    VITE_API_URL=http://localhost:8000/api
    ```
+
    If `VITE_API_URL` is omitted, the app defaults to `https://api.reactlyve.com/api`.
 
 4. Start the development server:
+
    ```bash
    npm run dev
    ```
@@ -109,11 +114,18 @@ npm start
 Reactlyve uses Google OAuth for authentication. The authentication flow is handled by the backend at `/api/auth/google`, which redirects back to the frontend at `/auth/success` after successful authentication.
 
 ```typescript
-// Example of initiating Google OAuth
+// Example of initiating Google OAuth with basic host validation
 const handleLogin = () => {
-  window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+  const url = `${import.meta.env.VITE_API_URL}/auth/google`;
+  const allowed = ['localhost', 'api.reactlyve.com'];
+  if (allowed.includes(new URL(url).hostname)) {
+    window.location.href = url;
+  }
 };
 ```
+
+Authentication tokens are stored in a `SameSite=Lax` cookie rather than
+`localStorage`, reducing exposure to XSS attacks.
 
 ### Media Handling
 
@@ -181,11 +193,13 @@ If you're having issues with webcam access during development:
 Some common TypeScript errors and solutions:
 
 1. **RefObject Type Errors**: For refs that start as null but will be populated later, use type assertion:
+
    ```typescript
    const videoRef = useRef<HTMLVideoElement>(null) as React.RefObject<HTMLVideoElement>;
    ```
 
 2. **Event Handling**: When handling native events that TypeScript doesn't have complete types for:
+
    ```typescript
    const handleError = (event: Event) => {
      const errorEvent = event as any;
@@ -196,8 +210,8 @@ Some common TypeScript errors and solutions:
 3. **Missing Jest/Node Types**: If you encounter errors like `Cannot find type definition file for 'jest'` or `'node'`, ensure you've installed dependencies first. Use:
    ```bash
     npm install --legacy-peer-deps
-    ```
-    This installs all dev dependencies such as `@types/jest` and `@types/node` required for the TypeScript build. Avoid passing `--omit=dev` or `--production` when installing.
+   ```
+   This installs all dev dependencies such as `@types/jest` and `@types/node` required for the TypeScript build. Avoid passing `--omit=dev` or `--production` when installing.
 
 ### API Integration
 
@@ -218,15 +232,8 @@ const { user, isAuthenticated, login, logout } = useAuth();
 Manages webcam access, permissions, and streams.
 
 ```typescript
-const {
-  stream,
-  videoRef,
-  isLoading,
-  error,
-  startWebcam,
-  stopWebcam,
-  permissionState,
-} = useWebcam();
+const { stream, videoRef, isLoading, error, startWebcam, stopWebcam, permissionState } =
+  useWebcam();
 ```
 
 ### `useMediaRecorder`

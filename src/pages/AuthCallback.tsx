@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useNavigate,useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import api from '../services/api';
-
+import { setToken } from '../utils/tokenStorage';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -10,12 +10,12 @@ const AuthCallback = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   //console.log(token,"token")
-  
+
   useEffect(() => {
     if (token) {
-      localStorage.setItem('token', token);
+      setToken(token);
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    
+
       // Force a full reload to trigger AuthContext init with the new token
       window.location.href = '/dashboard';
     } else {
