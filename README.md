@@ -76,13 +76,15 @@ reactlyve-frontend/
    npm install
    ```
 
-3. Create a `.env` file in the root directory with the following variable:
+3. Create a `.env` file in the root directory with the following variables:
 
    ```
    VITE_API_URL=http://localhost:8000/api
+   VITE_CLOUDINARY_LOGO_ID=Reactlyve_Logo_bi78md
    ```
 
    If `VITE_API_URL` is omitted, the app defaults to `https://api.reactlyve.com/api`.
+   `VITE_CLOUDINARY_LOGO_ID` controls the Cloudinary overlay used in generated media.
 
 4. Start the development server:
 
