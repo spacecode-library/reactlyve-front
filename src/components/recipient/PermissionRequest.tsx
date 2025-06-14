@@ -3,14 +3,12 @@ import { isIOS } from '../../utils/mediaHelpers';
 import { REACTION_ERRORS } from '../../components/constants/errorMessages';
 
 interface PermissionRequestProps {
-  onCancel: () => void;
   permissionType: 'camera' | 'microphone' | 'both';
   errorMessage?: string;
   isReplyMode?: boolean;
 }
 
 const PermissionRequest: React.FC<PermissionRequestProps> = ({
-  onCancel,
   permissionType,
   errorMessage,
   isReplyMode = false,
@@ -179,14 +177,6 @@ const PermissionRequest: React.FC<PermissionRequestProps> = ({
           Refresh Page
         </button>
         
-        {!errorMessage && (
-          <button
-            onClick={onCancel}
-            className="btn btn-outline"
-          >
-            Go Back
-          </button>
-        )}
       </div>
     </div>
   );

@@ -10,7 +10,7 @@ import { classNames } from '../../utils/classNames';
 
 interface WebcamRecorderProps {
   onRecordingComplete: (blob: Blob) => void;
-  onCancel: () => void;
+  onCancel?: () => void;
   maxDuration?: number;
   countdownDuration?: number;
   className?: string;
@@ -518,7 +518,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     setShowCountdown(false);
     setIsRecording(false);
     setRecordingCompleted(false);
-    onCancel();
+    onCancel?.();
   };
 
   if (!isBrowserSupported) {
@@ -527,7 +527,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
         <p>
           Your browser does not support webcam recording. Please try on another device or browser.
         </p>
-        <button onClick={onCancel} className="btn btn-outline mt-2">
+        <button onClick={() => onCancel?.()} className="btn btn-outline mt-2">
           Go Back
         </button>
       </div>
