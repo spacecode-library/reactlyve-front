@@ -10,6 +10,12 @@ Reactlyve is a modern web application that allows users to create and share surp
 - **Generate unique shareable links** to send to recipients
 - **Record reactions** via webcam when recipients view messages
 - **Dashboard** for managing messages and viewing reactions
+- **Google OAuth authentication** for quick and secure sign in
+- **Share links via QR codes** for easy access on any device
+- **Download reaction videos** to save or repost later
+- **Admin portal** for user management and content moderation
+- **Automatic media moderation** using AWS Rekognition
+- **Profile page** to review usage limits or delete your account and data
 - **Responsive design** for desktop and mobile devices
 - **Dark/light mode** support with persistent theme preference
 - Comprehensive and up-to-date legal documentation (Terms of Service, Privacy Policy, Cookie Policy) ensuring transparency and user rights.

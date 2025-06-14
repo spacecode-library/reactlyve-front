@@ -20,18 +20,16 @@ interface MessageViewerProps {
   message: Message;
   onRecordReaction: (messageId: string, videoBlob: Blob) => Promise<void>;
   onRecordReply?: (messageId: string, videoBlob: Blob) => Promise<void>;
-  onSkipReaction?: () => void;
   onSubmitPasscode: (passcode: string) => Promise<boolean>;
   onSendTextReply?: (messageId: string, text: string) => Promise<void>;
   onInitReactionId?: (id: string) => void;
-  onLocalRecordingComplete?: () => void; 
+  onLocalRecordingComplete?: () => void;
 }
 
 const MessageViewer: React.FC<MessageViewerProps> = ({
   message,
   onRecordReaction,
   onRecordReply,
-  onSkipReaction,
   onSubmitPasscode,
   onSendTextReply,
   onInitReactionId,
@@ -339,7 +337,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       return (
         <div className="flex min-h-[100dvh] w-full flex-col items-center justify-center bg-neutral-50 px-4 py-2 dark:bg-neutral-900 sm:py-6">
           <PermissionRequest
-            onCancel={() => onSkipReaction?.()}
             permissionType="both" // This is still hardcoded; might need review later if other errors use this path
             errorMessage={permissionError}
           />
@@ -497,13 +494,12 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       >
         {showRecorder && !isReactionRecorded && (
           <div className="w-full max-w-md mx-auto mb-4">
-            <WebcamRecorder
-              onRecordingComplete={handleReactionComplete}
-              onCancel={() => { /* Consider what cancel means in this new flow */ }}
-              maxDuration={(normalizedMessage.reaction_length ? normalizedMessage.reaction_length * 1000 : 15000)}
-              countdownDuration={5}
-              onPermissionDenied={(err) => setPermissionError(err)}
-              autoStart={false}
+              <WebcamRecorder
+                onRecordingComplete={handleReactionComplete}
+                maxDuration={(normalizedMessage.reaction_length ? normalizedMessage.reaction_length * 1000 : 15000)}
+                countdownDuration={5}
+                onPermissionDenied={(err) => setPermissionError(err)}
+                autoStart={false}
               triggerCountdownSignal={triggerCountdown}
               onCountdownComplete={handleCountdownComplete}
               hidePreviewAfterCountdown={true}

@@ -107,16 +107,6 @@ const View: React.FC = () => {
     }
   };
 
-  const handleSkipReaction = async () => {
-    if (!id || !message) return;
-    try {
-      await api.post(`/reactions/${id}/skip`);
-      toast.success('You have chosen to skip recording a reaction.');
-    } catch (error) {
-      console.error('Error skipping reaction:', error);
-      toast.success('You have chosen to skip recording a reaction.');
-    }
-  };
 
   if (loading) {
     return (
@@ -167,7 +157,6 @@ const View: React.FC = () => {
           onLocalRecordingComplete={() => {
             handleRecordReaction();
           }}
-          onSkipReaction={handleSkipReaction}
           onSubmitPasscode={handleSubmitPasscode}
           onSendTextReply={handleSendTextReply}
           onInitReactionId={handleInitReactionId}
