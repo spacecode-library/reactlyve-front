@@ -232,7 +232,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../context/AuthContext'; // Added useAuth import
-import { messagesApi } from '../../services/api';
+import { messagesApi, messageLinksApi } from '../../services/api';
 import { AxiosError } from 'axios'; // Added import
 import { VALIDATION_ERRORS, MESSAGE_ERRORS } from '../constants/errorMessages'; // Modified import
 import { classNames } from '../../utils/classNames';
@@ -255,7 +255,7 @@ const messageSchema = z.object({
     .min(10, VALIDATION_ERRORS.REACTION_LENGTH_MIN)
     .max(30, VALIDATION_ERRORS.REACTION_LENGTH_MAX)
     .default(15),
-  onetime: z.boolean().default(false),
+  createOneTimeLink: z.boolean().default(false),
 });
 
 type MessageFormValues = z.infer<typeof messageSchema>;
@@ -276,7 +276,8 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [shareableLink, setShareableLink] = useState<string>('');
-  const [shareableOnetime, setShareableOnetime] = useState(false);
+  const [createdMessageId, setCreatedMessageId] = useState<string>('');
+  const [linkStats, setLinkStats] = useState({ liveOneTime: 0, expiredOneTime: 0 });
   
   // React Hook Form setup
   const {
@@ -293,7 +294,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
       hasPasscode: false,
       passcode: '',
       reaction_length: 15,
-      onetime: false,
+      createOneTimeLink: false,
     },
   });
   
@@ -301,7 +302,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
   const hasPasscode = watch('hasPasscode');
   const passcode = watch('passcode');
   const reactionLengthValue = watch('reaction_length');
-  const onetime = watch('onetime');
+  const createOneTimeLink = watch('createOneTimeLink');
   
   // Handle media upload
   const handleMediaSelect = useCallback((file: File | null) => {
@@ -361,17 +362,38 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
 
       // Add reaction length
       formData.append('reaction_length', data.reaction_length.toString());
-      formData.append('onetime', data.onetime.toString());
+      formData.append('onetime', 'false');
       
       // Call API to create message with FormData
       const response = await messagesApi.createWithFormData(formData);
 
-      // Set the shareable link from the response
       if (response.data.shareableLink) {
         setShareableLink(response.data.shareableLink);
       }
-      if (response.data.onetime !== undefined) {
-        setShareableOnetime(response.data.onetime);
+      if (response.data.id) {
+        setCreatedMessageId(response.data.id);
+      }
+
+      if (createOneTimeLink && response.data.id) {
+        try {
+          await messageLinksApi.create(response.data.id, true);
+        } catch {
+          // ignore error, toast handled globally
+        }
+      }
+
+      if (response.data.id) {
+        try {
+          const statsRes = await messageLinksApi.list(response.data.id);
+          if (statsRes.data.stats) {
+            setLinkStats({
+              liveOneTime: statsRes.data.stats.liveOneTime || 0,
+              expiredOneTime: statsRes.data.stats.expiredOneTime || 0,
+            });
+          }
+        } catch {
+          // ignore stats errors
+        }
       }
       
       // Show success message
@@ -424,7 +446,8 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
         shareableLink={shareableLink}
         hasPasscode={hasPasscode}
         passcode={passcode}
-        onetime={shareableOnetime}
+        messageId={createdMessageId}
+        initialStats={linkStats}
         className={className}
       />
     );
@@ -549,15 +572,15 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
         )}
       </div>
 
-      {/* One-time Link Option */}
+      {/* Create first one-time link option */}
       <div className="flex items-center">
         <Controller
-          name="onetime"
+          name="createOneTimeLink"
           control={control}
           render={({ field }) => (
             <input
               type="checkbox"
-              id="onetime"
+              id="createOneTimeLink"
               checked={field.value}
               onChange={field.onChange}
               onBlur={field.onBlur}
@@ -568,8 +591,8 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
             />
           )}
         />
-        <label htmlFor="onetime" className="text-sm text-neutral-700 dark:text-neutral-300">
-          One-time view link
+        <label htmlFor="createOneTimeLink" className="text-sm text-neutral-700 dark:text-neutral-300">
+          Create a one-time link
         </label>
       </div>
       

@@ -435,6 +435,20 @@ const Message: React.FC = () => {
                     Duration: {Math.floor(message.duration / 60)}:{(message.duration % 60).toString().padStart(2, '0')}
                   </p>
                 )}
+
+                {normalizedMessage && (
+                  <div className="flex items-center justify-between rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
+                    <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                      One-time: {linkStats.liveOneTime} live / {linkStats.expiredOneTime} viewed
+                    </p>
+                    <button
+                      onClick={() => setIsLinksModalOpen(true)}
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      Manage Links
+                    </button>
+                  </div>
+                )}
               </div>
           </div>
       );
@@ -577,17 +591,6 @@ const Message: React.FC = () => {
                         </p>
                       </div>
                     )}
-                    <div className="mt-2 flex items-center justify-between">
-                      <p className="text-xs text-neutral-600 dark:text-neutral-400">
-                        One-time: {linkStats.liveOneTime} live / {linkStats.expiredOneTime} viewed
-                      </p>
-                      <button
-                        onClick={() => setIsLinksModalOpen(true)}
-                        className="text-sm text-blue-600 hover:underline"
-                      >
-                        Manage Links
-                      </button>
-                    </div>
                   </div>
                 )}
 
