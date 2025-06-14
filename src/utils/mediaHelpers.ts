@@ -5,9 +5,9 @@ const CLOUDINARY_LOGO_ID =
 
 // Watermark scale can be customized via the environment. Using a relative
 // width keeps the overlay proportional to the underlying media. Defaults to
-// `0.2` (20% of the asset width).
+// `0.3` (30% of the asset width).
 const CLOUDINARY_LOGO_SCALE =
-  import.meta.env.VITE_CLOUDINARY_LOGO_SCALE || '0.2';
+  import.meta.env.VITE_CLOUDINARY_LOGO_SCALE || '0.3';
 
 export const SMALL_FILE_TRANSFORM_WITH_OVERLAY =
   `f_auto,q_auto/l_${CLOUDINARY_LOGO_ID},w_${CLOUDINARY_LOGO_SCALE},fl_relative/fl_layer_apply,g_south_east,x_10,y_10`;
