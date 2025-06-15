@@ -332,7 +332,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   );
 
   if (message.onetime && message.linkViewed) {
-    return renderErrorCard('Link Expired', MESSAGE_ERRORS.LINK_EXPIRED);
+    return renderErrorCard('Link Expired', MESSAGE_ERRORS.LINK_EXPIRED, true);
   }
 
   if (!passcodeVerified && message.hasPasscode) {
@@ -356,7 +356,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       permissionError === MESSAGE_ERRORS.ALREADY_VIEWED ||
       permissionError.toLowerCase().includes('link expired')
     ) {
-      return renderErrorCard('Link Expired', MESSAGE_ERRORS.LINK_EXPIRED);
+      return renderErrorCard('Link Expired', MESSAGE_ERRORS.LINK_EXPIRED, true);
     }
 
     return (
