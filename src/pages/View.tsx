@@ -96,7 +96,16 @@ const View: React.FC = () => {
       if (verify.data?.verified || verify.status === 200) {
         setError(null);
         setPasscodeVerified(true);
-        if (updatedMsgRaw.data) setMessage(normalizeMessage(updatedMsgRaw.data));
+        if (updatedMsgRaw.data) {
+          const m = normalizeMessage(updatedMsgRaw.data);
+          if (updatedView.data.onetime !== undefined) {
+            m.onetime = updatedView.data.onetime;
+          }
+          if (updatedView.data.linkViewed !== undefined) {
+            m.linkViewed = updatedView.data.linkViewed;
+          }
+          setMessage(m);
+        }
         return true;
       }
       return false;
@@ -127,7 +136,6 @@ const View: React.FC = () => {
     }
   };
 
-
   if (loading) {
     return (
       <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-neutral-50 dark:bg-neutral-900">
@@ -145,8 +153,8 @@ const View: React.FC = () => {
             {error === MESSAGE_ERRORS.NOT_FOUND
               ? 'Message Not Found'
               : error === MESSAGE_ERRORS.LINK_EXPIRED
-              ? 'Link Expired'
-              : 'Error'}
+                ? 'Link Expired'
+                : 'Error'}
           </h2>
           <p className="mt-2 text-neutral-600 dark:text-neutral-300">{error}</p>
           <button
@@ -163,7 +171,14 @@ const View: React.FC = () => {
   if (needsPasscode && !passcodeVerified) {
     return (
       <div className="flex min-h-[100dvh] items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
-        <PasscodeEntry onSubmitPasscode={handleSubmitPasscode} />
+        <div className="w-full max-w-md mx-auto">
+          {message?.onetime && (
+            <div className="mb-2 rounded-md bg-red-100 p-2 text-center text-red-700 dark:bg-red-900/40 dark:text-red-300">
+              This link can only be viewed once.
+            </div>
+          )}
+          <PasscodeEntry onSubmitPasscode={handleSubmitPasscode} />
+        </div>
       </div>
     );
   }
