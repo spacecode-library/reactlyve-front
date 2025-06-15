@@ -6,6 +6,7 @@ import PasscodeEntry from '../components/recipient/PasscodeEntry';
 import MessageViewer from '../components/recipient/MessageViewer';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import api, { repliesApi } from '../services/api';
+import { normalizeMessage } from '../utils/normalizeKeys';
 import { Message as MessageData } from '../types/message';
 
 const View: React.FC = () => {
@@ -44,7 +45,8 @@ const View: React.FC = () => {
           return;
         }
         const messageId = response.data.id;
-        const messageData = (await api.get(`/messages/${messageId}`)).data;
+        const rawMessageData = (await api.get(`/messages/${messageId}`)).data;
+        const messageData = normalizeMessage(rawMessageData);
         if (response.data.onetime !== undefined) {
           messageData.onetime = response.data.onetime;
         }
@@ -89,12 +91,12 @@ const View: React.FC = () => {
         setError(MESSAGE_ERRORS.LINK_EXPIRED);
         return false;
       }
-      const updatedMsg = await api.get(`/messages/${updatedView.data.id}`);
+      const updatedMsgRaw = await api.get(`/messages/${updatedView.data.id}`);
 
       if (verify.data?.verified || verify.status === 200) {
         setError(null);
         setPasscodeVerified(true);
-        if (updatedMsg.data) setMessage(updatedMsg.data);
+        if (updatedMsgRaw.data) setMessage(normalizeMessage(updatedMsgRaw.data));
         return true;
       }
       return false;

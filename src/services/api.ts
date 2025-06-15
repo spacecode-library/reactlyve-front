@@ -44,6 +44,38 @@ api.interceptors.response.use(
   }
 );
 
+// Debug logging interceptor to track requests and responses
+api.interceptors.request.use(config => {
+  console.log('API Request:', {
+    method: config.method,
+    url: config.url,
+    data: config.data,
+    params: config.params,
+  });
+  return config;
+});
+
+api.interceptors.response.use(
+  response => {
+    console.log('API Response:', {
+      url: response.config.url,
+      data: response.data,
+    });
+    return response;
+  },
+  error => {
+    if (error.response) {
+      console.log('API Response Error:', {
+        url: error.response.config?.url,
+        data: error.response.data,
+      });
+    } else {
+      console.log('API Response Error:', error.message);
+    }
+    return Promise.reject(error);
+  }
+);
+
 // ------------------ AUTH API ------------------
 // Note: Backend's /auth/user now returns user object with camelCase keys
 // (e.g., response.data.user.googleId, response.data.user.createdAt)
