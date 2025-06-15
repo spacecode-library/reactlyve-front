@@ -26,7 +26,6 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId }) =
   const [links, setLinks] = useState<LinkItem[]>([]);
   const [liveOneTime, setLiveOneTime] = useState(0);
   const [expiredOneTime, setExpiredOneTime] = useState(0);
-  const [newOnetime, setNewOnetime] = useState(false);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
 
@@ -53,10 +52,10 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId }) =
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
-  const handleCreate = async () => {
+  const handleCreate = async (onetime: boolean) => {
     setCreating(true);
     try {
-      await messageLinksApi.create(messageId, newOnetime);
+      await messageLinksApi.create(messageId, onetime);
       toast.success('Link created');
       await fetchLinks();
     } catch (err) {
@@ -90,18 +89,11 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId }) =
           Live one-time links: {liveOneTime} • Viewed: {expiredOneTime}
         </p>
         <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            id="new-onetime"
-            checked={newOnetime}
-            onChange={(e) => setNewOnetime(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-          />
-          <label htmlFor="new-onetime" className="text-sm text-neutral-700 dark:text-neutral-300">
-            One-time link
-          </label>
-          <Button onClick={handleCreate} isLoading={creating} size="sm">
-            Create Link
+          <Button onClick={() => handleCreate(false)} isLoading={creating} size="sm">
+            Create Reusable Link
+          </Button>
+          <Button onClick={() => handleCreate(true)} isLoading={creating} size="sm">
+            Create One Time Link
           </Button>
         </div>
         {loading ? (

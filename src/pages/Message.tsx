@@ -579,20 +579,20 @@ const Message: React.FC = () => {
                           </p>
                         </div>
                       )}
-                      {id && (
-                        <div className="mt-3 border-t border-neutral-200 p-3 flex items-center justify-between dark:border-neutral-600">
-                          <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                            One-time: {linkStats.liveOneTime} live / {linkStats.expiredOneTime} viewed
-                          </p>
-                          <button onClick={() => setIsLinksModalOpen(true)} className="text-sm text-blue-600 hover:underline">
-                            Manage
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}
 
+                {id && (
+                  <div className="mt-3 flex items-center justify-between rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
+                    <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                      One-time: {linkStats.liveOneTime} live / {linkStats.expiredOneTime} viewed
+                    </p>
+                    <button onClick={() => setIsLinksModalOpen(true)} className="text-sm text-blue-600 hover:underline">
+                      Manage
+                    </button>
+                  </div>
+                )}
 
                 {/* Passcode Display - Always show section, indicate if not set */}
                 {message && (

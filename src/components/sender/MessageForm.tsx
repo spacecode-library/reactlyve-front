@@ -241,6 +241,7 @@ import MediaUploader from './MediaUploader';
 import PasscodeCreator from './PasscodeCreator';
 import LinkGenerator from './LinkGenerator';
 import { showToast } from '../common/ErrorToast';
+import type { MessageLink } from '../../types/message';
 
 // Form validation schema
 const messageSchema = z.object({
@@ -256,6 +257,11 @@ const messageSchema = z.object({
     .max(30, VALIDATION_ERRORS.REACTION_LENGTH_MAX)
     .default(15),
   createOneTimeLink: z.boolean().default(false),
+  oneTimeLinkCount: z
+    .number()
+    .min(1)
+    .max(20)
+    .default(1),
 });
 
 type MessageFormValues = z.infer<typeof messageSchema>;
@@ -278,6 +284,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
   const [shareableLink, setShareableLink] = useState<string>('');
   const [createdMessageId, setCreatedMessageId] = useState<string>('');
   const [linkStats, setLinkStats] = useState({ liveOneTime: 0, expiredOneTime: 0 });
+  const [links, setLinks] = useState<MessageLink[]>([]);
   
   // React Hook Form setup
   const {
@@ -295,6 +302,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
       passcode: '',
       reaction_length: 15,
       createOneTimeLink: false,
+      oneTimeLinkCount: 1,
     },
   });
   
@@ -303,6 +311,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
   const passcode = watch('passcode');
   const reactionLengthValue = watch('reaction_length');
   const createOneTimeLink = watch('createOneTimeLink');
+  const oneTimeLinkCount = watch('oneTimeLinkCount');
   
   // Handle media upload
   const handleMediaSelect = useCallback((file: File | null) => {
@@ -375,10 +384,12 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
       }
 
       if (createOneTimeLink && response.data.id) {
-        try {
-          await messageLinksApi.create(response.data.id, true);
-        } catch {
-          // ignore error, toast handled globally
+        for (let i = 0; i < oneTimeLinkCount; i++) {
+          try {
+            await messageLinksApi.create(response.data.id, true);
+          } catch {
+            // ignore error, toast handled globally
+          }
         }
       }
 
@@ -390,6 +401,9 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
               liveOneTime: statsRes.data.stats.liveOneTime || 0,
               expiredOneTime: statsRes.data.stats.expiredOneTime || 0,
             });
+          }
+          if (statsRes.data.links) {
+            setLinks(statsRes.data.links);
           }
         } catch {
           // ignore stats errors
@@ -433,7 +447,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [media, mediaType, user, createOneTimeLink]); // include createOneTimeLink
+  }, [media, mediaType, user, createOneTimeLink, oneTimeLinkCount]);
   
   // Calculate remaining character count
   const messageValue = watch('message') || '';
@@ -448,6 +462,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
         passcode={passcode}
         messageId={createdMessageId}
         initialStats={linkStats}
+        initialLinks={links}
         className={className}
       />
     );
@@ -566,6 +581,32 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
           Create a one-time link
         </label>
       </div>
+      {createOneTimeLink && (
+        <div className="mt-2">
+          <label
+            htmlFor="oneTimeLinkCount"
+            className="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+          >
+            Number of one-time links: {oneTimeLinkCount}
+          </label>
+          <Controller
+            name="oneTimeLinkCount"
+            control={control}
+            render={({ field }) => (
+              <input
+                {...field}
+                id="oneTimeLinkCount"
+                type="range"
+                min="1"
+                max="20"
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-primary-600"
+                onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+                disabled={isMessageLimitReached}
+              />
+            )}
+          />
+        </div>
+      )}
 
       {/* Reaction Length Slider */}
       <div>

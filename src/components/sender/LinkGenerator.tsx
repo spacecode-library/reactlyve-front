@@ -3,8 +3,8 @@ import { QRCodeSVG } from 'qrcode.react';
 import { classNames } from '../../utils/classNames';
 import Button from '../common/Button';
 import { showToast } from '../common/ErrorToast';
-import LinksModal from '../dashboard/LinksModal';
 import { messageLinksApi } from '../../services/api';
+import type { MessageLink } from '../../types/message';
 
 interface LinkGeneratorProps {
   shareableLink: string;
@@ -12,6 +12,7 @@ interface LinkGeneratorProps {
   passcode?: string;
   messageId?: string;
   initialStats?: { liveOneTime: number; expiredOneTime: number };
+  initialLinks?: MessageLink[];
   className?: string;
 }
 
@@ -21,21 +22,25 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({
   passcode,
   messageId,
   initialStats,
+  initialLinks,
   className,
 }) => {
   const [showQrCode, setShowQrCode] = useState(false);
   const [copied, setCopied] = useState(false);
   const passcodeInputRef = useRef<HTMLInputElement>(null);
-  const [isLinksModalOpen, setIsLinksModalOpen] = useState(false);
   const [linkStats, setLinkStats] = useState(
     initialStats || { liveOneTime: 0, expiredOneTime: 0 }
   );
+  const [links, setLinks] = useState<MessageLink[]>(initialLinks || []);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchLinks = async () => {
       if (!messageId) return;
       try {
         const res = await messageLinksApi.list(messageId);
+        if (res.data.links) {
+          setLinks(res.data.links);
+        }
         if (res.data.stats) {
           setLinkStats({
             liveOneTime: res.data.stats.liveOneTime || 0,
@@ -46,25 +51,9 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({
         // ignore
       }
     };
-    fetchStats();
+    fetchLinks();
   }, [messageId]);
 
-  const handleLinksModalClose = () => {
-    setIsLinksModalOpen(false);
-    if (messageId) {
-      messageLinksApi
-        .list(messageId)
-        .then(res => {
-          if (res.data.stats) {
-            setLinkStats({
-              liveOneTime: res.data.stats.liveOneTime || 0,
-              expiredOneTime: res.data.stats.expiredOneTime || 0,
-            });
-          }
-        })
-        .catch(() => {});
-    }
-  };
 
   // Removed getQrCodeUrl function
 
@@ -81,6 +70,15 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({
       } catch (error) {
         showToast({ message: 'Failed to copy link', type: 'error' });
       }
+    }
+  };
+
+  const handleCopySpecificLink = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast({ message: 'Link copied to clipboard!', type: 'success' });
+    } catch {
+      showToast({ message: 'Failed to copy link', type: 'error' });
     }
   };
 
@@ -225,14 +223,32 @@ Passcode: ${passcode}
         </div>
       )}
 
-      {messageId && (
-        <div className="mt-4 flex items-center justify-between rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
-          <p className="text-sm text-neutral-700 dark:text-neutral-300">
-            One-time: {linkStats.liveOneTime} live / {linkStats.expiredOneTime} viewed
-          </p>
-          <Button size="sm" variant="outline" onClick={() => setIsLinksModalOpen(true)}>
-            Manage
-          </Button>
+      {messageId && links.filter(l => l.onetime).length > 0 && (
+        <div className="mt-4">
+          <h3 className="mb-1 text-sm font-medium text-neutral-700 dark:text-neutral-300">One-time Links</h3>
+          <ul className="space-y-2">
+            {links.filter(l => l.onetime).map(link => {
+              const url = `${window.location.origin}/view/${link.id}`;
+              return (
+                <li key={link.id} className="flex rounded-md shadow-sm">
+                  <input
+                    type="text"
+                    readOnly
+                    value={url}
+                    className="flex-1 rounded-l-md border-r-0 border-neutral-300 bg-neutral-50 px-3 py-2 text-sm text-neutral-900 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                  />
+                  <Button
+                    type="button"
+                    variant="primary"
+                    className="rounded-l-none"
+                    onClick={() => handleCopySpecificLink(url)}
+                  >
+                    Copy
+                  </Button>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
 
@@ -309,13 +325,6 @@ Passcode: ${passcode}
           Create Another Message
         </Button>
       </div>
-      {messageId && (
-        <LinksModal
-          isOpen={isLinksModalOpen}
-          onClose={handleLinksModalClose}
-          messageId={messageId}
-        />
-      )}
     </div>
   );
 };
