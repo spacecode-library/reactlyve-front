@@ -517,7 +517,7 @@ const Message: React.FC = () => {
               <div className="lg:grid lg:grid-cols-2 lg:gap-4 flex flex-col gap-4">
                 {normalizedMessage.shareableLink && (
                   <div>
-                    <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Shareable Link</h2>
+                    <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Reusable Link</h2>
                     <div className="rounded-md bg-neutral-100 dark:bg-neutral-700">
                       <div className="flex items-center gap-2 p-3">
                         <p className="flex-1 truncate text-sm text-neutral-700 dark:text-neutral-300">
@@ -584,13 +584,16 @@ const Message: React.FC = () => {
                 )}
 
                 {id && (
-                  <div className="mt-3 flex items-center justify-between rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
-                    <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                      One-time: {linkStats.liveOneTime} live / {linkStats.expiredOneTime} viewed
-                    </p>
-                    <button onClick={() => setIsLinksModalOpen(true)} className="text-sm text-blue-600 hover:underline">
-                      Manage
-                    </button>
+                  <div>
+                    <h2 className="mb-2 mt-3 text-lg font-semibold text-neutral-900 dark:text-white">One Time Links</h2>
+                    <div className="flex items-center justify-between rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
+                      <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                        Live: {linkStats.liveOneTime} / Viewed: {linkStats.expiredOneTime}
+                      </p>
+                      <button onClick={() => setIsLinksModalOpen(true)} className="text-sm text-blue-600 hover:underline">
+                        Manage
+                      </button>
+                    </div>
                   </div>
                 )}
 
