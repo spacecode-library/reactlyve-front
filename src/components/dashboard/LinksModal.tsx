@@ -17,7 +17,8 @@ interface LinksModalProps {
 interface LinkItem {
   id: string;
   onetime: boolean;
-  viewed: boolean;
+  viewed: boolean; // deprecated, use linkViewed
+  linkViewed?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -162,7 +163,9 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId }) =
                     </div>
                   </div>
                   <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
-                    {link.onetime ? (link.viewed ? 'Viewed' : 'Live') : 'Reusable'}
+                    {link.onetime
+                      ? (link.linkViewed ?? link.viewed ? 'Viewed' : 'Live')
+                      : 'Reusable'}
                   </p>
                 </li>
               );

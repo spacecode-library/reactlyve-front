@@ -40,7 +40,7 @@ const View: React.FC = () => {
 
       try {
         const response = await api.get(`/messages/view/${id}`);
-        if (response.data.onetime && response.data.viewed) {
+        if (response.data.onetime && response.data.linkViewed) {
           setError(MESSAGE_ERRORS.LINK_EXPIRED);
           return;
         }
@@ -50,8 +50,8 @@ const View: React.FC = () => {
         if (response.data.onetime !== undefined) {
           messageData.onetime = response.data.onetime;
         }
-        if (response.data.viewed !== undefined) {
-          messageData.viewed = response.data.viewed;
+        if (response.data.linkViewed !== undefined) {
+          messageData.linkViewed = response.data.linkViewed;
         }
 
         const requiresPasscode = response.data.hasPasscode === true;
@@ -87,7 +87,7 @@ const View: React.FC = () => {
       const verify = await api.post(`/messages/${id}/verify-passcode`, { passcode });
 
       const updatedView = await api.get(`/messages/view/${id}`);
-      if (updatedView.data.onetime && updatedView.data.viewed) {
+      if (updatedView.data.onetime && updatedView.data.linkViewed) {
         setError(MESSAGE_ERRORS.LINK_EXPIRED);
         return false;
       }

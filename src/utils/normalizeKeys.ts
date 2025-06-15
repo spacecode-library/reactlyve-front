@@ -46,7 +46,12 @@ export const normalizeMessage = (message: any) => {
     senderId: message.senderId || message.senderid,
     shareableLink: message.shareableLink || message.shareablelink,
     onetime: parseBoolean(message.onetime ?? message.one_time) ?? false,
-    viewed: parseBoolean(message.viewed ?? message.link_viewed) ?? false,
+    viewed: parseBoolean(
+      message.viewed ?? message.link_viewed ?? message.linkViewed
+    ) ?? false,
+    linkViewed:
+      parseBoolean(message.linkViewed ?? message.link_viewed ?? message.viewed) ??
+      false,
     linkId: message.linkId || message.link_id,
     fileSizeInBytes: message.fileSizeInBytes || message.mediaSize || message.file_size || undefined,
     reaction_length: message.reaction_length ?? message.reactionLength,

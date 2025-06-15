@@ -15,7 +15,8 @@ export interface Message {
   link?: string;
   url?: string;
   viewCount?: number;
-  viewed?: boolean;
+  viewed?: boolean; // deprecated, use linkViewed
+  linkViewed?: boolean;
   onetime?: boolean;
   linkId?: string;
   createdAt: string;
@@ -59,7 +60,8 @@ export interface MessageWithReactions extends Message {
 export interface MessageLink {
   id: string;
   onetime: boolean;
-  viewed: boolean;
+  viewed: boolean; // deprecated, use linkViewed
+  linkViewed?: boolean;
   createdAt: string;
   updatedAt: string;
 }

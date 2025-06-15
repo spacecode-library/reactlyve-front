@@ -331,7 +331,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     </div>
   );
 
-  if (message.onetime && message.viewed) {
+  if (message.onetime && message.linkViewed) {
     return renderErrorCard('Link Expired', MESSAGE_ERRORS.LINK_EXPIRED);
   }
 
