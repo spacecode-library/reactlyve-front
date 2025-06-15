@@ -92,6 +92,23 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({
     }
   };
 
+  const handleShareSpecificLink = (url: string) => {
+    if (navigator.share) {
+      let shareText;
+      if (hasPasscode && passcode) {
+        shareText = `Check out my surprise message!\nPasscode: ${passcode}\n`;
+      } else {
+        shareText = 'Check out my surprise message!\n\n';
+      }
+
+      navigator
+        .share({ title: 'Reactlyve Message', text: shareText, url })
+        .catch(() => handleCopySpecificLink(url));
+    } else {
+      handleCopySpecificLink(url);
+    }
+  };
+
   // Copy passcode to clipboard
   const handleCopyPasscode = async () => {
     if (passcode) {
@@ -335,7 +352,7 @@ Passcode: ${passcode}
                       <Button
                         size="sm"
                         className="bg-secondary-600 text-white hover:bg-secondary-700"
-                        onClick={() => (navigator.share ? navigator.share({ url }) : handleCopySpecificLink(url))}
+                        onClick={() => handleShareSpecificLink(url)}
                         title="Share Link"
                       >
                         <Share2Icon size={16} />

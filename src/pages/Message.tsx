@@ -1077,6 +1077,7 @@ const Message: React.FC = () => {
           isOpen={isLinksModalOpen}
           onClose={handleLinksModalClose}
           messageId={id!}
+          passcode={message?.passcode ?? null}
         />
       </div>
     </MainLayout>

@@ -23,7 +23,7 @@ interface LinkItem {
   updatedAt: string;
 }
 
-const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId }) => {
+const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId, passcode }) => {
   const [links, setLinks] = useState<LinkItem[]>([]);
   const [liveOneTime, setLiveOneTime] = useState(0);
   const [expiredOneTime, setExpiredOneTime] = useState(0);
@@ -81,6 +81,23 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId }) =
     toast.success('Copied to clipboard');
   };
 
+  const handleShareLink = (url: string) => {
+    if (navigator.share) {
+      let shareText;
+      if (passcode) {
+        shareText = `Check out my surprise message!\nPasscode: ${passcode}\n`;
+      } else {
+        shareText = 'Check out my surprise message!\n\n';
+      }
+
+      navigator
+        .share({ title: 'Reactlyve Message', text: shareText, url })
+        .catch(() => copyToClipboard(url));
+    } else {
+      copyToClipboard(url);
+    }
+  };
+
   const baseUrl = window.location.origin;
 
   return (
@@ -119,7 +136,7 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId }) =
                       <Button
                         size="sm"
                         className="bg-secondary-600 text-white hover:bg-secondary-700"
-                        onClick={() => (navigator.share ? navigator.share({ url }) : copyToClipboard(url))}
+                        onClick={() => handleShareLink(url)}
                         title="Share Link"
                       >
                         <Share2Icon size={16} />
