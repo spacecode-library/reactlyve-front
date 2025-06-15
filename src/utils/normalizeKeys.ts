@@ -1,5 +1,16 @@
 // src/utils/normalizeKeys.ts
 
+const parseBoolean = (val: any): boolean | undefined => {
+  if (val === undefined || val === null) return undefined;
+  if (typeof val === 'boolean') return val;
+  if (typeof val === 'string') {
+    const lower = val.toLowerCase();
+    if (lower === 't' || lower === 'true') return true;
+    if (lower === 'f' || lower === 'false') return false;
+  }
+  return Boolean(val);
+};
+
 export const normalizeMessage = (message: any) => {
   if (!message) return message;
 
@@ -34,8 +45,8 @@ export const normalizeMessage = (message: any) => {
     passcode: message.passcode,
     senderId: message.senderId || message.senderid,
     shareableLink: message.shareableLink || message.shareablelink,
-    onetime: message.onetime ?? message.one_time,
-    viewed: message.viewed ?? message.link_viewed ?? false,
+    onetime: parseBoolean(message.onetime ?? message.one_time) ?? false,
+    viewed: parseBoolean(message.viewed ?? message.link_viewed) ?? false,
     linkId: message.linkId || message.link_id,
     fileSizeInBytes: message.fileSizeInBytes || message.mediaSize || message.file_size || undefined,
     reaction_length: message.reaction_length ?? message.reactionLength,
