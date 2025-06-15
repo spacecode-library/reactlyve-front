@@ -35,6 +35,8 @@ const View: React.FC = () => {
         return;
       }
 
+      setError(null);
+
       try {
         const response = await api.get(`/messages/view/${id}`);
         if (response.data.onetime && response.data.viewed) {
@@ -79,6 +81,7 @@ const View: React.FC = () => {
     if (!id || !message) return false;
 
     try {
+      setError(null);
       const verify = await api.post(`/messages/${id}/verify-passcode`, { passcode });
 
       const updatedView = await api.get(`/messages/view/${id}`);
@@ -89,6 +92,7 @@ const View: React.FC = () => {
       const updatedMsg = await api.get(`/messages/${updatedView.data.id}`);
 
       if (verify.data?.verified || verify.status === 200) {
+        setError(null);
         setPasscodeVerified(true);
         if (updatedMsg.data) setMessage(updatedMsg.data);
         return true;
