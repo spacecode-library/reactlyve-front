@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
+import ReactDOM from 'react-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { classNames } from '../../utils/classNames';
 import Button from '../common/Button';
 import { showToast } from '../common/ErrorToast';
 import { messageLinksApi } from '../../services/api';
+import { CopyIcon, Share2Icon } from 'lucide-react';
 import type { MessageLink } from '../../types/message';
 
 interface LinkGeneratorProps {
@@ -32,6 +34,14 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({
     initialStats || { liveOneTime: 0, expiredOneTime: 0 }
   );
   const [links, setLinks] = useState<MessageLink[]>(initialLinks || []);
+
+  useEffect(() => {
+    setLinks(initialLinks || []);
+  }, [initialLinks]);
+
+  useEffect(() => {
+    setLinkStats(initialStats || { liveOneTime: 0, expiredOneTime: 0 });
+  }, [initialStats]);
 
   useEffect(() => {
     const fetchLinks = async () => {
@@ -141,6 +151,23 @@ Passcode: ${passcode}
     }
   };
 
+  const showQrOverlay = (url: string) => {
+    const el = document.createElement('div');
+    document.body.appendChild(el);
+    const remove = () => {
+      ReactDOM.unmountComponentAtNode(el);
+      document.body.removeChild(el);
+    };
+    const qr = (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={remove}>
+        <div className="bg-white p-4 rounded" onClick={e => e.stopPropagation()}>
+          <QRCodeSVG value={url} size={200} />
+        </div>
+      </div>
+    );
+    ReactDOM.render(qr, el);
+  };
+
   return (
     <div className={classNames('rounded-lg bg-white p-6 shadow-md dark:bg-neutral-800', className || '')}>
       <div className="text-center mb-6">
@@ -223,34 +250,6 @@ Passcode: ${passcode}
         </div>
       )}
 
-      {messageId && links.filter(l => l.onetime).length > 0 && (
-        <div className="mt-4">
-          <h3 className="mb-1 text-sm font-medium text-neutral-700 dark:text-neutral-300">One-time Links</h3>
-          <ul className="space-y-2">
-            {links.filter(l => l.onetime).map(link => {
-              const url = `${window.location.origin}/view/${link.id}`;
-              return (
-                <li key={link.id} className="flex rounded-md shadow-sm">
-                  <input
-                    type="text"
-                    readOnly
-                    value={url}
-                    className="flex-1 rounded-l-md border-r-0 border-neutral-300 bg-neutral-50 px-3 py-2 text-sm text-neutral-900 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
-                  />
-                  <Button
-                    type="button"
-                    variant="primary"
-                    className="rounded-l-none"
-                    onClick={() => handleCopySpecificLink(url)}
-                  >
-                    Copy
-                  </Button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
 
       {/* Share options */}
       <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -311,6 +310,62 @@ Passcode: ${passcode}
           <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
             Scan this QR code to access your message directly
           </p>
+        </div>
+      )}
+
+      {messageId && links.filter(l => l.onetime).length > 0 && (
+        <div className="mt-6">
+          <h3 className="mb-2 text-sm font-medium text-neutral-700 dark:text-neutral-300">One-time Links</h3>
+          <ul className="space-y-3">
+            {links.filter(l => l.onetime).map(link => {
+              const url = `${window.location.origin}/view/${link.id}`;
+              return (
+                <li key={link.id} className="rounded-md border p-2 flex flex-col">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm break-all">{url}</span>
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        className="bg-blue-600 text-white hover:bg-blue-700"
+                        onClick={() => handleCopySpecificLink(url)}
+                        title="Copy Link"
+                      >
+                        <CopyIcon size={16} />
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="bg-secondary-600 text-white hover:bg-secondary-700"
+                        onClick={() => (navigator.share ? navigator.share({ url }) : handleCopySpecificLink(url))}
+                        title="Share Link"
+                      >
+                        <Share2Icon size={16} />
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="bg-green-600 text-white hover:bg-green-700"
+                        onClick={() => showQrOverlay(url)}
+                        title="Show QR"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 3a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1V4a1 1 0 00-1-1h-3zm1 2v1h1V5h-1z"
+                            clipRule="evenodd"
+                          />
+                          <path d="M11 4a1 1 0 10-2 0v1a1 1 0 002 0V4zM10 7a1 1 0 011 1v1h2a1 1 0 110 2h-3a1 1 0 01-1-1V8a1 1 0 011-1zM16 9a1 1 0 100 2 1 1 0 000-2zM9 13a1 1 0 011-1h1a1 1 0 110 2v2a1 1 0 11-2 0v-3zM7 11a1 1 0 100-2H4a1 1 0 100 2h3zM17 13a1 1 0 01-1 1h-2a1 1 0 110-2h2a1 1 0 011 1zM16 17a1 1 0 100-2h-3a1 1 0 100 2h3z" />
+                        </svg>
+                      </Button>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
 
