@@ -196,11 +196,6 @@ const View: React.FC = () => {
     return (
       <div className="flex min-h-[100dvh] items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
         <div className="w-full max-w-md mx-auto">
-          {message?.onetime && (
-            <div className="mb-2 rounded-md bg-red-100 p-2 text-center text-red-700 dark:bg-red-900/40 dark:text-red-300">
-              This link can only be viewed once.
-            </div>
-          )}
           <PasscodeEntry onSubmitPasscode={handleSubmitPasscode} />
         </div>
       </div>

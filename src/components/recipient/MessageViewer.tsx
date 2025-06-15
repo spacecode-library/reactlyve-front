@@ -368,11 +368,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   const renderMessageContent = () => (
     <div className="card w-full max-w-2xl mx-auto animate-slide-up">
-      {message.onetime && (
-        <div className="mb-4 rounded-md bg-red-100 p-2 text-center text-red-700 dark:bg-red-900/40 dark:text-red-300">
-          This link can only be viewed once.
-        </div>
-      )}
       {message.sender && (
         <div className="mb-4 flex items-center">
           <div className="h-10 w-10 rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
