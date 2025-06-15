@@ -433,7 +433,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [media, mediaType, user]); // Added user to dependency array
+  }, [media, mediaType, user, createOneTimeLink]); // include createOneTimeLink
   
   // Calculate remaining character count
   const messageValue = watch('message') || '';

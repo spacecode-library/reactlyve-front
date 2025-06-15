@@ -117,7 +117,7 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId }) =
                     <div className="flex space-x-2">
                       <Button
                         size="sm"
-                        variant="outline"
+                        className="bg-blue-600 text-white hover:bg-blue-700"
                         onClick={() => copyToClipboard(url)}
                         title="Copy Link"
                       >
@@ -125,7 +125,7 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId }) =
                       </Button>
                       <Button
                         size="sm"
-                        variant="outline"
+                        className="bg-secondary-600 text-white hover:bg-secondary-700"
                         onClick={() => (navigator.share ? navigator.share({ url }) : copyToClipboard(url))}
                         title="Share Link"
                       >
@@ -133,7 +133,7 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId }) =
                       </Button>
                       <Button
                         size="sm"
-                        variant="outline"
+                        className="bg-green-600 text-white hover:bg-green-700"
                         onClick={() => {
                           const el = document.createElement('div');
                           document.body.appendChild(el);
