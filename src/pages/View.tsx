@@ -6,6 +6,7 @@ import PasscodeEntry from '../components/recipient/PasscodeEntry';
 import MessageViewer from '../components/recipient/MessageViewer';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import api, { repliesApi } from '../services/api';
+import { normalizeMessage } from '../utils/normalizeKeys';
 import { Message as MessageData } from '../types/message';
 
 const View: React.FC = () => {
@@ -35,10 +36,23 @@ const View: React.FC = () => {
         return;
       }
 
+      setError(null);
+
       try {
         const response = await api.get(`/messages/view/${id}`);
+        if (response.data.onetime && response.data.linkViewed) {
+          setError(MESSAGE_ERRORS.LINK_EXPIRED);
+          return;
+        }
         const messageId = response.data.id;
-        const messageData = (await api.get(`/messages/${messageId}`)).data;
+        const rawMessageData = (await api.get(`/messages/${messageId}`)).data;
+        const messageData = normalizeMessage(rawMessageData);
+        if (response.data.onetime !== undefined) {
+          messageData.onetime = response.data.onetime;
+        }
+        if (response.data.linkViewed !== undefined) {
+          messageData.linkViewed = response.data.linkViewed;
+        }
 
         const requiresPasscode = response.data.hasPasscode === true;
         const isVerified = response.data.passcodeVerified === true || !requiresPasscode;
@@ -69,14 +83,29 @@ const View: React.FC = () => {
     if (!id || !message) return false;
 
     try {
+      setError(null);
       const verify = await api.post(`/messages/${id}/verify-passcode`, { passcode });
 
       const updatedView = await api.get(`/messages/view/${id}`);
-      const updatedMsg = await api.get(`/messages/${updatedView.data.id}`);
+      if (updatedView.data.onetime && updatedView.data.linkViewed) {
+        setError(MESSAGE_ERRORS.LINK_EXPIRED);
+        return false;
+      }
+      const updatedMsgRaw = await api.get(`/messages/${updatedView.data.id}`);
 
       if (verify.data?.verified || verify.status === 200) {
+        setError(null);
         setPasscodeVerified(true);
-        if (updatedMsg.data) setMessage(updatedMsg.data);
+        if (updatedMsgRaw.data) {
+          const m = normalizeMessage(updatedMsgRaw.data);
+          if (updatedView.data.onetime !== undefined) {
+            m.onetime = updatedView.data.onetime;
+          }
+          if (updatedView.data.linkViewed !== undefined) {
+            m.linkViewed = updatedView.data.linkViewed;
+          }
+          setMessage(m);
+        }
         return true;
       }
       return false;
@@ -107,16 +136,42 @@ const View: React.FC = () => {
     }
   };
 
-  const handleSkipReaction = async () => {
-    if (!id || !message) return;
-    try {
-      await api.post(`/reactions/${id}/skip`);
-      toast.success('You have chosen to skip recording a reaction.');
-    } catch (error) {
-      console.error('Error skipping reaction:', error);
-      toast.success('You have chosen to skip recording a reaction.');
-    }
-  };
+  const renderErrorCard = (title: string, messageText?: string) => (
+    <div className="flex min-h-[100dvh] w-full flex-col items-center justify-center bg-neutral-50 px-4 py-2 dark:bg-neutral-900 sm:py-6">
+      <div className="card mx-auto max-w-md p-6 text-center">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 text-yellow-600 dark:text-yellow-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+        </div>
+        <h3 className="text-lg font-medium text-neutral-900 dark:text-white text-center">{title}</h3>
+        {messageText && (
+          <div className="mt-4 rounded-md bg-blue-50 p-4 text-center dark:bg-blue-900/30">
+            <p className="text-sm font-medium text-blue-700 dark:text-blue-300 text-center">{messageText}</p>
+          </div>
+        )}
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={() => window.location.reload()}
+            className="btn btn-primary bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-700 dark:hover:bg-yellow-600"
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   if (loading) {
     return (
@@ -128,32 +183,21 @@ const View: React.FC = () => {
   }
 
   if (error) {
-    return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
-        <div className="max-w-md text-center">
-          <h2 className="mt-2 text-2xl font-bold text-neutral-900 dark:text-white">
-            {error === MESSAGE_ERRORS.NOT_FOUND
-              ? 'Message Not Found'
-              : error === MESSAGE_ERRORS.LINK_EXPIRED
-              ? 'Link Expired'
-              : 'Error'}
-          </h2>
-          <p className="mt-2 text-neutral-600 dark:text-neutral-300">{error}</p>
-          <button
-            onClick={() => navigate('/')}
-            className="mt-4 inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 dark:bg-primary-700"
-          >
-            Return Home
-          </button>
-        </div>
-      </div>
-    );
+    const title =
+      error === MESSAGE_ERRORS.NOT_FOUND
+        ? 'Message Not Found'
+        : error === MESSAGE_ERRORS.LINK_EXPIRED
+          ? 'Link Expired'
+          : 'Error';
+    return renderErrorCard(title, error);
   }
 
   if (needsPasscode && !passcodeVerified) {
     return (
       <div className="flex min-h-[100dvh] items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
-        <PasscodeEntry onSubmitPasscode={handleSubmitPasscode} />
+        <div className="w-full max-w-md mx-auto">
+          <PasscodeEntry onSubmitPasscode={handleSubmitPasscode} />
+        </div>
       </div>
     );
   }
@@ -167,29 +211,17 @@ const View: React.FC = () => {
           onLocalRecordingComplete={() => {
             handleRecordReaction();
           }}
-          onSkipReaction={handleSkipReaction}
           onSubmitPasscode={handleSubmitPasscode}
           onSendTextReply={handleSendTextReply}
           onInitReactionId={handleInitReactionId}
+          linkId={id}
         />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-neutral-50 dark:bg-neutral-900">
-      <div className="text-center">
-        <p className="text-neutral-600 dark:text-neutral-300">
-          Something went wrong. Please try again later.
-        </p>
-        <button
-          onClick={() => navigate('/')}
-          className="mt-4 inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 dark:bg-primary-700"
-        >
-          Return Home
-        </button>
-      </div>
-    </div>
+    renderErrorCard('Error', 'Something went wrong. Please try again later.')
   );
 };
 
