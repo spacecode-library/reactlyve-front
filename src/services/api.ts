@@ -1,5 +1,6 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { GENERAL_ERRORS } from '../components/constants/errorMessages';
 import type { User } from '../types/user';
 import { API_BASE_URL, REPLY_ROUTES } from '../components/constants/apiRoutes';
 import { getToken } from '../utils/tokenStorage';
@@ -29,15 +30,24 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   response => response,
   error => {
-    let errorMessage = 'Something went wrong';
-    if (error.response?.data?.error) {
-      errorMessage = error.response.data.error; // Use the 'error' field if present
-    } else if (error.response?.data?.message) {
-      errorMessage = error.response.data.message; // Fallback to 'message' field
+    let errorMessage = GENERAL_ERRORS.SOMETHING_WENT_WRONG;
+
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      errorMessage = GENERAL_ERRORS.TIMEOUT;
+    } else if (!error.response) {
+      errorMessage = GENERAL_ERRORS.NETWORK_ERROR;
+    } else {
+      const status = error.response.status;
+      if (status >= 500) {
+        errorMessage = GENERAL_ERRORS.SERVER_ERROR;
+      } else if (status === 404) {
+        errorMessage = GENERAL_ERRORS.NOT_FOUND;
+      } else if (status === 403) {
+        errorMessage = GENERAL_ERRORS.FORBIDDEN;
+      }
     }
 
     if (error.response?.status !== 401) {
-      // Keep existing 401 behavior
       toast.error(errorMessage);
     }
     return Promise.reject(error);
