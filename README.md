@@ -134,8 +134,11 @@ const handleLogin = () => {
 };
 ```
 
-Authentication tokens are stored in a `SameSite=Lax` cookie rather than
-`localStorage`, reducing exposure to XSS attacks.
+After authentication the backend sets an **HTTP-only** `token` cookie with
+`SameSite=Lax`. The cookie is automatically sent with `fetch`/`axios`
+requests when `withCredentials` or `credentials: 'include'` is enabled and is
+not accessible to client JavaScript. Use the `/auth/logout` endpoint to clear
+this session cookie when signing out.
 
 ### Media Handling
 
