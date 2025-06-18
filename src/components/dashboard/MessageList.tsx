@@ -29,6 +29,9 @@ const MessageList: React.FC<MessageListProps> = ({
   className,
 }) => {
   const [linksModalInfo, setLinksModalInfo] = useState<{ id: string; passcode?: string | null } | null>(null);
+  const normalizedMessages = useMemo(() => {
+    return messages.map(normalizeMessage);
+  }, [messages]);
   const handleCopyLink = async (link: string | undefined) => {
     if (!link) {
       toast.error('Shareable link is not available.');
@@ -103,10 +106,6 @@ const MessageList: React.FC<MessageListProps> = ({
       </div>
     );
   }
-
-  const normalizedMessages = useMemo(() => {
-    return messages.map(normalizeMessage);
-  }, [messages]);
 
   return (
     <div className={className}>
