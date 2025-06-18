@@ -5,7 +5,7 @@ import Button from '../common/Button';
 import { messageLinksApi } from '../../services/api';
 import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
-import { CopyIcon, Share2Icon } from 'lucide-react';
+import { CopyIcon, ClipboardIcon, Share2Icon } from 'lucide-react';
 
 interface LinksModalProps {
   isOpen: boolean;
@@ -29,6 +29,7 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId, pas
   const [expiredOneTime, setExpiredOneTime] = useState(0);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const fetchLinks = async () => {
     setLoading(true);
@@ -76,12 +77,14 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId, pas
     }
   };
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     toast.success('Copied to clipboard');
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleShareLink = (url: string) => {
+  const handleShareLink = (url: string, id: string) => {
     if (navigator.share) {
       let shareText;
       if (passcode) {
@@ -92,9 +95,9 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId, pas
 
       navigator
         .share({ title: 'Reactlyve Message', text: shareText, url })
-        .catch(() => copyToClipboard(url));
+        .catch(() => copyToClipboard(url, id));
     } else {
-      copyToClipboard(url);
+      copyToClipboard(url, id);
     }
   };
 
@@ -128,15 +131,19 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId, pas
                       <Button
                         size="sm"
                         className="bg-blue-600 text-white hover:bg-blue-700"
-                        onClick={() => copyToClipboard(url)}
+                        onClick={() => copyToClipboard(url, link.id)}
                         title="Copy Link"
                       >
-                        <CopyIcon size={16} />
+                        {copiedId === link.id ? (
+                          <ClipboardIcon size={16} />
+                        ) : (
+                          <CopyIcon size={16} />
+                        )}
                       </Button>
                       <Button
                         size="sm"
                         className="bg-secondary-600 text-white hover:bg-secondary-700"
-                        onClick={() => handleShareLink(url)}
+                        onClick={() => handleShareLink(url, link.id)}
                         title="Share Link"
                       >
                         <Share2Icon size={16} />
