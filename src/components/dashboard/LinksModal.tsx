@@ -79,7 +79,7 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId, pas
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard');
+    toast.success('Link copied to clipboard');
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };

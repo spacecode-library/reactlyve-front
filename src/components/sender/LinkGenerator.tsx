@@ -73,7 +73,7 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({
       try {
         await navigator.clipboard.writeText(shareableLink);
         setCopied(true);
-        showToast({ message: 'Link copied to clipboard!', type: 'success' });
+        showToast({ message: 'Link copied to clipboard', type: 'success' });
         
         // Reset the "Copied" state after 2 seconds
         setTimeout(() => setCopied(false), 2000);
@@ -86,7 +86,7 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({
   const handleCopySpecificLink = async (url: string) => {
     try {
       await navigator.clipboard.writeText(url);
-      showToast({ message: 'Link copied to clipboard!', type: 'success' });
+      showToast({ message: 'Link copied to clipboard', type: 'success' });
     } catch {
       showToast({ message: 'Failed to copy link', type: 'error' });
     }

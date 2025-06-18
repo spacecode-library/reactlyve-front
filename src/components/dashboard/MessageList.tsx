@@ -39,7 +39,7 @@ const MessageList: React.FC<MessageListProps> = ({
     }
     try {
       await navigator.clipboard.writeText(link);
-      toast.success('Link copied to clipboard!');
+      toast.success('Link copied to clipboard');
     } catch (err) {
       console.error('Failed to copy link:', err);
       toast.error('Failed to copy link.');
