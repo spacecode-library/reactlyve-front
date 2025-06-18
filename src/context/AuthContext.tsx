@@ -1,5 +1,4 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-// axios import is not directly used here anymore for requests, api service is.
 import { authApi, profileApi } from '../services/api';
 import { User } from '../types/user';
 import { API_BASE_URL } from '../components/constants/apiRoutes';
@@ -20,19 +19,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
 
-  // useEffect(() => {
-  //   const stored = getToken();
-  //   if (stored) {
-  //     setToken(stored);
-  //     api.defaults.headers.common['Authorization'] = `Bearer ${stored}`;
-  //     api.get('/auth/me')
-  //       .then(res => setUser(res.data.user))
-  //       .catch(() => {
-  //         removeToken();
-  //         setToken(null);
-  //       });
-  //   }
-  // }, []);
   useEffect(() => {
     const checkAuth = async () => {
       setIsLoading(true);
