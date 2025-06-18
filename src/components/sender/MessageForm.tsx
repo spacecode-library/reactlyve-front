@@ -264,7 +264,8 @@ const messageSchema = z.object({
     .default(1),
 });
 
-type MessageFormValues = z.infer<typeof messageSchema>;
+type MessageFormInput = z.input<typeof messageSchema>;
+type MessageFormValues = z.output<typeof messageSchema>;
 
 interface MessageFormProps {
   className?: string;
@@ -293,7 +294,7 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
     setValue,
     watch,
     formState: { errors, isValid },
-  } = useForm<MessageFormValues>({
+  } = useForm<MessageFormInput, any, MessageFormValues>({
     resolver: zodResolver(messageSchema),
     mode: 'onChange',
     defaultValues: {
@@ -307,11 +308,11 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
   });
   
   // Watch form values
-  const hasPasscode = watch('hasPasscode');
+  const hasPasscode = watch('hasPasscode') ?? false;
   const passcode = watch('passcode');
-  const reactionLengthValue = watch('reaction_length');
-  const createOneTimeLink = watch('createOneTimeLink');
-  const oneTimeLinkCount = watch('oneTimeLinkCount');
+  const reactionLengthValue = watch('reaction_length') ?? 15;
+  const createOneTimeLink = watch('createOneTimeLink') ?? false;
+  const oneTimeLinkCount = watch('oneTimeLinkCount') ?? 1;
   
   // Handle media upload
   const handleMediaSelect = useCallback((file: File | null) => {
@@ -384,7 +385,8 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
       }
 
       if (createOneTimeLink && response.data.id) {
-        for (let i = 0; i < oneTimeLinkCount; i++) {
+        const count = oneTimeLinkCount ?? 1;
+        for (let i = 0; i < count; i++) {
           try {
             await messageLinksApi.create(response.data.id, true);
           } catch {
