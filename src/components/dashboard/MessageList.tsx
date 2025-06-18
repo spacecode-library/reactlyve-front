@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { CopyIcon } from 'lucide-react';
@@ -9,6 +9,7 @@ import Button from '../common/Button';
 import Card from '../common/Card';
 import { normalizeMessage } from '@/utils/normalizeKeys';
 import type { Reaction } from '../../types/reaction';
+import LinksModal from './LinksModal';
 
 interface MessageListProps {
   messages: MessageWithReactions[];
@@ -27,6 +28,7 @@ const MessageList: React.FC<MessageListProps> = ({
   loading = false,
   className,
 }) => {
+  const [linksModalInfo, setLinksModalInfo] = useState<{ id: string; passcode?: string | null } | null>(null);
   const handleCopyLink = async (link: string | undefined) => {
     if (!link) {
       toast.error('Shareable link is not available.');
@@ -40,6 +42,12 @@ const MessageList: React.FC<MessageListProps> = ({
       toast.error('Failed to copy link.');
     }
   };
+
+  const openLinksModal = (id: string, passcode?: string | null) => {
+    setLinksModalInfo({ id, passcode });
+  };
+
+  const closeLinksModal = () => setLinksModalInfo(null);
 
   if (!loading && messages.length === 0) {
     return (
@@ -182,6 +190,16 @@ const MessageList: React.FC<MessageListProps> = ({
                     Copy Link
                   </Button>
                 )}
+                {message.id && (
+                  <Button
+                    onClick={() => openLinksModal(message.id, message.passcode)}
+                    variant="outline"
+                    size="sm"
+                    className="py-2.5 w-full sm:w-auto"
+                  >
+                    Manage Links
+                  </Button>
+                )}
                 {onDeleteMessage && (
                   <Button
                     variant="outline"
@@ -211,6 +229,14 @@ const MessageList: React.FC<MessageListProps> = ({
           </Card>
         ))}
       </div>
+      {linksModalInfo && (
+        <LinksModal
+          isOpen={!!linksModalInfo}
+          onClose={closeLinksModal}
+          messageId={linksModalInfo.id}
+          passcode={linksModalInfo.passcode || undefined}
+        />
+      )}
     </div>
   );
 };
