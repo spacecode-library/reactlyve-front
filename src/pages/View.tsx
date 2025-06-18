@@ -116,23 +116,23 @@ const View: React.FC = () => {
   };
 
   const handleRecordReaction = async (): Promise<void> => {
-    toast.success('Your reaction has been recorded!');
+    toast.success('Your reaction has been recorded');
   };
 
   const handleSendTextReply = async (_messageId: string, text: string): Promise<void> => {
     const currentReactionId = reactionIdRef.current;
 
     if (!currentReactionId) {
-      toast.error('Reply channel not ready yet. Please wait a moment and try again.');
+      toast.error('Reply channel not ready yet. Please wait a moment and try again');
       return;
     }
 
     try {
       await repliesApi.sendText(currentReactionId, text);
-      toast.success('Your reply has been sent!');
+      toast.success('Your reply has been sent');
     } catch (error) {
       console.error('Error uploading reply:', error);
-      toast.error('Failed to upload reply. Please try again.');
+      toast.error('Failed to upload reply. Please try again');
     }
   };
 

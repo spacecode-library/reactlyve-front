@@ -414,9 +414,9 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
       
       // Show success message
       showToast({
-        message: response.data.shareableLink 
-          ? 'Message created successfully!' 
-          : 'Message created but unable to generate link. Please check your dashboard.',
+        message: response.data.shareableLink
+          ? 'Message created successfully'
+          : 'Message created but unable to generate link. Please check your dashboard',
         type: response.data.shareableLink ? 'success' : 'warning',
       });
     } catch (error) {
