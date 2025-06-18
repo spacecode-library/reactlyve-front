@@ -3,7 +3,6 @@ import toast from 'react-hot-toast';
 import { GENERAL_ERRORS } from '../components/constants/errorMessages';
 import type { User } from '../types/user';
 import { API_BASE_URL, REPLY_ROUTES } from '../components/constants/apiRoutes';
-import { getToken } from '../utils/tokenStorage';
 
 // Axios instance for authenticated requests
 const api = axios.create({
@@ -14,17 +13,7 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
-api.interceptors.request.use(
-  config => {
-    const token = getToken();
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
-    return config;
-  },
-  error => Promise.reject(error)
-);
+// Requests will include credentials (cookies) automatically via withCredentials
 
 // Global response error handler
 api.interceptors.response.use(

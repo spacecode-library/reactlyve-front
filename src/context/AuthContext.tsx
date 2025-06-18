@@ -1,18 +1,16 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 // axios import is not directly used here anymore for requests, api service is.
-import api, { profileApi } from '../services/api'; // Import profileApi
-import { User } from '../types/user'; // Import User from types
+import { authApi, profileApi } from '../services/api';
+import { User } from '../types/user';
 import { API_BASE_URL } from '../components/constants/apiRoutes';
-import { getToken, setToken as storeToken, removeToken } from '../utils/tokenStorage';
 
 interface AuthContextType {
-  user: User | null; // Use the imported User type
-  token: string | null;
+  user: User | null;
   isLoading: boolean;
   error: string | null;
   login: () => void;
   logout: () => void;
-  isAuthenticated: boolean; // ✅ Add this line
+  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,7 +18,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
 
   // useEffect(() => {
@@ -41,29 +38,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true);
       setError(null);
 
-      const stored = getToken();
-      if (stored) {
-        try {
-          setToken(stored);
-          // The Authorization header is already set by the api instance's interceptor
-          // in src/services/api.ts if a token cookie is present,
-          // so explicitly setting api.defaults.headers.common['Authorization'] here might be redundant
-          // if the api instance used by profileApi already includes this interceptor.
-          // However, to be safe and ensure it's set before the first call if not already,
-          // we can keep it, or rely on the interceptor. For now, let's assume the interceptor handles it.
-
-          const response = await profileApi.getProfileMe(); // Use profileApi.getProfileMe()
-          setUser(response.data); // Assuming response.data is the user object
-        } catch (err) {
-          console.error('Authentication failed:', err);
-          setError('Failed to authenticate');
-          removeToken();
-          setToken(null);
-          delete api.defaults.headers.common['Authorization'];
-        }
+      try {
+        const response = await profileApi.getProfileMe();
+        setUser(response.data);
+      } catch (err) {
+        console.error('Authentication failed:', err);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
       }
-
-      setIsLoading(false);
     };
 
     checkAuth();
@@ -89,13 +72,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     setIsLoading(true);
     try {
-      // Optional: Call logout API if you have one
-      // await api.post('/auth/logout');
-
+      await authApi.logout();
       setUser(null);
-      setToken(null);
-      delete api.defaults.headers.common['Authorization'];
-      removeToken();
     } catch (err) {
       console.error('Logout failed:', err);
       setError('Failed to logout');
@@ -108,7 +86,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
-        token,
         isLoading,
         error,
         login,
