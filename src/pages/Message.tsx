@@ -560,7 +560,7 @@ const Message: React.FC = () => {
                         </button>
                       </div>
                       {copied.link && (
-                        <p className="mt-1 text-xs text-green-600 dark:text-green-400">Link copied to clipboard!</p>
+                        <p className="mt-1 text-xs text-green-600 dark:text-green-400">Link copied to clipboard</p>
                       )}
                       {showQrCode && normalizedMessage.shareableLink && (
                         <div className="mt-4 text-center">

@@ -149,7 +149,7 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
             size="sm"
             onClick={() => {
               navigator.clipboard.writeText(normalizedMessage.shareableLink);
-              toast.success('Link copied!'); // Using toast for consistency
+              toast.success('Link copied to clipboard'); // Using toast for consistency
             }}
           >
             Copy
