@@ -34,7 +34,7 @@ const MessageList: React.FC<MessageListProps> = ({
   }, [messages]);
   const handleCopyLink = async (link: string | undefined) => {
     if (!link) {
-      toast.error('Shareable link is not available.');
+      toast.error('Shareable link is not available');
       return;
     }
     try {
@@ -42,7 +42,7 @@ const MessageList: React.FC<MessageListProps> = ({
       toast.success('Link copied to clipboard');
     } catch (err) {
       console.error('Failed to copy link:', err);
-      toast.error('Failed to copy link.');
+      toast.error('Failed to copy link');
     }
   };
 

@@ -128,7 +128,7 @@ const Message: React.FC = () => {
     const newPasscode = currentPasscodeValue || null; // Treat empty string as null for backend
 
     if (newPasscode === originalPasscode || (newPasscode === null && originalPasscode === '')) {
-      toast('No changes made.');
+      toast('No changes made');
       setIsUpdatingPasscode(false);
       return;
     }
@@ -147,11 +147,11 @@ const Message: React.FC = () => {
           reactions: newReactions,
         };
       });
-      toast.success('Passcode updated successfully!');
+      toast.success('Passcode updated successfully');
       handleClosePasscodeModal();
       setTimeout(() => window.location.reload(), 1000); // Reload after 1 second
     } catch (err) {
-      toast.error('Failed to update passcode.');
+      toast.error('Failed to update passcode');
       console.error('Error updating passcode:', err);
     } finally {
       setIsUpdatingPasscode(false);
@@ -178,7 +178,7 @@ const Message: React.FC = () => {
     const validatedLength = Math.max(10, Math.min(30, currentReactionLengthValue));
 
     if (validatedLength === message?.reaction_length) {
-      toast('No changes made.');
+      toast('No changes made');
       setIsUpdatingReactionLength(false);
       return;
     }
@@ -197,11 +197,11 @@ const Message: React.FC = () => {
           reactions: newReactions,
         };
       });
-      toast.success('Reaction length updated successfully!');
+      toast.success('Reaction length updated successfully');
       handleCloseReactionLengthModal();
       setTimeout(() => window.location.reload(), 1000); // Reload after 1 second
     } catch (err) {
-      toast.error('Failed to update reaction length.');
+      toast.error('Failed to update reaction length');
       console.error('Error updating reaction length:', err);
     } finally {
       setIsUpdatingReactionLength(false);
@@ -213,10 +213,10 @@ const Message: React.FC = () => {
     setIsDeleting(true);
     try {
       await messagesApi.delete(id);
-      toast.success('Message deleted successfully!');
+      toast.success('Message deleted successfully');
       navigate('/dashboard');
     } catch (err) {
-      toast.error('Failed to delete message. Please try again.');
+      toast.error('Failed to delete message. Please try again');
       console.error('Error deleting message:', err);
     } finally {
       setIsDeleting(false);
@@ -236,9 +236,9 @@ const Message: React.FC = () => {
           reactions: prevMessage.reactions.filter(reaction => reaction.id !== reactionToDeleteId),
         };
       });
-      toast.success('Reaction deleted successfully!');
+      toast.success('Reaction deleted successfully');
     } catch (err) {
-      toast.error('Failed to delete reaction. Please try again.');
+      toast.error('Failed to delete reaction. Please try again');
       console.error('Error deleting reaction:', err);
     } finally {
       setIsDeletingReaction(false);
@@ -264,9 +264,9 @@ const Message: React.FC = () => {
           reactions: [], // Set reactions to an empty array
         };
       });
-      toast.success('All reactions for this message deleted successfully!');
+      toast.success('All reactions for this message deleted successfully');
     } catch (err) {
-      toast.error('Failed to delete all reactions. Please try again.');
+      toast.error('Failed to delete all reactions. Please try again');
       console.error('Error deleting all reactions:', err);
     } finally {
       setIsDeletingAllReactions(false);
@@ -421,7 +421,7 @@ const Message: React.FC = () => {
                     } else {
                       // Optionally, provide feedback to the user or log this case
                       console.warn('Download button clicked, but transformedVidUrl is not available.');
-                      toast.error('Video URL is not available for download.');
+                      toast.error('Video URL is not available for download');
                     }
                   }}
                   className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
@@ -772,7 +772,7 @@ const Message: React.FC = () => {
                                   onClick={() => {
                                     if (!transformedReactionVideoUrl) {
                                       console.error("Download clicked but no transformedReactionVideoUrl present for reaction:", reaction.id);
-                                      toast.error('Video URL is not available for download.');
+                                      toast.error('Video URL is not available for download');
                                       return;
                                     }
                                     // Construct filename (existing logic)

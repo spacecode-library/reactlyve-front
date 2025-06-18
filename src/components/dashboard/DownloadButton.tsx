@@ -52,7 +52,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({
       console.error('Error downloading reaction:', error);
       
       showToast({
-        message: 'Failed to download video. Please try again.',
+        message: 'Failed to download video. Please try again',
         type: 'error',
       });
       

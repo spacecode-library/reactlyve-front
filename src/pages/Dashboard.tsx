@@ -84,7 +84,7 @@ useEffect(() => {
       });
     } catch (error) {
       console.error('Error fetching messages:', error);
-      toast.error('Failed to load your messages. Please try again.');
+      toast.error('Failed to load your messages. Please try again');
     } finally {
       setLoading(false);
     }
@@ -116,10 +116,10 @@ useEffect(() => {
         prevMessages.filter(msg => msg.id !== messageToDelete)
       );
   
-      toast.success('Message deleted successfully.');
+      toast.success('Message deleted successfully');
     } catch (error) {
       console.error('Error deleting message:', error);
-      toast.error('Failed to delete the message. Please try again.');
+      toast.error('Failed to delete the message. Please try again');
     } finally {
       setMessageToDelete(null);
       setDeleteModalOpen(false);

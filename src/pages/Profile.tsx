@@ -80,7 +80,7 @@ const ProfilePage: React.FC = () => {
   const handleDeleteButtonClick = () => {
     if (profileData.role === 'guest') {
       toast.error(
-        'You are not able to delete a guest account, please contact support@reactlyve.com to request account deletion.'
+        'You are not able to delete a guest account, please contact support@reactlyve.com to request account deletion'
       );
     } else {
       setIsDeleteModalOpen(true);
@@ -90,21 +90,21 @@ const ProfilePage: React.FC = () => {
   const handleDeleteAccount = async () => {
     if (profileData.role === 'guest') {
       toast.error(
-        'You are not able to delete a guest account, please contact support@reactlyve.com to request account deletion.'
+        'You are not able to delete a guest account, please contact support@reactlyve.com to request account deletion'
       );
       return;
     }
     setIsDeleting(true);
     try {
       await profileApi.deleteProfileMe();
-      toast.success('Account deleted successfully.');
+      toast.success('Account deleted successfully');
       setIsDeleteModalOpen(false); // Close modal
       logout(); // Clear auth context and local token
       navigate('/login'); // Redirect to login page
     } catch (err) {
       console.error('Delete account error:', err);
       toast.error(
-        (err as any)?.response?.data?.message || 'Failed to delete account. Please try again.'
+        (err as any)?.response?.data?.message || 'Failed to delete account. Please try again'
       );
       // Optionally keep modal open, or close as done for success:
       // setIsDeleteModalOpen(false); 

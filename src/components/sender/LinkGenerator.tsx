@@ -114,7 +114,7 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({
     if (passcode) {
       try {
         await navigator.clipboard.writeText(passcode);
-        showToast({ message: 'Passcode copied to clipboard!', type: 'success' });
+        showToast({ message: 'Passcode copied to clipboard', type: 'success' });
       } catch (error) {
         showToast({ message: 'Failed to copy passcode', type: 'error' });
       }

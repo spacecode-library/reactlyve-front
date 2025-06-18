@@ -146,7 +146,7 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
                 await reactionsApi.submitForManualReview(reaction.id);
                 toast.success('Submitted for manual review');
               } catch (err) {
-                toast.error('Failed to submit review');
+                toast.error('Failed to submit for review');
               } finally {
                 setIsSubmittingReview(false);
               }

@@ -61,7 +61,7 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
     }
 
     if (Object.keys(updateData).length === 0) {
-      toast('No changes made.');
+      toast('No changes made');
       setIsUpdating(false);
       return;
     }
@@ -71,7 +71,7 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message, onDeleteReacti
       if (onMessageUpdate) {
         onMessageUpdate(response.data);
       }
-      toast.success('Message updated successfully!');
+      toast.success('Message updated successfully');
       handleCloseEditModal();
     } catch (error: any) {
       // Error toast is likely handled by global interceptor, but a specific one can be added here if needed.

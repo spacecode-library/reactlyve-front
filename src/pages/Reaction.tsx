@@ -153,7 +153,7 @@ const ReactionPage: React.FC = () => {
                     await reactionsApi.submitForManualReview(reaction.id);
                     toast.success('Submitted for manual review');
                   } catch (err) {
-                    toast.error('Failed to submit review');
+                    toast.error('Failed to submit for review');
                   } finally {
                     setIsSubmittingReview(false);
                   }
@@ -212,7 +212,7 @@ const ReactionPage: React.FC = () => {
                 const finalFilename = `${sanitizedName}.${extension}`;
                 downloadVideo(processedVideoUrl, finalFilename);
               } else {
-                toast.error("Download URL is not available.");
+                toast.error("Download URL is not available");
               }
             }}
             className="mt-4 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"

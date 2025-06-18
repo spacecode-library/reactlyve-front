@@ -170,7 +170,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       await onRecordReaction(message.id, blob);
       setIsReactionRecorded(true);
       // setShowRecorder(false); // Moved to finally
-      toast.success('Reaction uploaded successfully!');
+      toast.success('Reaction uploaded successfully');
     } catch (error) {
       console.error('Reaction save error:', error);
       if (error instanceof AxiosError && error.response) {
@@ -181,8 +181,8 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         // For example, setPermissionError('Failed to save reaction. Please check notifications.');
       } else {
         // Handle non-Axios errors or Axios errors without a response (e.g., network issues)
-        setPermissionError('An error occurred while saving your reaction. Please try again.');
-        toast.error('An error occurred while saving your reaction. Please try again.'); // Show toast for non-API errors
+        setPermissionError('An error occurred while saving your reaction. Please try again');
+        toast.error('An error occurred while saving your reaction. Please try again'); // Show toast for non-API errors
       }
     } finally {
       setIsUploading(false);
@@ -199,7 +199,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     try {
       await repliesApi.sendText(reactionId, text);
       setReplyText('');
-      toast.success('Reply sent successfully!');
+      toast.success('Reply sent successfully');
     } catch (error) {
       console.error('Reply error:', error);
       setReplyError('Failed to send reply. Please try again.');
