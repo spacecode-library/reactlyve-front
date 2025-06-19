@@ -117,6 +117,17 @@ To serve the built app locally:
 npm start
 ```
 
+### Running Tests
+
+Execute the test suite using:
+
+```bash
+npm test
+```
+
+The `test` script in `package.json` runs Jest with `NODE_ENV=test` so the tests
+use the correct environment settings.
+
 ## Key Components
 
 ### Authentication
