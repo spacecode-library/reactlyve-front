@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "format": "prettier --write 'src/**/*.{ts,tsx,css,json}'",
     "start": "serve -s dist",
-    "test": "jest"
+    "test": "NODE_ENV=test jest"
   },
   "dependencies": {
     "@ffmpeg/core": "^0.12.10",
