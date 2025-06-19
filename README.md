@@ -245,6 +245,14 @@ The application expects a backend API at `http://localhost:8000/api`. Ensure the
 
 The `frame-ancestors` directive cannot be enforced through the `<meta>` tag included in `index.html`. Configure your backend server to send a `Content-Security-Policy` HTTP header that includes `frame-ancestors 'none';` (or any allowed origins). This header replaces the `<meta>` directive and ensures browsers block framing as intended.
 
+### Usercentrics Autoblocker preload warning
+
+The Usercentrics autoblocker script injects a `rel="preload"` link for the Vite
+module bundle. Browsers expect the associated `<script>` tag to use the same
+credentials mode as this preload. The bundle is fetched anonymously, so the
+`index.html` script tag includes the `crossorigin` attribute to match and avoid
+"preload credentials mode does not match" warnings.
+
 ## Key Custom Hooks
 
 ### `useAuth`

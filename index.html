@@ -16,6 +16,9 @@
   </head>
   <body>
     <div class="app-container"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <!-- The autoblocker script inserts a preload for this module using an
+         anonymous credentials mode. Add a matching crossorigin attribute so
+         the request credentials align and the browser uses the preload. -->
+    <script type="module" src="/src/main.tsx" crossorigin></script>
   </body>
 </html>
