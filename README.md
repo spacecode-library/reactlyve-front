@@ -125,12 +125,8 @@ Reactlyve uses Google OAuth for authentication. The authentication flow is handl
 
 ```typescript
 // Example of initiating Google OAuth with basic host validation
-import { createState, storeState } from './utils/oauthState';
-
 const handleLogin = () => {
-  const state = createState();
-  storeState(state);
-  const url = `${import.meta.env.VITE_API_URL}/auth/google?state=${state}`;
+  const url = `${import.meta.env.VITE_API_URL}/auth/google`;
   const allowed = ['localhost', 'api.reactlyve.com'];
   if (allowed.includes(new URL(url).hostname)) {
     window.location.href = url;
@@ -142,9 +138,7 @@ After authentication the backend sets an **HTTP-only** `token` cookie with
 `SameSite=Lax`. The cookie is automatically sent with `fetch`/`axios`
 requests when `withCredentials` or `credentials: 'include'` is enabled and is
 not accessible to client JavaScript. Use the `/auth/logout` endpoint to clear
-this session cookie when signing out. The login flow now includes a random
-`state` value stored in `sessionStorage` to help prevent CSRF attacks. The same
-state must be present on the OAuth callback or the login fails.
+this session cookie when signing out.
 
 ### Media Handling
 

@@ -1,23 +1,12 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { getStoredState, clearState } from '../utils/oauthState';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const AuthCallback = () => {
-  const [error, setError] = useState<string | null>(null);
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const state = searchParams.get('state');
-    const stored = getStoredState();
-    if (!state || !stored || state !== stored) {
-      setError('Invalid OAuth state. Please try logging in again.');
-      clearState();
-      return;
-    }
-    clearState();
     navigate('/dashboard', { replace: true });
-  }, [navigate, searchParams]);
+  }, [navigate]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">
@@ -46,19 +35,11 @@ const AuthCallback = () => {
             </svg>
           </div>
           <h2 className="mt-4 text-2xl font-bold text-neutral-900 dark:text-white">
-            {error ? 'Authentication Error' : 'Finalizing Authentication'}
+            Finalizing Authentication
           </h2>
           <p className="mt-2 text-neutral-600 dark:text-neutral-300">
-            {error ?? 'Please wait while we complete the sign-in process...'}
+            Please wait while we complete the sign-in process...
           </p>
-          {error && (
-            <button
-              onClick={() => navigate('/login')}
-              className="mt-6 rounded-md bg-primary-500 px-4 py-2 text-white hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700"
-            >
-              Back to Login
-            </button>
-          )}
         </div>
       </div>
     </div>
