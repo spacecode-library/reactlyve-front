@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import LinkGenerator from '../LinkGenerator';
 import { showToast } from '../../common/ErrorToast';
@@ -36,6 +36,8 @@ describe('LinkGenerator', () => {
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith('https://example.com');
     expect(showToast).toHaveBeenCalledWith({ message: 'Link copied to clipboard', type: 'success' });
 
-    jest.runAllTimers();
+    act(() => {
+      jest.runAllTimers();
+    });
   });
 });
