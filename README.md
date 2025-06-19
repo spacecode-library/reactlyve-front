@@ -241,6 +241,10 @@ Some common TypeScript errors and solutions:
 
 The application expects a backend API at `http://localhost:8000/api`. Ensure the backend server is running and accessible.
 
+### Content Security Policy
+
+The `frame-ancestors` directive cannot be enforced through the `<meta>` tag included in `index.html`. Configure your backend server to send a `Content-Security-Policy` HTTP header that includes `frame-ancestors 'none';` (or any allowed origins). This header replaces the `<meta>` directive and ensures browsers block framing as intended.
+
 ## Key Custom Hooks
 
 ### `useAuth`
