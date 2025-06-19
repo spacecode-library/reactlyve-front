@@ -99,7 +99,7 @@ const ProfilePage: React.FC = () => {
       await profileApi.deleteProfileMe();
       toast.success('Account deleted successfully');
       setIsDeleteModalOpen(false); // Close modal
-      logout(); // Clear auth context and local token
+      logout(); // Clear auth context and session
       navigate('/login'); // Redirect to login page
     } catch (err) {
       console.error('Delete account error:', err);

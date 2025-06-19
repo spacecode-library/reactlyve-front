@@ -2,8 +2,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { GENERAL_ERRORS } from '../components/constants/errorMessages';
 import type { User } from '../types/user';
-import { API_BASE_URL, REPLY_ROUTES } from '../components/constants/apiRoutes';
-import { getToken } from '../utils/tokenStorage';
+import { API_BASE_URL, REPLY_ROUTES, AUTH_ROUTES } from '../components/constants/apiRoutes';
 
 // Axios instance for authenticated requests
 const api = axios.create({
@@ -14,17 +13,7 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
-api.interceptors.request.use(
-  config => {
-    const token = getToken();
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
-    return config;
-  },
-  error => Promise.reject(error)
-);
+// Requests will include credentials (cookies) automatically via withCredentials
 
 // Global response error handler
 api.interceptors.response.use(
@@ -59,8 +48,8 @@ api.interceptors.response.use(
 // Note: Backend's /auth/user now returns user object with camelCase keys
 // (e.g., response.data.user.googleId, response.data.user.createdAt)
 export const authApi = {
-  getUser: () => api.get('/auth/user'),
-  logout: () => api.post('/auth/logout'),
+  getUser: () => api.get(AUTH_ROUTES.USER),
+  logout: () => api.post(AUTH_ROUTES.LOGOUT),
 };
 
 // ------------------ MESSAGES API ------------------
