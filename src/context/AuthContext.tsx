@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { authApi, profileApi } from '../services/api';
 import { User } from '../types/user';
 import { API_BASE_URL } from '../components/constants/apiRoutes';
+import { createState, storeState } from '../utils/oauthState';
 
 interface AuthContextType {
   user: User | null;
@@ -40,7 +41,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = () => {
     setIsLoading(true);
-    const loginUrl = `${API_BASE_URL}/auth/google`;
+    const state = createState();
+    storeState(state);
+    const loginUrl = `${API_BASE_URL}/auth/google?state=${state}`;
     try {
       const { hostname } = new URL(loginUrl);
       const allowedHosts = ['localhost', 'api.reactlyve.com'];
