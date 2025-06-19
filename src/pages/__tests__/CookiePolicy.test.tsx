@@ -1,6 +1,7 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import CookiePolicyPage from '../CookiePolicy';
-
+        
 jest.mock('../../layouts/MainLayout', () => ({ children }: { children: React.ReactNode }) => <div>{children}</div>);
 
 describe('CookiePolicyPage', () => {
