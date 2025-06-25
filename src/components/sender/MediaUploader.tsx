@@ -88,11 +88,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
       const url = URL.createObjectURL(f);
       videoEl.onloadedmetadata = () => {
         URL.revokeObjectURL(url);
-        console.log('Loaded video metadata', {
-          name: f.name,
-          size: f.size,
-          duration: videoEl.duration,
-        });
+        // Metadata successfully loaded
         if (videoEl.duration > 30) {
           onError('Video duration cannot exceed 30 seconds.');
           if (fileInputRef.current) {
@@ -109,11 +105,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
       };
       videoEl.onerror = () => {
         URL.revokeObjectURL(url);
-        console.log('Failed to load video metadata', {
-          name: f.name,
-          size: f.size,
-          type: f.type,
-        });
+        // Failed to load metadata
         resolve('error');
       };
       videoEl.src = url;
@@ -187,13 +179,6 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   };
 
   const handleMediaSelect = useCallback(async (file: File | null) => {
-    if (file) {
-      console.log('Selected file', {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-      });
-    }
     if (!file) {
       if (preview) URL.revokeObjectURL(preview);
       setSelectedMedia(null);

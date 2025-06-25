@@ -374,24 +374,10 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
       formData.append('reaction_length', data.reaction_length.toString());
       formData.append('onetime', 'false');
       
-      console.log('Submitting message', {
-        content: data.message,
-        hasPasscode: data.hasPasscode,
-        reactionLength: data.reaction_length,
-        media: media
-          ? {
-              name: media.name,
-              size: media.size,
-              type: media.type,
-            }
-          : null,
-        mediaType,
-      });
 
       // Call API to create message with FormData
       const response = await messagesApi.createWithFormData(formData);
 
-      console.log('Message created', response.data);
 
       if (response.data.shareableLink) {
         setShareableLink(response.data.shareableLink);
