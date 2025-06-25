@@ -193,12 +193,19 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
       return;
     }
 
-    if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    const videoExtensions = ['mov', 'mkv', 'avi', 'hvec', 'hevc'];
+    const imageExtensions = ['heic', 'heif'];
+
+    const isVideoFile =
+      file.type.startsWith('video/') || videoExtensions.includes(ext);
+    const isImageFile =
+      file.type.startsWith('image/') || imageExtensions.includes(ext);
+
+    if (!isVideoFile && !isImageFile) {
       onError('Only image or video files are allowed');
       return;
     }
-
-    const isVideoFile = file.type.startsWith('video/');
 
     if (!isVideoFile) {
       if (preview) URL.revokeObjectURL(preview);
@@ -316,7 +323,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        accept="image/*,video/*,.mov,.mkv,.avi,.heic,.heif"
+        accept="image/*,video/*,.mov,.mkv,.avi,.heic,.heif,.hvec,.hevc"
         className="hidden"
         name="media"
         disabled={disabled}
