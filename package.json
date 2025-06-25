@@ -20,7 +20,7 @@
     "@heroicons/react": "^2.0.18",
     "@hookform/resolvers": "^5.1.1",
     "autoprefixer": "^10.4.14",
-    "axios": "^1.4.0",
+    "axios": "^1.10.0",
     "date-fns": "^4.1.0",
     "framer-motion": "^10.12.18",
     "lucide-react": "^0.510.0",
