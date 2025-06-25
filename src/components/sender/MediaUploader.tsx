@@ -79,204 +79,143 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   }, []);
 
 
-  const handleMediaSelect = useCallback(async (file: File | null) => {
-    if (file) {
-      // Check file size (original file)
-      if (file.size > maxSizeBytes) {
-        onError(`File size exceeds the ${maxSizeMB}MB limit`);
-        return;
+  const checkVideoMetadata = async (
+    f: File
+  ): Promise<'ok' | 'duration' | 'error'> => {
+    return new Promise(resolve => {
+      const videoEl = document.createElement('video');
+      videoEl.preload = 'metadata';
+      const url = URL.createObjectURL(f);
+      videoEl.onloadedmetadata = () => {
+        URL.revokeObjectURL(url);
+        // Metadata successfully loaded
+        if (videoEl.duration > 30) {
+          onError('Video duration cannot exceed 30 seconds.');
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+          setSelectedMedia(null);
+          setPreview(null);
+          setIsVideo(false);
+          onMediaSelect(null);
+          resolve('duration');
+        } else {
+          resolve('ok');
+        }
+      };
+      videoEl.onerror = () => {
+        URL.revokeObjectURL(url);
+        // Failed to load metadata
+        resolve('error');
+      };
+      videoEl.src = url;
+    });
+  };
+
+  const convertWithFFmpeg = async (videoFile: File): Promise<File> => {
+    if (preview) URL.revokeObjectURL(preview);
+    setIsCompressing(true);
+    setCompressionProgress(0);
+    setSelectedMedia(videoFile);
+    const tempPreview = URL.createObjectURL(videoFile);
+    setPreview(tempPreview);
+    setIsVideo(true);
+    try {
+      const ffmpegLoaded = await loadFFmpeg();
+      if (!ffmpegLoaded || !ffmpegRef.current || !ffmpegRef.current.loaded) {
+        throw new Error('FFmpeg not ready');
+      }
+      const ffmpeg = ffmpegRef.current;
+      const safeInputFileName = 'input.' + videoFile.name.split('.').pop();
+      const outputFileName = safeInputFileName.replace(/\.[^/.]+$/, '') + '_converted.mp4';
+      await ffmpeg.writeFile(safeInputFileName, await fetchFile(videoFile));
+      const ffmpegCommand = [
+        '-i',
+        safeInputFileName,
+        '-vf',
+        "scale='if(gt(iw,ih),1280,-2)':'if(gt(iw,ih),-2,1280)'",
+        '-c:v',
+        'libx264',
+        '-crf',
+        '28',
+        '-preset',
+        'ultrafast',
+        '-movflags',
+        '+faststart',
+        '-loglevel',
+        'error',
+        outputFileName,
+      ];
+      await ffmpeg.exec(ffmpegCommand);
+
+      const fileData: FileData = await ffmpeg.readFile(outputFileName);
+
+      if (!(fileData instanceof Uint8Array)) {
+        throw new Error('Invalid FFmpeg output');
       }
 
-      // Check if file type is an image or video
-      if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-        onError('Only image or video files are allowed');
-        return;
-      }
+      const processedFile = new File([fileData], videoFile.name.replace(/\.[^/.]+$/, '_c.mp4'), { type: 'video/mp4' });
 
-      const isVideoFile = file.type.startsWith('video/');
-
-      if (isVideoFile) {
-        // --- Video Duration Check ---
-        const video = document.createElement('video');
-        video.preload = 'metadata';
-        const videoUrl = URL.createObjectURL(file);
-
+      if (ffmpeg && ffmpeg.loaded) {
         try {
-          await new Promise<void>((resolve, reject) => {
-            video.onloadedmetadata = () => {
-              URL.revokeObjectURL(videoUrl); // Clean up object URL
-              if (video.duration > 30) {
-                onError('Video duration cannot exceed 30 seconds.');
-                // Clean up selected file state if duration check fails
-                setSelectedMedia(null);
-                setPreview(null);
-                setIsVideo(false);
-                onMediaSelect(null);
-                if (fileInputRef.current) {
-                  fileInputRef.current.value = ''; // Reset file input
-                }
-                reject(new Error('Video too long'));
-              } else {
-                resolve();
-              }
-            };
-            video.onerror = () => {
-              URL.revokeObjectURL(videoUrl);
-              onError('Could not read video metadata.');
-              reject(new Error('Error loading video metadata'));
-            };
-            video.src = videoUrl;
-          });
-        } catch (error) {
-          return; // Stop processing if duration check fails or errors out
+          await ffmpeg.deleteFile(safeInputFileName);
+          await ffmpeg.deleteFile(outputFileName);
+        } catch {
+          /* ignore */
         }
-        // --- End Video Duration Check ---
-
-        // --- Conditional Compression Logic ---
-        if (file.size > COMPRESSION_THRESHOLD_BYTES) {
-          setIsCompressing(true);
-          setCompressionProgress(0);
-          // Show original file info and preview while preparing for compression
-          setSelectedMedia(file);
-          const originalPreviewUrlWhileCompressing = URL.createObjectURL(file); // Use a distinct name if originalPreviewUrl is used elsewhere
-          setPreview(originalPreviewUrlWhileCompressing);
-          setIsVideo(true);
-
-          try {
-            const ffmpegLoaded = await loadFFmpeg();
-            if (!ffmpegLoaded || !ffmpegRef.current || !ffmpegRef.current.loaded) {
-              onError(ffmpegLoadError || 'FFmpeg could not be loaded. Cannot compress video.');
-              // Revert to original file if FFmpeg fails to load
-              if (preview) URL.revokeObjectURL(preview);
-              const originalPreviewUrl = URL.createObjectURL(file);
-              setPreview(originalPreviewUrl);
-              setSelectedMedia(file);
-              onMediaSelect(file);
-              setIsVideo(true);
-              setIsCompressing(false);
-              setCompressionProgress(0);
-              return;
-            }
-            const ffmpeg = ffmpegRef.current;
-
-            // Listeners are now set in loadFFmpeg to avoid re-assigning them.
-            // ffmpeg.on('progress', ({ progress }) => {
-            //   setCompressionProgress(progress < 0 ? 0 : progress > 1 ? 1 : progress);
-            // });
-            // ffmpeg.on('log', (logEntry) => {
-            //   // console.log(`FFmpeg internal log: ${logEntry.message}`);
-            //   if (typeof logEntry.message === 'string' && logEntry.message.toLowerCase().includes('error')) {
-            //       console.error(`FFmpeg Error Log: ${logEntry.message}`);
-            //   }
-            // });
-
-            const inputFileName = file.name;
-            // Sanitize filename for ffmpeg's virtual FS if necessary, though often not an issue with modern ffmpeg.wasm
-          const safeInputFileName = "input." + file.name.split('.').pop(); // e.g., input.mp4
-          const outputFileName = safeInputFileName.replace(/\.[^/.]+$/, "") + "_compressed.mp4"; // e.g., input_compressed.mp4
-
-          await ffmpeg.writeFile(safeInputFileName, await fetchFile(file));
-
-          const ffmpegCommand = [
-            '-i', safeInputFileName,
-            '-vf', "scale='if(gt(iw,ih),1280,-2)':'if(gt(iw,ih),-2,1280)'", // Updated scaling
-            '-c:v', 'libx264',
-            '-crf', '28', // New CRF
-            '-preset', 'ultrafast',
-            '-movflags', '+faststart', // Added for better streamability
-            '-loglevel', 'error',     // Added to capture more detailed errors from FFmpeg
-            outputFileName
-          ];
-          await ffmpeg.exec(ffmpegCommand);
-
-          const fileData: FileData = await ffmpeg.readFile(outputFileName);
-
-          let compressedFile: File;
-          if (fileData instanceof Uint8Array) {
-            if (fileData.length === 0) {
-              console.error('FFmpeg: Critical Error - Output fileData is Uint8Array but its length is 0. This will result in an empty blob.');
-            }
-            compressedFile = new File([fileData.buffer], file.name.replace(/\.[^/.]+$/, "_c.mp4"), { type: 'video/mp4' });
-          } else {
-            console.error(`FFmpeg: Critical Error - Output fileData is NOT Uint8Array. Type: ${typeof fileData}. This is unexpected for video data.`);
-            throw new Error('FFmpeg output was not in the expected format (Uint8Array).');
-          }
-
-          if (compressedFile.size === 0) {
-            console.error('Compression resulted in a zero-byte file. Reverting to original file.');
-            onError('Video compression failed, resulting in an empty file. The original file will be used if you proceed.');
-
-            // Clean up potentially corrupted FFmpeg files
-            await ffmpeg.deleteFile(safeInputFileName);
-            await ffmpeg.deleteFile(outputFileName);
-
-            // Revoke URL from potentially empty compressed file preview
-            if (preview && preview.startsWith('blob:')) URL.revokeObjectURL(preview);
-
-            // Revert to original file for preview and upload
-            // const originalPreviewUrl = URL.createObjectURL(file); // 'file' is the original input file
-            // setPreview(originalPreviewUrl); // Already set by originalPreviewUrlWhileCompressing or fallback
-            setSelectedMedia(file);
-            onMediaSelect(file); // Pass original file to parent
-            setIsVideo(true);
-            setIsCompressing(false); // Stop compression indication
-            setCompressionProgress(0);
-            return; // Exit further processing of compressed file
-          }
-
-          // console.log(`FFmpeg: Created compressedFile. Name: ${compressedFile.name}, Size: ${compressedFile.size}, Type: ${compressedFile.type}`);
-          // Clean up virtual file system
-            // Ensure ffmpeg and deleteFile are valid before calling
-            if (ffmpeg && ffmpeg.loaded) {
-              try {
-                await ffmpeg.deleteFile(safeInputFileName);
-                await ffmpeg.deleteFile(outputFileName);
-              } catch (deleteError) {
-                // console.warn("FFmpeg: Error deleting files from FS, FFmpeg might have been terminated:", deleteError);
-              }
-            }
-          // Revoke old preview URL
-          if (originalPreviewUrlWhileCompressing) URL.revokeObjectURL(originalPreviewUrlWhileCompressing);
-
-          // Create preview for compressed file
-          const compressedPreviewUrl = URL.createObjectURL(compressedFile);
-          setPreview(compressedPreviewUrl);
-          setSelectedMedia(compressedFile);
-          onMediaSelect(compressedFile); // Pass compressed file to parent
-          setIsVideo(true); // Ensure isVideo is true for the compressed file
-
-        } catch (err) {
-          // console.error("Error during video compression (MediaUploader):", err); // Removed as onError is called
-          onError('Failed to compress video. Uploading original or try another file.');
-          // Revert to original file if compression fails
-          if (preview && preview !== originalPreviewUrlWhileCompressing) URL.revokeObjectURL(preview as string);
-          if (originalPreviewUrlWhileCompressing && preview !== originalPreviewUrlWhileCompressing) URL.revokeObjectURL(originalPreviewUrlWhileCompressing);
-
-          const originalPreviewFallbackUrl = URL.createObjectURL(file);
-          setPreview(originalPreviewFallbackUrl);
-          setSelectedMedia(file);
-          onMediaSelect(file);
-          setIsVideo(true);
-        } finally {
-          setIsCompressing(false);
-          setCompressionProgress(0);
-        }
-      } else {
-        // --- File is <= threshold, bypass compression ---
-        if (preview) URL.revokeObjectURL(preview); // Clean up any existing preview from a previous selection
-
-        // Create a blob URL preview for videos (more consistent with compressed path):
-        const directPreviewUrl = URL.createObjectURL(file);
-        setPreview(directPreviewUrl);
-
-        setSelectedMedia(file);
-        onMediaSelect(file);
-        setIsVideo(true); // Still a video, just not compressed
-        setIsCompressing(false); // Ensure this is false
-        setCompressionProgress(0); // Ensure this is 0
       }
-    } else { // Handle image files
-      if (preview) URL.revokeObjectURL(preview); // Clean up previous preview if any
+
+      URL.revokeObjectURL(tempPreview);
+      const processedPreview = URL.createObjectURL(processedFile);
+      setPreview(processedPreview);
+      setSelectedMedia(processedFile);
+      onMediaSelect(processedFile);
+      setIsVideo(true);
+      return processedFile;
+    } finally {
+      setIsCompressing(false);
+      setCompressionProgress(0);
+    }
+  };
+
+
+  const handleMediaSelect = useCallback(async (file: File | null) => {
+    if (!file) {
+      if (preview) URL.revokeObjectURL(preview);
+      setSelectedMedia(null);
+      setPreview(null);
+      setIsVideo(false);
+      onMediaSelect(null);
+      return;
+    }
+
+    if (file.size > maxSizeBytes) {
+      onError(`File size exceeds the ${maxSizeMB}MB limit`);
+      return;
+    }
+
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    const videoExtensions = ['mov', 'mkv', 'avi', 'mp4', 'webm', 'hvec', 'hevc'];
+    const convertVideoExtensions = ['mov', 'hvec', 'hevc'];
+    const unsupportedImageExtensions = ['heic', 'heif', 'heics', 'heifs'];
+
+    const isVideoFile =
+      file.type.startsWith('video/') || videoExtensions.includes(ext);
+    const isImageFile =
+      (file.type.startsWith('image/') || file.type === '') &&
+      !unsupportedImageExtensions.includes(ext);
+
+    if (!isVideoFile && !isImageFile) {
+      onError('Only image or video files are allowed');
+      return;
+    }
+
+    if (!isVideoFile) {
+      if (unsupportedImageExtensions.includes(ext)) {
+        onError('Unsupported image format.');
+        return;
+      }
+      if (preview) URL.revokeObjectURL(preview);
       setIsVideo(false);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -285,15 +224,59 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
       reader.readAsDataURL(file);
       setSelectedMedia(file);
       onMediaSelect(file);
+      return;
     }
-  } else { // Handle null file (deselection)
-    if (preview) URL.revokeObjectURL(preview); // Clean up previous preview
-    setSelectedMedia(null);
-    setPreview(null);
-    setIsVideo(false);
-    onMediaSelect(null);
-  }
-}, [maxSizeBytes, maxSizeMB, onError, onMediaSelect, preview, loadFFmpeg, ffmpegLoadError]);
+
+    let processedFile = file;
+    let meta = await checkVideoMetadata(processedFile);
+    if (meta === 'duration') {
+      return;
+    }
+    if (meta === 'error') {
+      try {
+        processedFile = await convertWithFFmpeg(processedFile);
+      } catch {
+        onError('Could not read video metadata.');
+        return;
+      }
+      meta = await checkVideoMetadata(processedFile);
+      if (meta !== 'ok') {
+        onError('Could not read video metadata.');
+        return;
+      }
+    }
+
+    if (convertVideoExtensions.includes(ext) && processedFile === file) {
+      try {
+        processedFile = await convertWithFFmpeg(processedFile);
+      } catch {
+        return;
+      }
+      meta = await checkVideoMetadata(processedFile);
+      if (meta !== 'ok') {
+        onError('Could not read video metadata.');
+        return;
+      }
+    }
+
+    if (processedFile.size > COMPRESSION_THRESHOLD_BYTES && processedFile === file) {
+      try {
+        processedFile = await convertWithFFmpeg(processedFile);
+      } catch {
+        return;
+      }
+      // convertWithFFmpeg already sets preview and selected file
+    } else if (processedFile === file) {
+      if (preview) URL.revokeObjectURL(preview);
+      const directPreviewUrl = URL.createObjectURL(processedFile);
+      setPreview(directPreviewUrl);
+      setSelectedMedia(processedFile);
+      onMediaSelect(processedFile);
+      setIsVideo(true);
+      setIsCompressing(false);
+      setCompressionProgress(0);
+    }
+  }, [maxSizeBytes, maxSizeMB, onError, onMediaSelect, preview, loadFFmpeg]);
   
   const handleBrowseClick = useCallback(() => {
     if (fileInputRef.current) {
@@ -360,7 +343,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        accept="image/*,video/*"
+        accept="image/jpeg,image/png,image/gif,image/webp,video/*,.mov,.mkv,.avi,.hvec,.hevc"
         className="hidden"
         name="media"
         disabled={disabled}
@@ -455,7 +438,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
             type="button"
             onClick={handleRemove}
             className="absolute right-2 top-2 rounded-full bg-neutral-100 p-1 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-500 dark:bg-neutral-800 dark:text-neutral-500 dark:hover:bg-neutral-700 dark:hover:text-neutral-400"
-            disabled={isCompressing || disabled} // Modify this
+            disabled={isCompressing || disabled}
           >
             <X className="h-4 w-4" aria-hidden="true" />
             <span className="sr-only">Remove</span>

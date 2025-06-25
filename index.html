@@ -7,7 +7,10 @@
     <meta name="description" content="Reactlyve - Record reactions to your surprise messages" />
     <meta name="theme-color" content="#3B82F6" />
     <!-- The frame-ancestors directive must be delivered via an HTTP header. -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; style-src 'self' https: 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https: ws:; base-uri 'self';" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; style-src 'self' https: 'unsafe-inline'; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' https: ws:; base-uri 'self';"
+    />
     <meta name="referrer" content="no-referrer" />
     <link rel="stylesheet" href="/src/styles/globals.css">
     <title>Reactlyve - Surprise Message Reactions</title>

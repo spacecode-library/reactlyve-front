@@ -374,8 +374,10 @@ const MessageForm: React.FC<MessageFormProps> = ({ className }) => {
       formData.append('reaction_length', data.reaction_length.toString());
       formData.append('onetime', 'false');
       
+
       // Call API to create message with FormData
       const response = await messagesApi.createWithFormData(formData);
+
 
       if (response.data.shareableLink) {
         setShareableLink(response.data.shareableLink);
