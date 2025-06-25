@@ -150,7 +150,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         throw new Error('Invalid FFmpeg output');
       }
 
-      const processedFile = new File([fileData.buffer], videoFile.name.replace(/\.[^/.]+$/, '_c.mp4'), { type: 'video/mp4' });
+      const processedFile = new File([fileData], videoFile.name.replace(/\.[^/.]+$/, '_c.mp4'), { type: 'video/mp4' });
 
       if (ffmpeg && ffmpeg.loaded) {
         try {
@@ -407,7 +407,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
             type="button"
             onClick={handleRemove}
             className="absolute right-2 top-2 rounded-full bg-neutral-100 p-1 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-500 dark:bg-neutral-800 dark:text-neutral-500 dark:hover:bg-neutral-700 dark:hover:text-neutral-400"
-            disabled={isCompressing || disabled} // Modify this
+            disabled={isCompressing || disabled}
           >
             <X className="h-4 w-4" aria-hidden="true" />
             <span className="sr-only">Remove</span>
