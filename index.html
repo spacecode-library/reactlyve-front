@@ -6,7 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Reactlyve - Record reactions to your surprise messages" />
     <meta name="theme-color" content="#3B82F6" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; style-src 'self' https: 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https: ws:; frame-ancestors 'none'; base-uri 'self';" />
+    <!-- The frame-ancestors directive must be delivered via an HTTP header. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; style-src 'self' https: 'unsafe-inline'; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' https: ws:; base-uri 'self';"
+    />
     <meta name="referrer" content="no-referrer" />
     <link rel="stylesheet" href="/src/styles/globals.css">
     <title>Reactlyve - Surprise Message Reactions</title>
@@ -15,6 +19,9 @@
   </head>
   <body>
     <div class="app-container"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <!-- The autoblocker script inserts a preload for this module using an
+         anonymous credentials mode. Add a matching crossorigin attribute so
+         the request credentials align and the browser uses the preload. -->
+    <script type="module" src="/src/main.tsx" crossorigin></script>
   </body>
 </html>
