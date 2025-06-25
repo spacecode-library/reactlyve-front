@@ -1,19 +1,20 @@
 /** @type {import('tailwindcss').Config} */
 import forms from '@tailwindcss/forms';
 import aspectRatio from '@tailwindcss/aspect-ratio';
-import defaultColors from 'tailwindcss/colors';
+import colors from 'tailwindcss/colors';
 
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}', './src/styles/**/*.css'],
   darkMode: 'class',
   theme: {
-    colors: {
-      ...defaultColors,
-      // Primary colors
-      primary: {
-        50: '#EFF6FF',
-        100: '#DBEAFE',
-        200: '#BFDBFE',
+    extend: {
+      colors: {
+        neutral: { ...colors.neutral, 850: '#1C2526' },
+        // Primary colors
+        primary: {
+          50: '#EFF6FF',
+          100: '#DBEAFE',
+          200: '#BFDBFE',
           300: '#93C5FD',
           400: '#60A5FA',
           500: '#3B82F6',
@@ -48,18 +49,13 @@ export default {
           700: '#6D28D9',
           800: '#5B21B6',
           900: '#4C1D95',
-        950: '#2E1065',
+          950: '#2E1065',
+        },
+        success: '#10B981',
+        error: '#EF4444',
+        warning: '#F59E0B',
+        info: '#3B82F6',
       },
-      neutral: {
-        ...defaultColors.neutral,
-        850: '#1C2526',
-      },
-      success: '#10B981',
-      error: '#EF4444',
-      warning: '#F59E0B',
-      info: '#3B82F6',
-    },
-    extend: {
       fontFamily: {
         sans: ['Inter var', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
