@@ -194,8 +194,8 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     }
 
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    const videoExtensions = ['mov', 'mkv', 'avi', 'hvec', 'hevc'];
-    const imageExtensions = ['heic', 'heif'];
+    const videoExtensions = ['mov', 'mkv', 'avi', 'mp4', 'webm', 'hvec', 'hevc'];
+    const imageExtensions = ['heic', 'heif', 'heics', 'heifs'];
 
     const isVideoFile =
       file.type.startsWith('video/') || videoExtensions.includes(ext);
