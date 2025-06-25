@@ -178,65 +178,6 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     }
   };
 
-  const convertImageWithFFmpeg = async (imageFile: File): Promise<File> => {
-    if (preview) URL.revokeObjectURL(preview);
-    setIsCompressing(true);
-    setCompressionProgress(0);
-    setSelectedMedia(imageFile);
-    const tempPreview = URL.createObjectURL(imageFile);
-    setPreview(tempPreview);
-    setIsVideo(false);
-    try {
-      const ffmpegLoaded = await loadFFmpeg();
-      if (!ffmpegLoaded || !ffmpegRef.current || !ffmpegRef.current.loaded) {
-        throw new Error('FFmpeg not ready');
-      }
-      const ffmpeg = ffmpegRef.current;
-      const safeInputFileName = 'input.' + imageFile.name.split('.').pop();
-      const outputFileName = safeInputFileName.replace(/\.[^/.]+$/, '') + '_converted.jpg';
-      await ffmpeg.writeFile(safeInputFileName, await fetchFile(imageFile));
-      const ffmpegCommand = [
-        '-i',
-        safeInputFileName,
-        '-vf',
-        "scale='if(gt(iw,ih),1280,-2)':'if(gt(iw,ih),-2,1280)'",
-        '-qscale:v',
-        '2',
-        '-loglevel',
-        'error',
-        outputFileName,
-      ];
-      await ffmpeg.exec(ffmpegCommand);
-
-      const fileData: FileData = await ffmpeg.readFile(outputFileName);
-
-      if (!(fileData instanceof Uint8Array)) {
-        throw new Error('Invalid FFmpeg output');
-      }
-
-      const processedFile = new File([fileData], imageFile.name.replace(/\.[^/.]+$/, '_c.jpg'), { type: 'image/jpeg' });
-
-      if (ffmpeg && ffmpeg.loaded) {
-        try {
-          await ffmpeg.deleteFile(safeInputFileName);
-          await ffmpeg.deleteFile(outputFileName);
-        } catch {
-          /* ignore */
-        }
-      }
-
-      URL.revokeObjectURL(tempPreview);
-      const processedPreview = URL.createObjectURL(processedFile);
-      setPreview(processedPreview);
-      setSelectedMedia(processedFile);
-      onMediaSelect(processedFile);
-      setIsVideo(false);
-      return processedFile;
-    } finally {
-      setIsCompressing(false);
-      setCompressionProgress(0);
-    }
-  };
 
   const handleMediaSelect = useCallback(async (file: File | null) => {
     if (!file) {
@@ -255,14 +196,14 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
 
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
     const videoExtensions = ['mov', 'mkv', 'avi', 'mp4', 'webm', 'hvec', 'hevc'];
-    const imageExtensions = ['heic', 'heif', 'heics', 'heifs'];
     const convertVideoExtensions = ['mov', 'hvec', 'hevc'];
-    const convertImageExtensions = ['heic', 'heif', 'heics', 'heifs'];
+    const unsupportedImageExtensions = ['heic', 'heif', 'heics', 'heifs'];
 
     const isVideoFile =
       file.type.startsWith('video/') || videoExtensions.includes(ext);
     const isImageFile =
-      file.type.startsWith('image/') || imageExtensions.includes(ext);
+      (file.type.startsWith('image/') || file.type === '') &&
+      !unsupportedImageExtensions.includes(ext);
 
     if (!isVideoFile && !isImageFile) {
       onError('Only image or video files are allowed');
@@ -270,14 +211,9 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     }
 
     if (!isVideoFile) {
-      if (convertImageExtensions.includes(ext)) {
-        try {
-          await convertImageWithFFmpeg(file);
-          return;
-        } catch {
-          onError('Failed to convert image.');
-          return;
-        }
+      if (unsupportedImageExtensions.includes(ext)) {
+        onError('Unsupported image format.');
+        return;
       }
       if (preview) URL.revokeObjectURL(preview);
       setIsVideo(false);
@@ -407,7 +343,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        accept="image/*,video/*,.mov,.mkv,.avi,.heic,.heif,.hvec,.hevc"
+        accept="image/*,video/*,.mov,.mkv,.avi,.hvec,.hevc"
         className="hidden"
         name="media"
         disabled={disabled}
