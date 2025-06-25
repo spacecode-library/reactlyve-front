@@ -1,15 +1,19 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+import forms from '@tailwindcss/forms';
+import aspectRatio from '@tailwindcss/aspect-ratio';
+import defaultColors from 'tailwindcss/colors';
+
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}', './src/styles/**/*.css'],
   darkMode: 'class',
   theme: {
-    extend: {
-      colors: {
-        // Primary colors
-        primary: {
-          50: '#EFF6FF',
-          100: '#DBEAFE',
-          200: '#BFDBFE',
+    colors: {
+      ...defaultColors,
+      // Primary colors
+      primary: {
+        50: '#EFF6FF',
+        100: '#DBEAFE',
+        200: '#BFDBFE',
           300: '#93C5FD',
           400: '#60A5FA',
           500: '#3B82F6',
@@ -44,27 +48,18 @@ module.exports = {
           700: '#6D28D9',
           800: '#5B21B6',
           900: '#4C1D95',
-          950: '#2E1065',
-        },
-        neutral: {
-          50: '#F9FAFB',
-          100: '#F3F4F6',
-          200: '#E5E7EB',
-          300: '#D1D5DB',
-          400: '#9CA3AF',
-          500: '#6B7280',
-          600: '#4B5563',
-          700: '#374151',
-          800: '#1F2937',
-          850: '#1C2526',
-          900: '#111827',
-          950: '#030712',
-        },
-        success: '#10B981',
-        error: '#EF4444',
-        warning: '#F59E0B',
-        info: '#3B82F6',
+        950: '#2E1065',
       },
+      neutral: {
+        ...defaultColors.neutral,
+        850: '#1C2526',
+      },
+      success: '#10B981',
+      error: '#EF4444',
+      warning: '#F59E0B',
+      info: '#3B82F6',
+    },
+    extend: {
       fontFamily: {
         sans: ['Inter var', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
@@ -118,5 +113,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require('@tailwindcss/forms'), require('@tailwindcss/aspect-ratio')],
+  plugins: [forms, aspectRatio],
 };
