@@ -1,8 +1,8 @@
-import forms from '@tailwindcss/forms';
-import aspectRatio from '@tailwindcss/aspect-ratio';
+const forms = require('@tailwindcss/forms');
+const aspectRatio = require('@tailwindcss/aspect-ratio');
 
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}', './src/**/*.css'],
   darkMode: 'class',
   future: {
@@ -78,7 +78,6 @@ export default {
       fontFamily: {
         sans: ['Inter var', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
-      // Add animations
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out',
         'slide-up': 'slideUp 0.5s ease-out',
