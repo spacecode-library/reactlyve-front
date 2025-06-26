@@ -56,7 +56,7 @@ reactlyve-frontend/
 │   ├── App.tsx        # Main app component
 │   └── main.tsx       # Entry point
 ├── index.html         # HTML template
-├── tailwind.config.js # Tailwind CSS configuration
+├── tailwind.config.cjs # Tailwind CSS configuration
 └── package.json       # Project dependencies
 ```
 

@@ -178,7 +178,12 @@
   }
 
   body {
-    @apply bg-neutral-50 text-neutral-800 dark:bg-neutral-900 dark:text-neutral-100;
+    background-color: var(--color-neutral-50);
+    color: var(--color-neutral-800);
+  }
+  .dark body {
+    background-color: var(--color-neutral-900);
+    color: var(--color-neutral-100);
   }
 
   /* Custom scrollbar styles */
