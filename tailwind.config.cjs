@@ -79,8 +79,8 @@ module.exports = {
         sans: ['Inter var', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       animation: {
-        'fade-in': 'fadeIn 0.5s ease-out',
-        'slide-up': 'slideUp 0.5s ease-out',
+        fadeIn: 'fadeIn 0.5s ease-out',
+        slideUp: 'slideUp 0.5s ease-out',
         'record-glow': 'record-glow 2s ease-in-out infinite',
         'record-glow-md': 'record-glow-md 2s ease-in-out infinite',
         'record-glow-lg': 'record-glow-lg 2s ease-in-out infinite',
