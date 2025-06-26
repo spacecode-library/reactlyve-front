@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import './styles/globals.css';
+console.log('Loaded global styles');
 import { Toaster } from 'react-hot-toast';
 
 ReactDOM.createRoot(document.querySelector('.app-container') as HTMLElement).render(
