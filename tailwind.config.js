@@ -1,5 +1,8 @@
+import forms from '@tailwindcss/forms';
+import aspectRatio from '@tailwindcss/aspect-ratio';
+
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}', './src/**/*.css'],
   darkMode: 'class',
   future: {
@@ -63,8 +66,8 @@ module.exports = {
       },
       // Add animations
       animation: {
-        fadeIn: 'fadeIn 0.5s ease-out',
-        slideUp: 'slideUp 0.5s ease-out',
+        'fade-in': 'fadeIn 0.5s ease-out',
+        'slide-up': 'slideUp 0.5s ease-out',
         'record-glow': 'record-glow 2s ease-in-out infinite',
         'record-glow-md': 'record-glow-md 2s ease-in-out infinite',
         'record-glow-lg': 'record-glow-lg 2s ease-in-out infinite',
@@ -111,5 +114,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require('@tailwindcss/forms'), require('@tailwindcss/aspect-ratio')],
+  plugins: [forms, aspectRatio],
 };
