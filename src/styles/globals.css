@@ -56,6 +56,9 @@
     line-height: 1.25rem;
     transition: background-color 0.2s, color 0.2s, border-color 0.2s;
   }
+  /*
+   * Avoid applying the `.btn` class with `@apply` in Tailwind v4.
+   */
 
   .btn-primary {
     background-color: #3B82F6;
