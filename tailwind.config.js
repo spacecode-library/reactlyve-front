@@ -1,7 +1,14 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}', './src/**/*.css'],
   darkMode: 'class',
+  future: {
+    /**
+     * Allow applying utility classes within other rules.
+     * Needed after upgrading to Tailwind CSS v4
+     */
+    applyComplexClasses: true,
+  },
   theme: {
     extend: {
       colors: {
@@ -45,20 +52,6 @@ module.exports = {
           800: '#5B21B6',
           900: '#4C1D95',
           950: '#2E1065',
-        },
-        neutral: {
-          50: '#F9FAFB',
-          100: '#F3F4F6',
-          200: '#E5E7EB',
-          300: '#D1D5DB',
-          400: '#9CA3AF',
-          500: '#6B7280',
-          600: '#4B5563',
-          700: '#374151',
-          800: '#1F2937',
-          850: '#1C2526',
-          900: '#111827',
-          950: '#030712',
         },
         success: '#10B981',
         error: '#EF4444',

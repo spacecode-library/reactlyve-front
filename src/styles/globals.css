@@ -9,7 +9,13 @@
   }
 
   body {
-    @apply bg-neutral-50 text-neutral-800 dark:bg-neutral-900 dark:text-neutral-100;
+    background-color: #f9fafb;
+    color: #1f2937;
+  }
+
+  .dark body {
+    background-color: #111827;
+    color: #f5f5f5;
   }
 
   /* Custom scrollbar styles */
@@ -18,28 +24,43 @@
     height: 8px;
   }
   ::-webkit-scrollbar-track {
-    @apply bg-neutral-200 dark:bg-neutral-800;
+    background-color: #e5e7eb;
+  }
+  .dark ::-webkit-scrollbar-track {
+    background-color: #1f2937;
   }
   ::-webkit-scrollbar-thumb {
-    @apply rounded bg-primary-400 hover:bg-primary-500 dark:bg-primary-600 dark:hover:bg-primary-500;
+    border-radius: 0.25rem;
+    background-color: #60a5fa;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #3b82f6;
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background-color: #2563eb;
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background-color: #3b82f6;
   }
 }
 
-@layer components {
-  .btn {
+@layer utilities {
+  .btn-primary,
+  .btn-secondary,
+  .btn-outline {
     @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed;
   }
 
   .btn-primary {
-    @apply btn bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500 disabled:bg-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:disabled:bg-primary-800;
+    @apply bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500 disabled:bg-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:disabled:bg-primary-800;
   }
 
   .btn-secondary {
-    @apply btn bg-secondary-500 text-white hover:bg-secondary-600 focus:ring-secondary-500 disabled:bg-secondary-300 dark:bg-secondary-600 dark:hover:bg-secondary-700 dark:disabled:bg-secondary-800;
+    @apply bg-secondary-500 text-white hover:bg-secondary-600 focus:ring-secondary-500 disabled:bg-secondary-300 dark:bg-secondary-600 dark:hover:bg-secondary-700 dark:disabled:bg-secondary-800;
   }
 
   .btn-outline {
-    @apply btn border border-neutral-300 bg-transparent text-neutral-800 hover:bg-neutral-100 focus:ring-neutral-500 disabled:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800 dark:disabled:bg-neutral-800;
+    @apply border border-neutral-300 bg-transparent text-neutral-800 hover:bg-neutral-100 focus:ring-neutral-500 disabled:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800 dark:disabled:bg-neutral-800;
   }
 
   .input {
