@@ -15,33 +15,27 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (storedTheme === 'dark' || storedTheme === 'light') {
       return storedTheme;
     }
-    
+
     // Check user preference
     if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
       return 'dark';
     }
-    
+
     return 'light';
   });
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    const body = document.body;
+    body.classList.remove('light', 'dark');
+    body.classList.add(theme);
   }, [theme]);
 
   const toggleTheme = () => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   };
 
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme() {
