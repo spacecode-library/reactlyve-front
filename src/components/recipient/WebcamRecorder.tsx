@@ -453,7 +453,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   }, [isRecording, recordingCountdown]);
 
   useEffect(() => {
-    if ((showCountdown || isRecording) && showPreview && stream && videoRef.current) {
+    if ((showCountdown || (isRecording && showPreview)) && stream && videoRef.current) {
       videoRef.current.srcObject = stream;
     }
   }, [showCountdown, isRecording, showPreview, stream]);
