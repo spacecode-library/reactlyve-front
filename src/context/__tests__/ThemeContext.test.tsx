@@ -4,7 +4,6 @@ import { ThemeProvider, useTheme } from '../ThemeContext';
 
 afterEach(() => {
   localStorage.clear();
-  document.documentElement.className = '';
   document.body.className = '';
 });
 
@@ -14,7 +13,7 @@ function TestComponent() {
 }
 
 describe('ThemeProvider', () => {
-  it('applies stored dark theme to body and html', () => {
+  it('applies stored dark theme to the body', () => {
     localStorage.setItem('theme', 'dark');
     render(
       <ThemeProvider>
@@ -22,7 +21,6 @@ describe('ThemeProvider', () => {
       </ThemeProvider>
     );
     expect(document.body.classList.contains('dark')).toBe(true);
-    expect(document.documentElement.classList.contains('dark')).toBe(true);
   });
 
   it('toggles theme classes when toggleTheme is called', () => {
@@ -34,9 +32,7 @@ describe('ThemeProvider', () => {
     );
     const button = getByRole('button');
     expect(document.body.classList.contains('light')).toBe(true);
-    expect(document.documentElement.classList.contains('light')).toBe(true);
     fireEvent.click(button);
     expect(document.body.classList.contains('dark')).toBe(true);
-    expect(document.documentElement.classList.contains('dark')).toBe(true);
   });
 });

@@ -9,7 +9,7 @@ const AuthCallback = () => {
   }, [navigate]);
 
   return (
-    <div data-theme-target className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">
+    <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md dark:bg-neutral-800">
         <div className="text-center">
           <div className="flex justify-center">

@@ -12,7 +12,6 @@
       content="default-src 'self'; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; style-src 'self' https: 'unsafe-inline'; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' https: ws:; base-uri 'self';"
     />
     <meta name="referrer" content="no-referrer" />
-    <link rel="stylesheet" href="/src/styles/globals.css" />
     <title>Reactlyve - Surprise Message Reactions</title>
     <script src="https://web.cmp.usercentrics.eu/modules/autoblocker.js"></script>
     <script
@@ -32,29 +31,7 @@
           : prefersDark
             ? 'dark'
             : 'light';
-
-      const html = document.documentElement;
-      const body = document.body;
-      const sample = document.querySelector('[data-theme-target]') || body;
-      const before = window.getComputedStyle(sample);
-
-      html.classList.remove('light', 'dark');
-      body.classList.remove('light', 'dark');
-      html.classList.add(theme);
-      body.classList.add(theme);
-
-      const after = window.getComputedStyle(sample);
-      if (before.backgroundColor !== after.backgroundColor || before.color !== after.color) {
-        console.log(`Startup theme: ${theme}`, {
-          from: { background: before.backgroundColor, color: before.color },
-          to: { background: after.backgroundColor, color: after.color },
-        });
-      } else {
-        console.log(`Startup theme: ${theme} (no computed change)`, {
-          background: after.backgroundColor,
-          color: after.color,
-        });
-      }
+      document.body.classList.add(theme);
     </script>
     <div class="app-container"></div>
     <!-- The autoblocker script inserts a preload for this module using an

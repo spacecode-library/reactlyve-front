@@ -137,7 +137,7 @@ const View: React.FC = () => {
   };
 
   const renderErrorCard = (title: string, messageText?: string) => (
-    <div data-theme-target className="flex min-h-[100dvh] w-full flex-col items-center justify-center bg-neutral-50 px-4 py-2 dark:bg-neutral-900 sm:py-6">
+    <div className="flex min-h-[100dvh] w-full flex-col items-center justify-center bg-neutral-50 px-4 py-2 dark:bg-neutral-900 sm:py-6">
       <div className="card mx-auto max-w-md p-6 text-center">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900">
           <svg
@@ -175,7 +175,7 @@ const View: React.FC = () => {
 
   if (loading) {
     return (
-      <div data-theme-target className="flex min-h-[100dvh] flex-col items-center justify-center bg-neutral-50 dark:bg-neutral-900">
+      <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-neutral-50 dark:bg-neutral-900">
         <LoadingSpinner size="lg" />
         <p className="mt-4 text-neutral-600 dark:text-neutral-300">Loading message...</p>
       </div>
@@ -194,7 +194,7 @@ const View: React.FC = () => {
 
   if (needsPasscode && !passcodeVerified) {
     return (
-      <div data-theme-target className="flex min-h-[100dvh] items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
+      <div className="flex min-h-[100dvh] items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-900">
         <div className="w-full max-w-md mx-auto">
           <PasscodeEntry onSubmitPasscode={handleSubmitPasscode} />
         </div>
@@ -204,7 +204,7 @@ const View: React.FC = () => {
 
   if (message && (passcodeVerified || !needsPasscode)) {
     return (
-      <div data-theme-target className="flex min-h-[100dvh] items-center justify-start bg-neutral-50 px-4 py-8 dark:bg-neutral-900 sm:py-12">
+      <div className="flex min-h-[100dvh] items-center justify-start bg-neutral-50 px-4 py-8 dark:bg-neutral-900 sm:py-12">
         <MessageViewer
           message={message}
           onRecordReaction={async () => {}} // Changed to an async no-op function

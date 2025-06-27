@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 const NotFound = () => {
   return (
-    <div data-theme-target className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-4 text-center dark:bg-neutral-900">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-4 text-center dark:bg-neutral-900">
       <h1 className="text-9xl font-bold text-primary-500">404</h1>
       <h2 className="mt-4 text-3xl font-bold text-neutral-900 dark:text-white">
         Page Not Found
