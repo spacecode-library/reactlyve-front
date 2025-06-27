@@ -32,10 +32,15 @@
           : prefersDark
             ? 'dark'
             : 'light';
-      const target = document.body;
-      target.classList.remove('light', 'dark');
-      target.classList.add(theme);
-      const sample = document.querySelector('[data-theme-target]') || target;
+
+      const html = document.documentElement;
+      const body = document.body;
+      html.classList.remove('light', 'dark');
+      body.classList.remove('light', 'dark');
+      html.classList.add(theme);
+      body.classList.add(theme);
+
+      const sample = document.querySelector('[data-theme-target]') || body;
       const computed = window.getComputedStyle(sample);
       console.log(`Startup theme: ${theme}`, {
         background: computed.backgroundColor,
