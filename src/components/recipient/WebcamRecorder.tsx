@@ -453,10 +453,10 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
   }, [isRecording, recordingCountdown]);
 
   useEffect(() => {
-    if ((showCountdown || isRecording) && stream && videoRef.current) {
+    if ((showCountdown || (isRecording && showPreview)) && stream && videoRef.current) {
       videoRef.current.srcObject = stream;
     }
-  }, [showCountdown, isRecording, stream]);
+  }, [showCountdown, isRecording, showPreview, stream]);
 
   useEffect(() => {
     if (
@@ -582,7 +582,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
             )}
 
             {isRecording && !isCompressing && !isUploading && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-30 text-red-500">
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 text-red-500">
                 <svg
                   className="mb-2 h-8 w-8 text-red-500 opacity-75"
                   viewBox="0 0 24 24"
@@ -624,7 +624,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
         )}
 
         {isUploading && !hideUploadSpinner && !isCompressing && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
           </div>
         )}
