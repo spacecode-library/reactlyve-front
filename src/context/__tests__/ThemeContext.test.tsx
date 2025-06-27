@@ -5,6 +5,7 @@ import { ThemeProvider, useTheme } from '../ThemeContext';
 afterEach(() => {
   localStorage.clear();
   document.body.className = '';
+  jest.restoreAllMocks();
 });
 
 function TestComponent() {
@@ -34,5 +35,18 @@ describe('ThemeProvider', () => {
     expect(document.body.classList.contains('light')).toBe(true);
     fireEvent.click(button);
     expect(document.body.classList.contains('dark')).toBe(true);
+  });
+
+  it('logs computed styles on theme change', () => {
+    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const { getByRole } = render(
+      <ThemeProvider>
+        <div data-theme-target>Target</div>
+        <TestComponent />
+      </ThemeProvider>
+    );
+    const button = getByRole('button');
+    fireEvent.click(button);
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Theme changed to dark'));
   });
 });

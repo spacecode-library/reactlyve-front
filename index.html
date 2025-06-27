@@ -32,6 +32,13 @@
             ? 'dark'
             : 'light';
       document.body.classList.add(theme);
+      const target = document.querySelector('[data-theme-target]');
+      if (target) {
+        const { backgroundColor, color } = getComputedStyle(target);
+        console.log(`Startup theme ${theme}; bg ${backgroundColor}; color ${color}`);
+      } else {
+        console.log(`Startup theme ${theme}`);
+      }
     </script>
     <div class="app-container"></div>
     <!-- The autoblocker script inserts a preload for this module using an

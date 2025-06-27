@@ -18,7 +18,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   hideFooter = false,
 }) => {
   return (
-    <div className="flex min-h-screen flex-col bg-neutral-50 dark:bg-neutral-900">
+    <div
+      className="flex min-h-screen flex-col bg-neutral-50 dark:bg-neutral-900"
+      data-theme-target
+    >
       {!hideNavbar && <Navbar />}
       <GuestBanner />
       <main className={classNames('flex-grow', className || '')}>
