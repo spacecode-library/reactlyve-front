@@ -4,7 +4,7 @@ import MainLayout from '../layouts/MainLayout';
 const PrivacyPolicyPage: React.FC = () => {
   return (
     <MainLayout>
-      <div className="mx-auto max-w-3xl px-4 py-8">
+      <div className="mx-auto max-w-4xl px-4 py-8">
         <h1 className="text-3xl font-bold mb-4">PRIVACY POLICY</h1>
         <p className="text-sm text-gray-600 mb-6">Last updated June 12, 2025</p>
         <p className="mb-2">
