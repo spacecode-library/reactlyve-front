@@ -178,10 +178,12 @@
   }
 
   body {
+    color-scheme: light;
     background-color: var(--color-neutral-50);
     color: var(--color-neutral-800);
   }
   .dark body {
+    color-scheme: dark;
     background-color: var(--color-neutral-900);
     color: var(--color-neutral-100);
   }
