@@ -17,7 +17,6 @@ Reactlyve is a modern web application that allows users to create and share surp
 - **Automatic media moderation** using AWS Rekognition
 - **Profile page** to review usage limits or delete your account and data
 - **Responsive design** for desktop and mobile devices
-- **Dark/light mode** support with persistent theme preference
 - Comprehensive and up-to-date legal documentation (Terms of Service, Privacy Policy, Cookie Policy) ensuring transparency and user rights.
 
 ## Tech Stack
