@@ -2,6 +2,7 @@
 
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/aspect-ratio';
+@custom-variant dark (&:is(.dark *));
 
 
 @theme {
