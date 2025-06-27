@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import ScrollToTop from './components/common/ScrollToTop';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 // import CookieBanner from './components/common/CookieBanner';
 import LoadingSpinner from './components/common/LoadingSpinner'; // Import LoadingSpinner
@@ -26,6 +27,7 @@ const CookiePolicyPage = React.lazy(() => import('./pages/CookiePolicy'));
 
 function App() {
   return (
+    <ThemeProvider>
       <AuthProvider>
         <ScrollToTop />
         <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><LoadingSpinner size="lg" /></div>}>
@@ -84,6 +86,7 @@ function App() {
         />
         {/* <CookieBanner /> */} {/* Cookie management bar disabled */}
       </AuthProvider>
+    </ThemeProvider>
   );
 }
 
