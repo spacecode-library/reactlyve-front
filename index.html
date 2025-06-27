@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -12,12 +12,34 @@
       content="default-src 'self'; script-src 'self' https: 'unsafe-inline' 'unsafe-eval'; style-src 'self' https: 'unsafe-inline'; img-src 'self' data: https: blob:; media-src 'self' https: blob:; connect-src 'self' https: ws:; base-uri 'self';"
     />
     <meta name="referrer" content="no-referrer" />
-    <link rel="stylesheet" href="/src/styles/globals.css">
     <title>Reactlyve - Surprise Message Reactions</title>
     <script src="https://web.cmp.usercentrics.eu/modules/autoblocker.js"></script>
-    <script id="usercentrics-cmp" src="https://web.cmp.usercentrics.eu/ui/loader.js" data-settings-id="YLS0Vzglw3nmL-" async></script>
+    <script
+      id="usercentrics-cmp"
+      src="https://web.cmp.usercentrics.eu/ui/loader.js"
+      data-settings-id="YLS0Vzglw3nmL-"
+      async
+    ></script>
   </head>
   <body>
+    <script>
+      const storedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme =
+        storedTheme === 'light' || storedTheme === 'dark'
+          ? storedTheme
+          : prefersDark
+            ? 'dark'
+            : 'light';
+      document.body.classList.add(theme);
+      const target = document.querySelector('[data-theme-target]');
+      if (target) {
+        const { backgroundColor, color } = getComputedStyle(target);
+        console.log(`Startup theme ${theme}; bg ${backgroundColor}; color ${color}`);
+      } else {
+        console.log(`Startup theme ${theme}`);
+      }
+    </script>
     <div class="app-container"></div>
     <!-- The autoblocker script inserts a preload for this module using an
          anonymous credentials mode. Add a matching crossorigin attribute so
