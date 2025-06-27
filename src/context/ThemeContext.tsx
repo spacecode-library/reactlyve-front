@@ -31,13 +31,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('theme', theme);
     document.body.classList.remove('light', 'dark');
     document.body.classList.add(theme);
-    const target = document.querySelector('[data-theme-target]') as HTMLElement | null;
-    if (target) {
-      const { backgroundColor, color } = getComputedStyle(target);
-      console.log(`Theme changed to ${theme}; bg ${backgroundColor}; color ${color}`);
-    } else {
-      console.log(`Theme changed to ${theme}`);
-    }
   }, [theme]);
 
   const toggleTheme = () => {
