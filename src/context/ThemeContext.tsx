@@ -25,17 +25,35 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   });
 
   const prevThemeRef = useRef<Theme | undefined>(undefined);
+  const prevComputedRef = useRef<{ bg: string; color: string } | undefined>(undefined);
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
     const target = document.body;
-    const prev = prevThemeRef.current;
-    if (prev && prev !== theme) {
-      console.log(`Theme changed from ${prev} to ${theme}`);
-    }
     target.classList.remove('light', 'dark');
     target.classList.add(theme);
+
+    const computed = window.getComputedStyle(target);
+    const current = { bg: computed.backgroundColor, color: computed.color };
+    const prev = prevThemeRef.current;
+    const prevComputed = prevComputedRef.current;
+
+    if (prev) {
+      console.log(`Theme changed from ${prev} to ${theme}`);
+    } else {
+      console.log(`Initial theme: ${theme}`);
+    }
+
+    if (prevComputed) {
+      console.log(
+        `Computed bg ${prevComputed.bg} -> ${current.bg}, color ${prevComputed.color} -> ${current.color}`
+      );
+    } else {
+      console.log(`Initial computed values`, { background: current.bg, color: current.color });
+    }
+
     prevThemeRef.current = theme;
+    prevComputedRef.current = current;
   }, [theme]);
 
   const toggleTheme = () => {

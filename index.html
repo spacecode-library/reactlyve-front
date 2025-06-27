@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -35,7 +35,11 @@
       const target = document.body;
       target.classList.remove('light', 'dark');
       target.classList.add(theme);
-      console.log(`Startup theme: ${theme}`);
+      const computed = window.getComputedStyle(target);
+      console.log(`Startup theme: ${theme}`, {
+        background: computed.backgroundColor,
+        color: computed.color,
+      });
     </script>
     <div class="app-container"></div>
     <!-- The autoblocker script inserts a preload for this module using an
