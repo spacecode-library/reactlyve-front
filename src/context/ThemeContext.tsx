@@ -23,6 +23,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     
     return 'light';
   });
+  // Log initial theme when the provider mounts
+  console.log('Initial theme:', theme);
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
@@ -31,10 +33,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    // Debug logging to verify theme application and resulting styles
+    console.log(
+      `Applied theme: ${theme}; body background is`,
+      getComputedStyle(document.body).backgroundColor
+    );
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+    setTheme(prevTheme => {
+      const next = prevTheme === 'light' ? 'dark' : 'light';
+      console.log('Toggling theme to', next);
+      return next;
+    });
   };
 
   return (
