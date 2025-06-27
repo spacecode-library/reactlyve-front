@@ -35,17 +35,26 @@
 
       const html = document.documentElement;
       const body = document.body;
+      const sample = document.querySelector('[data-theme-target]') || body;
+      const before = window.getComputedStyle(sample);
+
       html.classList.remove('light', 'dark');
       body.classList.remove('light', 'dark');
       html.classList.add(theme);
       body.classList.add(theme);
 
-      const sample = document.querySelector('[data-theme-target]') || body;
-      const computed = window.getComputedStyle(sample);
-      console.log(`Startup theme: ${theme}`, {
-        background: computed.backgroundColor,
-        color: computed.color,
-      });
+      const after = window.getComputedStyle(sample);
+      if (before.backgroundColor !== after.backgroundColor || before.color !== after.color) {
+        console.log(`Startup theme: ${theme}`, {
+          from: { background: before.backgroundColor, color: before.color },
+          to: { background: after.backgroundColor, color: after.color },
+        });
+      } else {
+        console.log(`Startup theme: ${theme} (no computed change)`, {
+          background: after.backgroundColor,
+          color: after.color,
+        });
+      }
     </script>
     <div class="app-container"></div>
     <!-- The autoblocker script inserts a preload for this module using an
