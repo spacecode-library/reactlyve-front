@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -32,9 +32,9 @@
           : prefersDark
             ? 'dark'
             : 'light';
-      const body = document.body;
-      body.classList.remove('light', 'dark');
-      body.classList.add(theme);
+      const root = document.documentElement;
+      root.classList.remove('light', 'dark');
+      root.classList.add(theme);
     </script>
     <div class="app-container"></div>
     <!-- The autoblocker script inserts a preload for this module using an
