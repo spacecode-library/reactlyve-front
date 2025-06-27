@@ -189,9 +189,9 @@
     width: 8px;
     height: 8px;
   }
-  ::-webkit-scrollbar-track {
+  /* ::-webkit-scrollbar-track {
     @apply bg-neutral-200 dark:bg-neutral-800;
-  }
+  } */
   ::-webkit-scrollbar-thumb {
     @apply rounded-sm bg-primary-400 hover:bg-primary-500 dark:bg-primary-600 dark:hover:bg-primary-500;
   }
