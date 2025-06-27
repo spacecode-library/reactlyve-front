@@ -2,7 +2,9 @@
 module.exports = {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   darkMode: 'class',
-  applyComplexClasses: true,
+  experimental: {
+    applyComplexClasses: true,
+  },
   theme: {
     extend: {
       colors: {
