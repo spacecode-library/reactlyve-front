@@ -24,7 +24,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-neutral-50 dark:bg-neutral-900">
+    <div data-theme-target className="flex min-h-screen flex-col bg-neutral-50 dark:bg-neutral-900">
       <div className="flex flex-1 flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">

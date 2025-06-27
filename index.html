@@ -35,7 +35,8 @@
       const target = document.body;
       target.classList.remove('light', 'dark');
       target.classList.add(theme);
-      const computed = window.getComputedStyle(target);
+      const sample = document.querySelector('[data-theme-target]') || target;
+      const computed = window.getComputedStyle(sample);
       console.log(`Startup theme: ${theme}`, {
         background: computed.backgroundColor,
         color: computed.color,

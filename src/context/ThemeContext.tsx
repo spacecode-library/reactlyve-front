@@ -29,11 +29,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
-    const target = document.body;
-    target.classList.remove('light', 'dark');
-    target.classList.add(theme);
+    const body = document.body;
+    body.classList.remove('light', 'dark');
+    body.classList.add(theme);
 
-    const computed = window.getComputedStyle(target);
+    const themeTarget =
+      (document.querySelector('[data-theme-target]') as HTMLElement | null) || body;
+    const computed = window.getComputedStyle(themeTarget);
     const current = { bg: computed.backgroundColor, color: computed.color };
     const prev = prevThemeRef.current;
     const prevComputed = prevComputedRef.current;

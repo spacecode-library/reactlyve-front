@@ -63,7 +63,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-neutral-50 dark:bg-neutral-900">
+    <div data-theme-target className="flex min-h-screen flex-col bg-neutral-50 dark:bg-neutral-900">
       <Navbar />
       <GuestBanner />
 
