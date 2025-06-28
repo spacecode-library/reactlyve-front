@@ -1,7 +1,7 @@
 import { FFmpeg, FileData } from '@ffmpeg/ffmpeg'; // Added
 import { fetchFile, toBlobURL } from '@ffmpeg/util'; // Added
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
+import { ChevronDownIcon, ChevronUpIcon, StopIcon } from '@heroicons/react/24/solid';
 import useWebcam from '../../hooks/useWebcam';
 import useMediaRecorder from '../../hooks/useMediaRecorder';
 import Button from '../common/Button';
@@ -620,6 +620,17 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
             className="mt-1"
           >
             {showPreview ? 'Hide Preview' : 'Show Preview'}
+          </Button>
+        )}
+
+        {isRecording && (
+          <Button
+            variant="danger"
+            leftIcon={<StopIcon className="h-5 w-5" />}
+            onClick={() => stopRecording()}
+            className="mt-2"
+          >
+            Stop Recording
           </Button>
         )}
 

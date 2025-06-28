@@ -589,7 +589,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
             <WebcamRecorder
               isReplyMode
               onRecordingComplete={handleVideoReplyComplete}
-              maxDuration={15000}
+              maxDuration={30000}
               autoStart
               hidePreviewAfterCountdown={false}
             />
