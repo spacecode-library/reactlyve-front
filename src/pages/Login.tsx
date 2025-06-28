@@ -96,11 +96,6 @@ const Login = () => {
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-neutral-300 dark:border-neutral-700"></div>
                 </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-2 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-                    Or
-                  </span>
-                </div>
               </div>
 
               <div className="mt-6">
