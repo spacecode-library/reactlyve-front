@@ -156,11 +156,10 @@ export const repliesApi = {
     // Backend expects { text: "value" } (lowercase)
     return publicApi.post(REPLY_ROUTES.UPLOAD(reactionId), { text });
   },
-  sendMedia: (reactionId: string, media: Blob, text?: string, duration?: number) => {
+  sendMedia: (reactionId: string, media: Blob, text?: string) => {
     const formData = new FormData();
     formData.append('media', media, 'reply');
     if (text) formData.append('text', text);
-    if (typeof duration === 'number') formData.append('duration', String(duration));
     return api.post(REPLY_ROUTES.UPLOAD_MEDIA(reactionId), formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });

@@ -109,10 +109,10 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
       }
       permissionListenersRef.current = null;
     };
-  }, [checkPermission]); // Removed stopWebcam from here as it's defined below and doesn't change
+  }, [checkPermission]);
 
   const withTimeout = async <T>(promise: Promise<T>, ms: number): Promise<T> => {
-    let timeout: ReturnType<typeof setTimeout> | undefined; // ✅ FIXED: safely defined
+    let timeout: ReturnType<typeof setTimeout> | undefined;
     const timer = new Promise<never>((_, reject) => {
       timeout = setTimeout(() => reject(new Error('Operation timed out')), ms);
     });

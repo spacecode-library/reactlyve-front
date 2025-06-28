@@ -328,9 +328,6 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       if (processingError) {
         // If there was a processing error, onRecordingComplete still needs to be called
         // so the application flow can continue (e.g. upload original, show error message)
-        // console.log('[WebcamRecorder] Processing error occurred, calling onRecordingComplete with original blob.'); // Removed
-      } else {
-        // console.log('[WebcamRecorder] Processing complete, calling onRecordingComplete.'); // Removed
       }
       onRecordingComplete(blobToUpload);
     };
@@ -364,11 +361,8 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     stopWebcamRef.current = stopWebcam;
   }, [stopWebcam]);
 
-  // Modify the cleanup useEffect:
   useEffect(() => {
-    // console.log('[WebcamRecorder] Component did mount, registering unmount cleanup effect.'); // Removed
     return () => {
-      // console.log('[WebcamRecorder] Component will unmount, calling stopWebcam via ref from cleanup effect.'); // Removed
       if (stopWebcamRef.current) {
         stopWebcamRef.current();
       }

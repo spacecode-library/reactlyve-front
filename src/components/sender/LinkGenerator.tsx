@@ -65,8 +65,6 @@ const LinkGenerator: React.FC<LinkGeneratorProps> = ({
   }, [messageId]);
 
 
-  // Removed getQrCodeUrl function
-
   // Copy link to clipboard
   const handleCopyLink = async () => {
     if (shareableLink) {

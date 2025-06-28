@@ -96,8 +96,6 @@ const ReactionPage: React.FC = () => {
     }
   };
 
-  // getDownloadFilename function is removed
-
   if (loading) {
     return (
       <MainLayout>

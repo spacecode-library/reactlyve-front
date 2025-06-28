@@ -195,24 +195,6 @@ export const dataUrlToBlob = (dataUrl: string): Blob => {
  * Get the duration of an audio or video blob in seconds.
  * Returns 0 if duration cannot be determined.
  */
-export const getMediaDuration = (blob: Blob): Promise<number> => {
-  return new Promise(resolve => {
-    const isAudio = blob.type.startsWith('audio');
-    const element = document.createElement(isAudio ? 'audio' : 'video');
-    const url = URL.createObjectURL(blob);
-    element.preload = 'metadata';
-    element.src = url;
-    element.onloadedmetadata = () => {
-      const dur = element.duration;
-      URL.revokeObjectURL(url);
-      resolve(Number.isFinite(dur) ? dur : 0);
-    };
-    element.onerror = () => {
-      URL.revokeObjectURL(url);
-      resolve(0);
-    };
-  });
-};
 
 /**
  * Download a blob as a file
@@ -299,23 +281,8 @@ export const getTransformedCloudinaryUrl = (
     if (match) {
       if (match[2]) {
         publicPath = match[2];
-        // const oldTransformations = match[1] || ''; // Removed console.log related
-        // if (oldTransformations) { // Removed console.log related
-          // console.log(`[getTransformedCloudinaryUrl] Info: Stripped old transformations "${oldTransformations}" from path "${pathAfterUpload}" because a version string was found.`); // Removed
-        // } // Removed console.log related
       } else if (match[3]) {
         publicPath = match[3];
-        // const pathSegments = publicPath.split('/'); // Removed console.log related
-        // const finalSegment = pathSegments[pathSegments.length - 1]; // Removed console.log related
-        // const leadingPath = pathSegments.slice(0, -1).join('/'); // Removed console.log related
-
-        // if (pathSegments.length > 1 && /[a-z_]+,/.test(leadingPath) && !leadingPath.includes('.')) { // Removed console.log related
-             // console.warn(`[getTransformedCloudinaryUrl] Warning: No version string found in path "${pathAfterUpload}". The path "${leadingPath}" before the final segment "${finalSegment}" looks like it might contain transformations. Prepending new transformation "${transformationString}". This could lead to nested transformations like "${transformationString}/${publicPath}". Original URL: "${originalUrl}"`); // Removed
-        // } else if (pathSegments.length > 1) { // Removed console.log related
-             // console.log(`[getTransformedCloudinaryUrl] Info: No version string found in path "${pathAfterUpload}". Path contains folders. Applying transformation "${transformationString}" before full path "${publicPath}". Original URL: "${originalUrl}"`); // Removed
-        // } else { // Removed console.log related
-             // console.log(`[getTransformedCloudinaryUrl] Info: No version string found in path "${pathAfterUpload}". Path is a simple public_id. Applying transformation "${transformationString}" before public_id "${publicPath}". Original URL: "${originalUrl}"`); // Removed
-        // } // Removed console.log related
       } else {
         publicPath = pathAfterUpload;
         // console.warn(`[getTransformedCloudinaryUrl] Warning: Could not reliably parse path "${pathAfterUpload}" using regex. Using full path. Original URL: "${originalUrl}"`); // Removed

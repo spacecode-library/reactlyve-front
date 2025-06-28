@@ -15,7 +15,7 @@ import { reactionsApi, repliesApi } from '../../services/api';
 import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
 import VideoPlayer from '../dashboard/VideoPlayer'; // Added VideoPlayer import
-import { getTransformedCloudinaryUrl, getMediaDuration } from '../../utils/mediaHelpers';
+import { getTransformedCloudinaryUrl } from '../../utils/mediaHelpers';
 import { MESSAGE_ERRORS, REACTION_ERRORS } from '../../components/constants/errorMessages';
 
 interface MessageViewerProps {
@@ -41,10 +41,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 }) => {
   const { user } = useAuth();
 
-  // const isReactionLimitReached = !!(user &&
-  //   user.max_reactions_per_month !== null &&
-  //   (user.current_reactions_this_month ?? 0) >= user.max_reactions_per_month
-  // ); // Removed
 
   const normalizedMessage = normalizeMessage(message);
   const [reactionId, setReactionId] = useState<string | null>(null);
@@ -73,8 +69,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const [showVideoReply, setShowVideoReply] = useState(false);
   const [showAudioReply, setShowAudioReply] = useState(false);
   const [isUploadingReply, setIsUploadingReply] = useState(false);
-  const [isWebcamRecording, setIsWebcamRecording] = useState(false); // Add state for recording status
-  // Removed: const videoRef = useRef<HTMLVideoElement>(null);
+  const [isWebcamRecording, setIsWebcamRecording] = useState(false);
   const [isPreloadingMedia, setIsPreloadingMedia] = useState(false);
   const [preloadedMediaUrl, setPreloadedMediaUrl] = useState<string | null>(null);
 
@@ -164,7 +159,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     startPreloading,
   ]);
 
-  // Removed useEffect for videoRef.current.play()
 
   const handleImageError = useCallback(() => {
     if (imageRetryCount < MAX_RETRIES) {
@@ -243,8 +237,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     if (!reactionId) return;
     setIsUploadingReply(true);
     try {
-      const duration = await getMediaDuration(blob);
-      await repliesApi.sendMedia(reactionId, blob, undefined, duration);
+      await repliesApi.sendMedia(reactionId, blob);
       toast.success('Reply uploaded');
       setShowVideoReply(false);
     } catch (error) {
@@ -259,8 +252,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     if (!reactionId) return;
     setIsUploadingReply(true);
     try {
-      const duration = await getMediaDuration(blob);
-      await repliesApi.sendMedia(reactionId, blob, undefined, duration);
+      await repliesApi.sendMedia(reactionId, blob);
       toast.success('Reply uploaded');
       setShowAudioReply(false);
     } catch (error) {
@@ -294,7 +286,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     }
     try {
       const currentSessionId = String(sessionId); // Ensure it's a string
-      // The console log should use currentSessionId too
       const res = await reactionsApi.init(
         message.id,
         currentSessionId,
@@ -467,7 +458,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
       {(() => {
         if (normalizedMessage.mediaType === 'image' && transformedImgUrl) {
-          // console.log('[MessageViewer] Image - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.imageUrl, 'Transformed URL:', transformedImgUrl);
           return (
             <div className="mt-4 rounded-lg overflow-hidden">
               {imageError && imageRetryCount < MAX_RETRIES ? (
@@ -509,7 +499,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
       {(() => {
         if (normalizedMessage.mediaType === 'video' && transformedVidUrl) {
-          // console.log('[MessageViewer] Video - fileSizeInBytes:', normalizedMessage.fileSizeInBytes, 'Original URL:', normalizedMessage.videoUrl, 'Transformed URL:', transformedVidUrl);
           return (
             <div className="mt-4 rounded-lg overflow-hidden">
               {videoError && videoRetryCount < MAX_RETRIES ? (
@@ -653,15 +642,14 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
               hidePreviewAfterCountdown={true}
               onStatusUpdate={setWebcamStatusMessage}
               onWebcamError={setWebcamInlineError}
-              isUploading={isUploading} // This line was duplicated in the error
+              isUploading={isUploading}
               hideUploadSpinner={isUploading}
-              onRecordingStatusChange={setIsWebcamRecording} // Pass the callback
+              onRecordingStatusChange={setIsWebcamRecording}
             />
           </div>
         )}
         {showRecorder && !isNameSubmitted && (
           <div className="mb-4 w-full max-w-md mx-auto">
-            {/* Removed isReactionLimitReached conditional message */}
             <label
               htmlFor="recipientName"
               className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1 text-center"
@@ -686,7 +674,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
               onClick={handleStartReaction}
               disabled={!recipientName.trim() || isNameSubmitted}
               className="btn btn-primary w-full mt-2"
-              title={undefined} // Removed reaction limit specific title
             >
               Start Reaction
             </button>

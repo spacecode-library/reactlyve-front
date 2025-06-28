@@ -66,7 +66,6 @@ export const normalizeMessage = (message: any) => {
 
 export const normalizeReaction = (reaction: any) => {
   if (!reaction) return reaction;
-  // console.log removed as per request
 
   return {
     ...reaction,
