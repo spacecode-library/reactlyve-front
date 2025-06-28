@@ -16,6 +16,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
 }) => {
   const { stream, startWebcam, stopWebcam } = useWebcam({ audio: true, video: false });
   const [isRecording, setIsRecording] = useState(false);
+  const [autoStarted, setAutoStarted] = useState(false);
   const {
     status,
     recordedBlob,
@@ -38,11 +39,18 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
   }, [startWebcam, stopWebcam]);
 
   useEffect(() => {
-    if (autoStart && stream && !isRecording && status === 'inactive') {
+    if (
+      autoStart &&
+      stream &&
+      !isRecording &&
+      status === 'inactive' &&
+      !autoStarted
+    ) {
       startRecording();
       setIsRecording(true);
+      setAutoStarted(true);
     }
-  }, [autoStart, stream, isRecording, status, startRecording]);
+  }, [autoStart, stream, isRecording, status, autoStarted, startRecording]);
 
   useEffect(() => {
     if (status === 'stopped' && recordedBlob && isRecording) {
@@ -76,7 +84,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
             setIsRecording(false);
           }}
           className="btn btn-primary flex items-center gap-2"
-          disabled={!stream || !isRecording}
+          disabled={!isRecording}
         >
           <StopIcon className="h-5 w-5" />
           Stop Recording

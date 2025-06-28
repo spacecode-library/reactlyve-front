@@ -457,12 +457,6 @@ const Message: React.FC = () => {
             <DownloadIcon size={16} />
             Download Video
           </button>
-          {message.duration && ( // message is confirmed non-null here
-            <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-              Duration: {Math.floor(message.duration / 60)}:
-              {(message.duration % 60).toString().padStart(2, '0')}
-            </p>
-          )}
         </div>
       </div>
     );
@@ -974,12 +968,6 @@ const Message: React.FC = () => {
                             <DownloadIcon size={16} />
                             Download Reaction
                           </button> */}
-                                {reaction.duration && (
-                                  <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                                    Duration: {Math.floor(reaction.duration / 60)}:
-                                    {(reaction.duration % 60).toString().padStart(2, '0')}
-                                  </p>
-                                )}
                               </>
                             ) : (
                               (!reaction.replies || reaction.replies.length === 0) &&
@@ -1009,6 +997,11 @@ const Message: React.FC = () => {
                                               src={reply.mediaUrl}
                                               poster={reply.thumbnailUrl || undefined}
                                               className="w-full aspect-video rounded"
+                                              initialDurationSeconds={
+                                                typeof reply.duration === 'number'
+                                                  ? reply.duration
+                                                  : undefined
+                                              }
                                             />
                                           ) : reply.mediaType === 'audio' ? (
                                             <audio
@@ -1023,12 +1016,6 @@ const Message: React.FC = () => {
                                       <span className="text-xs text-neutral-500">
                                         ({new Date(reply.createdAt).toLocaleString()})
                                       </span>
-                                      {typeof reply.duration === 'number' && (
-                                        <span className="ml-2 text-xs text-neutral-500">
-                                          Duration: {Math.floor(reply.duration / 60)}:
-                                          {(Math.round(reply.duration) % 60).toString().padStart(2, '0')}
-                                        </span>
-                                      )}
                                     </li>
                                   ))}
                                 </ul>

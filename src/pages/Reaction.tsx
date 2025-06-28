@@ -259,6 +259,9 @@ const ReactionPage: React.FC = () => {
                         src={reply.mediaUrl}
                         poster={reply.thumbnailUrl || undefined}
                         className="w-full aspect-video rounded"
+                        initialDurationSeconds={
+                          typeof reply.duration === 'number' ? reply.duration : undefined
+                        }
                       />
                     ) : reply.mediaType === 'audio' ? (
                       <audio controls src={reply.mediaUrl} className="w-full" />
@@ -269,12 +272,6 @@ const ReactionPage: React.FC = () => {
                 <span className="text-xs text-neutral-500">
                   ({new Date(reply.createdAt).toLocaleString()})
                 </span>
-                {typeof reply.duration === 'number' && (
-                  <span className="ml-2 text-xs text-neutral-500">
-                    Duration: {Math.floor(reply.duration / 60)}:
-                    {(Math.round(reply.duration) % 60).toString().padStart(2, '0')}
-                  </span>
-                )}
               </li>
             ))}
           </ul>
