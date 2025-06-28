@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import useMediaRecorder from '../../hooks/useMediaRecorder';
 import useWebcam from '../../hooks/useWebcam';
 import { MicrophoneIcon, StopIcon } from '@heroicons/react/24/solid';
@@ -13,6 +13,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
   maxDuration = 30000,
 }) => {
   const { stream, startWebcam, stopWebcam } = useWebcam({ audio: true, video: false });
+  const [isRecording, setIsRecording] = useState(false);
   const {
     status,
     recordedBlob,
@@ -30,6 +31,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
     startWebcam().catch(err => console.error('Mic error', err));
     return () => {
       stopWebcam();
+      setIsRecording(false);
     };
   }, [startWebcam, stopWebcam]);
 
@@ -37,27 +39,38 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
     if (status === 'stopped' && recordedBlob) {
       onRecordingComplete(recordedBlob);
       clearRecording();
+      setIsRecording(false);
     }
   }, [status, recordedBlob, onRecordingComplete, clearRecording]);
 
+  const handleButtonClick = () => {
+    if (isRecording) {
+      stopRecording();
+      setIsRecording(false);
+    } else {
+      startRecording();
+      setIsRecording(true);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center space-y-2">
-      {status === 'recording' && (
+      {isRecording && (
         <p className="text-sm text-red-600">
           {Math.round(duration / 1000)}s / {maxDuration / 1000}s
         </p>
       )}
       <button
-        onClick={status === 'recording' ? stopRecording : startRecording}
+        onClick={handleButtonClick}
         className="btn btn-primary flex items-center gap-2"
         disabled={!stream}
       >
-        {status === 'recording' ? (
+        {isRecording ? (
           <StopIcon className="h-5 w-5" />
         ) : (
           <MicrophoneIcon className="h-5 w-5" />
         )}
-        {status === 'recording' ? 'Stop Recording' : 'Start Recording'}
+        {isRecording ? 'Stop Recording' : 'Start Recording'}
       </button>
     </div>
   );

@@ -15,7 +15,7 @@ import { reactionsApi, repliesApi } from '../../services/api';
 import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
 import VideoPlayer from '../dashboard/VideoPlayer'; // Added VideoPlayer import
-import { getTransformedCloudinaryUrl } from '../../utils/mediaHelpers';
+import { getTransformedCloudinaryUrl, getMediaDuration } from '../../utils/mediaHelpers';
 import { MESSAGE_ERRORS, REACTION_ERRORS } from '../../components/constants/errorMessages';
 
 interface MessageViewerProps {
@@ -243,7 +243,8 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     if (!reactionId) return;
     setIsUploadingReply(true);
     try {
-      await repliesApi.sendMedia(reactionId, blob);
+      const duration = await getMediaDuration(blob);
+      await repliesApi.sendMedia(reactionId, blob, undefined, duration);
       toast.success('Reply uploaded');
       setShowVideoReply(false);
     } catch (error) {
@@ -258,7 +259,8 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     if (!reactionId) return;
     setIsUploadingReply(true);
     try {
-      await repliesApi.sendMedia(reactionId, blob);
+      const duration = await getMediaDuration(blob);
+      await repliesApi.sendMedia(reactionId, blob, undefined, duration);
       toast.success('Reply uploaded');
       setShowAudioReply(false);
     } catch (error) {

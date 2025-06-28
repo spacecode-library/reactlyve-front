@@ -192,6 +192,29 @@ export const dataUrlToBlob = (dataUrl: string): Blob => {
 };
 
 /**
+ * Get the duration of an audio or video blob in seconds.
+ * Returns 0 if duration cannot be determined.
+ */
+export const getMediaDuration = (blob: Blob): Promise<number> => {
+  return new Promise(resolve => {
+    const isAudio = blob.type.startsWith('audio');
+    const element = document.createElement(isAudio ? 'audio' : 'video');
+    const url = URL.createObjectURL(blob);
+    element.preload = 'metadata';
+    element.src = url;
+    element.onloadedmetadata = () => {
+      const dur = element.duration;
+      URL.revokeObjectURL(url);
+      resolve(Number.isFinite(dur) ? dur : 0);
+    };
+    element.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(0);
+    };
+  });
+};
+
+/**
  * Download a blob as a file
  * @param blob - Blob to download
  * @param filename - Name for the downloaded file

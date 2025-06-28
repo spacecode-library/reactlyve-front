@@ -46,6 +46,7 @@ export interface Reply {
   mediaUrl?: string | null;
   mediaType?: string | null;
   thumbnailUrl?: string | null;
+  duration?: number;
   createdAt: string;
 }
 
