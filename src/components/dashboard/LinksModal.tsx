@@ -126,7 +126,7 @@ const LinksModal: React.FC<LinksModalProps> = ({ isOpen, onClose, messageId, pas
               return (
                 <li key={link.id} className="rounded-md border p-2 flex flex-col">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm break-all">{url}</span>
+                    <span className="text-sm break-all text-neutral-900 dark:text-neutral-100">{url}</span>
                     <div className="flex space-x-2">
                       <Button
                         size="sm"

@@ -590,7 +590,10 @@ const Message: React.FC = () => {
                       <p className="text-sm text-neutral-700 dark:text-neutral-300">
                         Live: {linkStats.liveOneTime} / Viewed: {linkStats.expiredOneTime}
                       </p>
-                      <button onClick={() => setIsLinksModalOpen(true)} className="text-sm text-blue-600 hover:underline">
+                      <button
+                        onClick={() => setIsLinksModalOpen(true)}
+                        className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+                      >
                         Manage
                       </button>
                     </div>
