@@ -562,7 +562,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
         )}
       >
         {!(showCountdown || isRecording || recordingCompleted || isCompressing) && (
-          <h2 className="mb-1 text-lg font-semibold">Record Your Lyve Reaction</h2>
+          <h2 className="mb-1 text-lg font-semibold text-neutral-900 dark:text-neutral-100">Record Your Lyve Reaction</h2>
         )}
 
         {((showCountdown && !previewManuallyToggled) || showPreview) && (
