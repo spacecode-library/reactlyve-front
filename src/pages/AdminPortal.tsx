@@ -428,7 +428,7 @@ const AdminPortalPage: React.FC = () => {
     return (
       <DashboardLayout>
         <div className="p-4"> {/* Added p-4 for some spacing */}
-          <h1 className="text-2xl font-semibold mb-6">Admin Portal - User Management</h1>
+          <h1 className="text-2xl font-semibold mb-6 text-neutral-900 dark:text-neutral-100">Admin Portal - User Management</h1>
           <p>No users found.</p>
         </div>
       </DashboardLayout>
@@ -438,7 +438,7 @@ const AdminPortalPage: React.FC = () => {
   return (
     <DashboardLayout>
       <div> {/* Main content wrapper div */}
-        <h1 className="text-2xl font-semibold mb-6">Admin Portal - User Management</h1>
+        <h1 className="text-2xl font-semibold mb-6 text-neutral-900 dark:text-neutral-100">Admin Portal - User Management</h1>
         
         <div className="overflow-x-auto bg-white shadow rounded-lg">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">

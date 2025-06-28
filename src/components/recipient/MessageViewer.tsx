@@ -6,6 +6,7 @@ import WebcamRecorder from './WebcamRecorder';
 import PermissionRequest from './PermissionRequest';
 import PasscodeEntry from './PasscodeEntry';
 import RecordingBorder from '../common/RecordingBorder'; // Import RecordingBorder
+import DarkModeToggle from '../common/DarkModeToggle';
 import { formatDistanceToNow } from 'date-fns';
 import { Message } from '../../types/message';
 import { normalizeMessage } from '../../utils/normalizeKeys';
@@ -510,9 +511,14 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       <RecordingBorder isVisible={isWebcamRecording} />
       <div
         className={
-        "flex min-h-[100dvh] w-full flex-col items-center justify-center bg-neutral-50 px-4 py-2 dark:bg-neutral-900 sm:py-6"
+        "relative flex min-h-[100dvh] w-full flex-col items-center justify-center bg-neutral-50 px-4 py-2 dark:bg-neutral-900 sm:py-6"
         }
       >
+        {showRecorder && !isNameSubmitted && (
+          <div className="absolute right-4 top-4">
+            <DarkModeToggle />
+          </div>
+        )}
         {showRecorder && !isReactionRecorded && (
           <div className="w-full max-w-md mx-auto mb-4">
               <WebcamRecorder

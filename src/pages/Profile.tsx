@@ -116,10 +116,10 @@ const ProfilePage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6"> {/* Main content div ensuring it's properly closed before DashboardLayout closes */}
-        <h1 className="text-3xl font-bold mb-6">My Profile</h1>
+      <div className="space-y-6 text-neutral-700 dark:text-neutral-300"> {/* Main content div ensuring it's properly closed before DashboardLayout closes */}
+        <h1 className="text-3xl font-bold mb-6 text-neutral-900 dark:text-neutral-100">My Profile</h1>
         
-      <div className="bg-white dark:bg-neutral-800 shadow rounded-lg p-6"> {/* Added dark:bg-neutral-800 */}
+      <div className="bg-white dark:bg-neutral-800 shadow rounded-lg p-6 text-neutral-700 dark:text-neutral-300"> {/* Added dark:bg-neutral-800 */}
         <div className="flex items-center space-x-4 mb-6">
           {picture && (
             <img 
@@ -130,7 +130,7 @@ const ProfilePage: React.FC = () => {
           )}
           <div>
             <h2 className="text-2xl font-semibold">{name}</h2>
-            <p className="text-gray-600">{email}</p>
+            <p className="text-gray-600 dark:text-gray-300">{email}</p>
           </div>
         </div>
 
@@ -153,7 +153,7 @@ const ProfilePage: React.FC = () => {
       </div>
 
       {/* Usage and Limits Section */}
-      <div className="bg-white dark:bg-neutral-800 shadow rounded-lg p-6 mt-6">
+      <div className="bg-white dark:bg-neutral-800 shadow rounded-lg p-6 mt-6 text-neutral-700 dark:text-neutral-300">
         <h3 className="text-xl font-semibold mb-4">Usage and Limits</h3>
         <div className="space-y-3">
           <div>
@@ -191,7 +191,7 @@ const ProfilePage: React.FC = () => {
       </div>
 
 
-      <div className="mt-8">
+      <div className="mt-8 text-neutral-700 dark:text-neutral-300">
         <h3 className="text-xl font-semibold mb-3">Account Management</h3>
         <Button
           variant="danger"
@@ -199,7 +199,7 @@ const ProfilePage: React.FC = () => {
         >
           Delete Account
         </Button>
-        <p className="text-sm text-gray-500 mt-2">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
           This action is irreversible and will permanently delete your account and all associated data.
         </p>
       </div>
