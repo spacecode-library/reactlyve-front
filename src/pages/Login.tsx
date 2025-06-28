@@ -97,7 +97,7 @@ const Login = () => {
                   <div className="w-full border-t border-neutral-300 dark:border-neutral-700"></div>
                 </div>
               </div>
-
+              <div className="mt-6" />
               <div className="mt-6">
                 <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
                   By signing in, you agree to our{' '}
