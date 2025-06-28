@@ -6,11 +6,13 @@ import { MicrophoneIcon, StopIcon } from '@heroicons/react/24/solid';
 interface AudioRecorderProps {
   onRecordingComplete: (blob: Blob) => void;
   maxDuration?: number;
+  autoStart?: boolean;
 }
 
 const AudioRecorder: React.FC<AudioRecorderProps> = ({
   onRecordingComplete,
   maxDuration = 30000,
+  autoStart = false,
 }) => {
   const { stream, startWebcam, stopWebcam } = useWebcam({ audio: true, video: false });
   const [isRecording, setIsRecording] = useState(false);
@@ -34,6 +36,13 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
       setIsRecording(false);
     };
   }, [startWebcam, stopWebcam]);
+
+  useEffect(() => {
+    if (autoStart && stream && !isRecording && status === 'inactive') {
+      startRecording();
+      setIsRecording(true);
+    }
+  }, [autoStart, stream, isRecording, status, startRecording]);
 
   useEffect(() => {
     if (status === 'stopped' && recordedBlob) {
@@ -60,18 +69,32 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
           {Math.round(duration / 1000)}s / {maxDuration / 1000}s
         </p>
       )}
-      <button
-        onClick={handleButtonClick}
-        className="btn btn-primary flex items-center gap-2"
-        disabled={!stream}
-      >
-        {isRecording ? (
+      {autoStart ? (
+        <button
+          onClick={() => {
+            stopRecording();
+            setIsRecording(false);
+          }}
+          className="btn btn-primary flex items-center gap-2"
+          disabled={!stream || !isRecording}
+        >
           <StopIcon className="h-5 w-5" />
-        ) : (
-          <MicrophoneIcon className="h-5 w-5" />
-        )}
-        {isRecording ? 'Stop Recording' : 'Start Recording'}
-      </button>
+          Stop Recording
+        </button>
+      ) : (
+        <button
+          onClick={handleButtonClick}
+          className="btn btn-primary flex items-center gap-2"
+          disabled={!stream}
+        >
+          {isRecording ? (
+            <StopIcon className="h-5 w-5" />
+          ) : (
+            <MicrophoneIcon className="h-5 w-5" />
+          )}
+          {isRecording ? 'Stop Recording' : 'Start Recording'}
+        </button>
+      )}
     </div>
   );
 };

@@ -599,7 +599,11 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         )}
         {showAudioReply && (
           <div className="mt-4">
-            <AudioRecorder onRecordingComplete={handleAudioReplyComplete} maxDuration={30000} />
+            <AudioRecorder
+              onRecordingComplete={handleAudioReplyComplete}
+              maxDuration={30000}
+              autoStart
+            />
           </div>
         )}
         {isUploadingReply && <p className="mt-2 text-sm text-neutral-500">Uploading reply...</p>}
