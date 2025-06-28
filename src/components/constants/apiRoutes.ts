@@ -1,6 +1,5 @@
 // Base API URL
-export const API_BASE_URL =
-  import.meta.env.VITE_API_URL || 'https://api.reactlyve.com/api';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.reactlyve.com/api';
 
 // Auth Routes
 export const AUTH_ROUTES = {
@@ -38,6 +37,7 @@ export const REACTION_ROUTES = {
 // Reply Routes
 export const REPLY_ROUTES = {
   UPLOAD: (reactionId: string) => `${API_BASE_URL}/reactions/${reactionId}/reply`,
+  UPLOAD_MEDIA: (reactionId: string) => `${API_BASE_URL}/reactions/${reactionId}/reply/media`,
 };
 
 // Admin Routes

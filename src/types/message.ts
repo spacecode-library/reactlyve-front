@@ -43,6 +43,9 @@ export interface Message {
 export interface Reply {
   id: string;
   text: string;
+  mediaUrl?: string | null;
+  mediaType?: string | null;
+  thumbnailUrl?: string | null;
   createdAt: string;
 }
 
@@ -65,4 +68,3 @@ export interface MessageLink {
   createdAt: string;
   updatedAt: string;
 }
-

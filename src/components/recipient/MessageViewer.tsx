@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'; // Import Link
 import { AxiosError } from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import WebcamRecorder from './WebcamRecorder';
+import AudioRecorder from './AudioRecorder';
 import PermissionRequest from './PermissionRequest';
 import PasscodeEntry from './PasscodeEntry';
 import RecordingBorder from '../common/RecordingBorder'; // Import RecordingBorder
@@ -61,12 +62,17 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const [showRecorder, setShowRecorder] = useState(true);
   const [isReactionRecorded, setIsReactionRecorded] = useState(false);
   const [permissionError, setPermissionError] = useState<string | null>(null);
-  const [passcodeVerified, setPasscodeVerified] = useState(message.passcodeVerified || !message.hasPasscode);
+  const [passcodeVerified, setPasscodeVerified] = useState(
+    message.passcodeVerified || !message.hasPasscode
+  );
   const [countdownComplete, setCountdownComplete] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [isSendingReply, setIsSendingReply] = useState(false);
   const [replyError, setReplyError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showVideoReply, setShowVideoReply] = useState(false);
+  const [showAudioReply, setShowAudioReply] = useState(false);
+  const [isUploadingReply, setIsUploadingReply] = useState(false);
   const [isWebcamRecording, setIsWebcamRecording] = useState(false); // Add state for recording status
   // Removed: const videoRef = useRef<HTMLVideoElement>(null);
   const [isPreloadingMedia, setIsPreloadingMedia] = useState(false);
@@ -78,19 +84,28 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   const transformedImgUrl = useMemo(() => {
     return normalizedMessage.imageUrl
-      ? getTransformedCloudinaryUrl(normalizedMessage.imageUrl, normalizedMessage.fileSizeInBytes || 0) + `?retry=${imageRetryCount}`
+      ? getTransformedCloudinaryUrl(
+          normalizedMessage.imageUrl,
+          normalizedMessage.fileSizeInBytes || 0
+        ) + `?retry=${imageRetryCount}`
       : '';
   }, [normalizedMessage.imageUrl, normalizedMessage.fileSizeInBytes, imageRetryCount]);
 
   const transformedVidUrl = useMemo(() => {
     return normalizedMessage.videoUrl
-      ? getTransformedCloudinaryUrl(normalizedMessage.videoUrl, normalizedMessage.fileSizeInBytes || 0) + `?retry=${videoRetryCount}`
+      ? getTransformedCloudinaryUrl(
+          normalizedMessage.videoUrl,
+          normalizedMessage.fileSizeInBytes || 0
+        ) + `?retry=${videoRetryCount}`
       : '';
   }, [normalizedMessage.videoUrl, normalizedMessage.fileSizeInBytes, videoRetryCount]);
 
   const [sessionId] = useState(() => {
     const id = uuidv4();
-    sessionStorage.setItem(`reaction-session-${message.id}`, JSON.stringify({ id, createdAt: Date.now() }));
+    sessionStorage.setItem(
+      `reaction-session-${message.id}`,
+      JSON.stringify({ id, createdAt: Date.now() })
+    );
     return id;
   });
 
@@ -129,13 +144,25 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       };
       vid.src = transformedVidUrl;
     }
-  }, [isPreloadingMedia, preloadedMediaUrl, normalizedMessage.mediaType, transformedImgUrl, transformedVidUrl]);
+  }, [
+    isPreloadingMedia,
+    preloadedMediaUrl,
+    normalizedMessage.mediaType,
+    transformedImgUrl,
+    transformedVidUrl,
+  ]);
 
   useEffect(() => {
     if ((!message.hasPasscode || passcodeVerified) && (transformedImgUrl || transformedVidUrl)) {
       startPreloading();
     }
-  }, [passcodeVerified, message.hasPasscode, transformedImgUrl, transformedVidUrl, startPreloading]);
+  }, [
+    passcodeVerified,
+    message.hasPasscode,
+    transformedImgUrl,
+    transformedVidUrl,
+    startPreloading,
+  ]);
 
   // Removed useEffect for videoRef.current.play()
 
@@ -161,35 +188,38 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     setVideoRetryCount(prev => prev + 1);
   }, []);
 
-  const handleReactionComplete = useCallback(async (blob: Blob) => {
-    setIsUploading(true); 
-    try {
-      if (!reactionId) throw new Error('Missing reaction ID');
-      onLocalRecordingComplete?.();
-      // Assuming reactionsApi.uploadVideoToReaction is stable or doesn't need to be a dependency
-      await reactionsApi.uploadVideoToReaction(reactionId, blob);
-      await onRecordReaction(message.id, blob);
-      setIsReactionRecorded(true);
-      // setShowRecorder(false); // Moved to finally
-      toast.success('Reaction uploaded successfully');
-    } catch (error) {
-      console.error('Reaction save error:', error);
-      if (error instanceof AxiosError && error.response) {
-        // Assume global interceptor in api.ts handled the toast.
-        // Optionally, set a generic error state if needed for UI changes beyond a toast.
-        // For now, we'll just log and let the global handler show the toast.
-        // If a specific UI state change is needed for API errors, set it here.
-        // For example, setPermissionError('Failed to save reaction. Please check notifications.');
-      } else {
-        // Handle non-Axios errors or Axios errors without a response (e.g., network issues)
-        setPermissionError('An error occurred while saving your reaction. Please try again');
-        toast.error('An error occurred while saving your reaction. Please try again'); // Show toast for non-API errors
+  const handleReactionComplete = useCallback(
+    async (blob: Blob) => {
+      setIsUploading(true);
+      try {
+        if (!reactionId) throw new Error('Missing reaction ID');
+        onLocalRecordingComplete?.();
+        // Assuming reactionsApi.uploadVideoToReaction is stable or doesn't need to be a dependency
+        await reactionsApi.uploadVideoToReaction(reactionId, blob);
+        await onRecordReaction(message.id, blob);
+        setIsReactionRecorded(true);
+        // setShowRecorder(false); // Moved to finally
+        toast.success('Reaction uploaded successfully');
+      } catch (error) {
+        console.error('Reaction save error:', error);
+        if (error instanceof AxiosError && error.response) {
+          // Assume global interceptor in api.ts handled the toast.
+          // Optionally, set a generic error state if needed for UI changes beyond a toast.
+          // For now, we'll just log and let the global handler show the toast.
+          // If a specific UI state change is needed for API errors, set it here.
+          // For example, setPermissionError('Failed to save reaction. Please check notifications.');
+        } else {
+          // Handle non-Axios errors or Axios errors without a response (e.g., network issues)
+          setPermissionError('An error occurred while saving your reaction. Please try again');
+          toast.error('An error occurred while saving your reaction. Please try again'); // Show toast for non-API errors
+        }
+      } finally {
+        setIsUploading(false);
+        setShowRecorder(false); // Ensure this is here
       }
-    } finally {
-      setIsUploading(false);
-      setShowRecorder(false); // Ensure this is here
-    }
-  }, [reactionId, onLocalRecordingComplete, onRecordReaction, message.id]);
+    },
+    [reactionId, onLocalRecordingComplete, onRecordReaction, message.id]
+  );
 
   const handleSendReply = async () => {
     const text = replyText.trim();
@@ -209,6 +239,36 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     }
   };
 
+  const handleVideoReplyComplete = async (blob: Blob) => {
+    if (!reactionId) return;
+    setIsUploadingReply(true);
+    try {
+      await repliesApi.sendMedia(reactionId, blob);
+      toast.success('Reply uploaded');
+      setShowVideoReply(false);
+    } catch (error) {
+      console.error('Video reply error:', error);
+      toast.error('Failed to upload reply');
+    } finally {
+      setIsUploadingReply(false);
+    }
+  };
+
+  const handleAudioReplyComplete = async (blob: Blob) => {
+    if (!reactionId) return;
+    setIsUploadingReply(true);
+    try {
+      await repliesApi.sendMedia(reactionId, blob);
+      toast.success('Reply uploaded');
+      setShowAudioReply(false);
+    } catch (error) {
+      console.error('Audio reply error:', error);
+      toast.error('Failed to upload reply');
+    } finally {
+      setIsUploadingReply(false);
+    }
+  };
+
   const handlePasscodeSubmit = async (passcode: string) => {
     const valid = await onSubmitPasscode(passcode);
     if (valid) setPasscodeVerified(true);
@@ -217,7 +277,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
 
   const handleStartReaction = async () => {
     if (!recipientName.trim()) {
-      setPermissionError("Please enter your name to start the reaction.");
+      setPermissionError('Please enter your name to start the reaction.');
       return;
     }
     if (
@@ -241,21 +301,26 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       );
       if (res.data.reactionId) {
         setReactionId(res.data.reactionId);
-        onInitReactionId?.(res.data.reactionId); 
+        onInitReactionId?.(res.data.reactionId);
         setIsNameSubmitted(true);
-        setPermissionError(null); 
+        setPermissionError(null);
         setTriggerCountdown(true);
       } else {
-        throw new Error("Reaction ID not received.");
+        throw new Error('Reaction ID not received.');
       }
     } catch (err) {
       console.error('❌ Failed to initialize reaction:', err);
       if (err instanceof AxiosError && err.response) {
         const backendError = err.response?.data?.error;
         // Check for the specific reaction limit error
-        if (backendError && typeof backendError === 'string' &&
-            (backendError.includes("This user can no longer receive reaction at this time (limit reached)") ||
-             backendError.includes("Reaction limit reached for this message."))) {
+        if (
+          backendError &&
+          typeof backendError === 'string' &&
+          (backendError.includes(
+            'This user can no longer receive reaction at this time (limit reached)'
+          ) ||
+            backendError.includes('Reaction limit reached for this message.'))
+        ) {
           setPermissionError(REACTION_ERRORS.REACTION_LIMIT_CONTACT_SENDER);
           setIsNameSubmitted(false);
           setTriggerCountdown(false);
@@ -270,9 +335,9 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         // Handle non-Axios errors or Axios errors without a response
         let genericMessage = 'Unable to start a reaction session. Please refresh and try again.';
         if (err instanceof Error && err.message) {
-            if (!String(err.message).toLowerCase().includes("status code")) {
-                genericMessage = err.message;
-            }
+          if (!String(err.message).toLowerCase().includes('status code')) {
+            genericMessage = err.message;
+          }
         }
         setPermissionError(genericMessage);
         toast.error(genericMessage);
@@ -287,11 +352,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     setCountdownComplete(true);
   };
 
-  const renderErrorCard = (
-    title: string,
-    messageText?: string,
-    showRefresh?: boolean
-  ) => (
+  const renderErrorCard = (title: string, messageText?: string, showRefresh?: boolean) => (
     <div className="flex min-h-[100dvh] w-full flex-col items-center justify-center bg-neutral-50 px-4 py-2 dark:bg-neutral-900 sm:py-6">
       <div className="card mx-auto max-w-md p-6 text-center">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900">
@@ -310,7 +371,9 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
             />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-neutral-900 dark:text-white text-center">{title}</h3>
+        <h3 className="text-lg font-medium text-neutral-900 dark:text-white text-center">
+          {title}
+        </h3>
         {messageText && (
           <div className="mt-4 rounded-md bg-blue-50 p-4 text-center dark:bg-blue-900/30">
             <p className="text-sm font-medium text-blue-700 dark:text-blue-300 text-center">
@@ -345,9 +408,12 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   }
 
   if (permissionError) {
-
     if (permissionError === REACTION_ERRORS.REACTION_LIMIT_CONTACT_SENDER) {
-      return renderErrorCard('Reaction Limit Reached', REACTION_ERRORS.REACTION_LIMIT_CONTACT_SENDER, true);
+      return renderErrorCard(
+        'Reaction Limit Reached',
+        REACTION_ERRORS.REACTION_LIMIT_CONTACT_SENDER,
+        true
+      );
     }
     if (permissionError === MESSAGE_ERRORS.CONTENT_UNAVAILABLE) {
       return renderErrorCard(MESSAGE_ERRORS.CONTENT_UNAVAILABLE);
@@ -373,7 +439,11 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         <div className="mb-4 flex items-center">
           <div className="h-10 w-10 rounded-full bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
             {message.sender.picture ? (
-              <img src={message.sender.picture} alt={message.sender.name} className="h-full w-full object-cover" />
+              <img
+                src={message.sender.picture}
+                alt={message.sender.name}
+                className="h-full w-full object-cover"
+              />
             ) : (
               <div className="flex items-center justify-center h-full w-full bg-primary-600 text-white">
                 {message.sender.name.charAt(0).toUpperCase()}
@@ -388,7 +458,9 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       )}
 
       <div className="prose prose-neutral dark:prose-invert">
-        <p className="whitespace-pre-wrap text-neutral-800 dark:text-neutral-200">{message.content}</p>
+        <p className="whitespace-pre-wrap text-neutral-800 dark:text-neutral-200">
+          {message.content}
+        </p>
       </div>
 
       {(() => {
@@ -413,11 +485,18 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
               ) : (
                 <img
                   key={imageRetryCount} // Add key to force re-render on retry
-                  src={preloadedMediaUrl && normalizedMessage.mediaType === 'image' ? preloadedMediaUrl : transformedImgUrl}
+                  src={
+                    preloadedMediaUrl && normalizedMessage.mediaType === 'image'
+                      ? preloadedMediaUrl
+                      : transformedImgUrl
+                  }
                   alt="Message attachment"
                   className="w-full object-cover"
                   onError={handleImageError}
-                  onLoad={() => { setImageError(false); setImageRetryCount(0); }} // Reset error on successful load
+                  onLoad={() => {
+                    setImageError(false);
+                    setImageRetryCount(0);
+                  }} // Reset error on successful load
                 />
               )}
             </div>
@@ -448,7 +527,11 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
               ) : (
                 <VideoPlayer
                   key={videoRetryCount} // Add key to force re-render on retry
-                  src={preloadedMediaUrl && normalizedMessage.mediaType === 'video' ? preloadedMediaUrl : transformedVidUrl}
+                  src={
+                    preloadedMediaUrl && normalizedMessage.mediaType === 'video'
+                      ? preloadedMediaUrl
+                      : transformedVidUrl
+                  }
                   poster={normalizedMessage.thumbnailUrl || undefined}
                   className="w-full object-cover"
                   autoPlay={countdownComplete}
@@ -472,7 +555,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         <div className="flex items-center space-x-3">
           <textarea
             value={replyText}
-            onChange={(e) => setReplyText(e.target.value)}
+            onChange={e => setReplyText(e.target.value)}
             placeholder={`Let ${message.sender?.name || 'them'} know what you think!`}
             className="flex-1 p-3 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
             rows={3}
@@ -482,7 +565,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
           <button
             onClick={handleSendReply}
             disabled={!replyText.trim() || isSendingReply || !reactionId}
-            className={`btn btn-primary ${(!replyText.trim() || isSendingReply || !reactionId) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`btn btn-primary ${!replyText.trim() || isSendingReply || !reactionId ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {isSendingReply ? 'Sending...' : 'Send Reply'}
           </button>
@@ -491,12 +574,42 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
           {replyText.length}/500 characters
         </p>
+        {isReactionRecorded && (
+          <div className="mt-4 flex gap-2">
+            <button onClick={() => setShowVideoReply(true)} className="btn btn-secondary">
+              Record Video Reply
+            </button>
+            <button onClick={() => setShowAudioReply(true)} className="btn btn-secondary">
+              Record Audio Reply
+            </button>
+          </div>
+        )}
+        {showVideoReply && (
+          <div className="mt-4">
+            <WebcamRecorder
+              isReplyMode
+              onRecordingComplete={handleVideoReplyComplete}
+              maxDuration={15000}
+              autoStart
+              hidePreviewAfterCountdown={false}
+            />
+          </div>
+        )}
+        {showAudioReply && (
+          <div className="mt-4">
+            <AudioRecorder onRecordingComplete={handleAudioReplyComplete} maxDuration={30000} />
+          </div>
+        )}
+        {isUploadingReply && <p className="mt-2 text-sm text-neutral-500">Uploading reply...</p>}
       </div>
       {isReactionRecorded && (
         <div className="mt-8 text-center">
           <p className="text-sm text-neutral-700 dark:text-neutral-300">
             Get reactions to your own messages by{' '}
-            <Link to="/" className="font-semibold text-primary-600 hover:text-primary-700 dark:hover:text-primary-500 underline">
+            <Link
+              to="/"
+              className="font-semibold text-primary-600 hover:text-primary-700 dark:hover:text-primary-500 underline"
+            >
               signing up here
             </Link>
             .
@@ -511,7 +624,7 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
       <RecordingBorder isVisible={isWebcamRecording} />
       <div
         className={
-        "relative flex min-h-[100dvh] w-full flex-col items-center justify-center bg-neutral-50 px-4 py-2 dark:bg-neutral-900 sm:py-6"
+          'relative flex min-h-[100dvh] w-full flex-col items-center justify-center bg-neutral-50 px-4 py-2 dark:bg-neutral-900 sm:py-6'
         }
       >
         {showRecorder && !isNameSubmitted && (
@@ -521,12 +634,14 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         )}
         {showRecorder && !isReactionRecorded && (
           <div className="w-full max-w-md mx-auto mb-4">
-              <WebcamRecorder
-                onRecordingComplete={handleReactionComplete}
-                maxDuration={(normalizedMessage.reaction_length ? normalizedMessage.reaction_length * 1000 : 15000)}
-                countdownDuration={5}
-                onPermissionDenied={(err) => setPermissionError(err)}
-                autoStart={false}
+            <WebcamRecorder
+              onRecordingComplete={handleReactionComplete}
+              maxDuration={
+                normalizedMessage.reaction_length ? normalizedMessage.reaction_length * 1000 : 15000
+              }
+              countdownDuration={5}
+              onPermissionDenied={err => setPermissionError(err)}
+              autoStart={false}
               triggerCountdownSignal={triggerCountdown}
               onCountdownComplete={handleCountdownComplete}
               hidePreviewAfterCountdown={true}
@@ -541,14 +656,17 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         {showRecorder && !isNameSubmitted && (
           <div className="mb-4 w-full max-w-md mx-auto">
             {/* Removed isReactionLimitReached conditional message */}
-            <label htmlFor="recipientName" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1 text-center">
+            <label
+              htmlFor="recipientName"
+              className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1 text-center"
+            >
               Say hello with your name
             </label>
             <input
               type="text"
               id="recipientName"
               value={recipientName}
-              onChange={(e) => setRecipientName(e.target.value)}
+              onChange={e => setRecipientName(e.target.value)}
               placeholder="Enter your name"
               className="w-full p-2 border border-neutral-300 rounded-md dark:bg-neutral-700 dark:border-neutral-600 dark:text-white"
               disabled={isNameSubmitted}
@@ -595,6 +713,13 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         <div className="fixed inset-0 bg-black/70 flex flex-col items-center justify-center z-50">
           <div className="h-16 w-16 animate-spin rounded-full border-8 border-neutral-300 border-t-primary-600 mb-4"></div>
           <p className="text-white text-xl font-semibold">Uploading Reaction...</p>
+          <p className="text-neutral-200 text-md">Please wait a moment.</p>
+        </div>
+      )}
+      {isUploadingReply && (
+        <div className="fixed inset-0 bg-black/70 flex flex-col items-center justify-center z-50">
+          <div className="h-16 w-16 animate-spin rounded-full border-8 border-neutral-300 border-t-primary-600 mb-4"></div>
+          <p className="text-white text-xl font-semibold">Uploading Reply...</p>
           <p className="text-neutral-200 text-md">Please wait a moment.</p>
         </div>
       )}

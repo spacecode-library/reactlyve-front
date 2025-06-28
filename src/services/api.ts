@@ -43,7 +43,6 @@ api.interceptors.response.use(
   }
 );
 
-
 // ------------------ AUTH API ------------------
 // Note: Backend's /auth/user now returns user object with camelCase keys
 // (e.g., response.data.user.googleId, response.data.user.createdAt)
@@ -105,12 +104,7 @@ export const messageLinksApi = {
 
 // ------------------ REACTIONS API ------------------
 export const reactionsApi = {
-  init: (
-    messageId: string,
-    sessionId: string,
-    name?: string,
-    linkId?: string
-  ) => {
+  init: (messageId: string, sessionId: string, name?: string, linkId?: string) => {
     // Backend expects sessionid in body and optional linkId
     return api.post(`/reactions/init/${messageId}`, {
       sessionid: sessionId,
@@ -161,6 +155,14 @@ export const repliesApi = {
     });
     // Backend expects { text: "value" } (lowercase)
     return publicApi.post(REPLY_ROUTES.UPLOAD(reactionId), { text });
+  },
+  sendMedia: (reactionId: string, media: Blob, text?: string) => {
+    const formData = new FormData();
+    formData.append('media', media, 'reply');
+    if (text) formData.append('text', text);
+    return api.post(REPLY_ROUTES.UPLOAD_MEDIA(reactionId), formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
   },
 };
 
