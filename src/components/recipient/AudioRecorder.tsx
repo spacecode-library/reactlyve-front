@@ -45,12 +45,12 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
   }, [autoStart, stream, isRecording, status, startRecording]);
 
   useEffect(() => {
-    if (status === 'stopped' && recordedBlob) {
+    if (status === 'stopped' && recordedBlob && isRecording) {
       onRecordingComplete(recordedBlob);
       clearRecording();
       setIsRecording(false);
     }
-  }, [status, recordedBlob, onRecordingComplete, clearRecording]);
+  }, [status, recordedBlob, onRecordingComplete, clearRecording, isRecording]);
 
   const handleButtonClick = () => {
     if (isRecording) {
