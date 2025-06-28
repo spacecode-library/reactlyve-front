@@ -603,7 +603,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
           <p className="mt-2 text-green-600">Recording complete!</p>
         )}
 
-        {isRecording && (
+        {isRecording && !isReplyMode && (
           <Button
             variant="outline"
             leftIcon={
@@ -623,7 +623,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
           </Button>
         )}
 
-        {isRecording && (
+        {isRecording && isReplyMode && (
           <Button
             variant="danger"
             leftIcon={<StopIcon className="h-5 w-5" />}
