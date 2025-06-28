@@ -16,7 +16,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       return storedTheme;
     }
 
-    // Check user preference
     if (
       typeof window.matchMedia === 'function' &&
       window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -27,17 +26,52 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return 'light';
   });
 
+  const [hasUserPreference, setHasUserPreference] = useState(() => {
+    const storedTheme = localStorage.getItem('theme');
+    return storedTheme === 'dark' || storedTheme === 'light';
+  });
+
   useEffect(() => {
-    localStorage.setItem('theme', theme);
+    if (hasUserPreference) {
+      localStorage.setItem('theme', theme);
+    }
     document.body.classList.remove('light', 'dark');
     document.body.classList.add(theme);
-  }, [theme]);
+  }, [theme, hasUserPreference]);
+
+  useEffect(() => {
+    if (hasUserPreference) return;
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', handleChange);
+    } else {
+      mediaQuery.addListener(handleChange);
+    }
+
+    return () => {
+      if (typeof mediaQuery.removeEventListener === 'function') {
+        mediaQuery.removeEventListener('change', handleChange);
+      } else {
+        mediaQuery.removeListener(handleChange);
+      }
+    };
+  }, [hasUserPreference]);
 
   const toggleTheme = () => {
+    setHasUserPreference(true);
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   };
 
-  return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
 }
 
 export function useTheme() {
