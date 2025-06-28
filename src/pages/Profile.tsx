@@ -117,7 +117,7 @@ const ProfilePage: React.FC = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6"> {/* Main content div ensuring it's properly closed before DashboardLayout closes */}
-        <h1 className="text-3xl font-bold mb-6">My Profile</h1>
+        <h1 className="text-3xl font-bold mb-6 text-neutral-900 dark:text-neutral-100">My Profile</h1>
         
       <div className="bg-white dark:bg-neutral-800 shadow rounded-lg p-6"> {/* Added dark:bg-neutral-800 */}
         <div className="flex items-center space-x-4 mb-6">

@@ -5,8 +5,8 @@ const PrivacyPolicyPage: React.FC = () => {
   return (
     <MainLayout>
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <h1 className="text-3xl font-bold mb-4">PRIVACY POLICY</h1>
-        <p className="text-sm text-gray-600 mb-6">Last updated June 12, 2025</p>
+        <h1 className="text-3xl font-bold mb-4 text-neutral-900 dark:text-neutral-100">PRIVACY POLICY</h1>
+        <p className="text-sm text-gray-600 mb-6 dark:text-gray-400">Last updated June 12, 2025</p>
         <p className="mb-2">
           This Privacy Notice for Reactlyve ('<strong>we</strong>', '<strong>us</strong>', or '<strong>our</strong>') describes how and why we might access, collect, store, use, and/or share ('<strong>process</strong>') your personal information when you use our services ('<strong>Services</strong>'), including when you:
         </p>
