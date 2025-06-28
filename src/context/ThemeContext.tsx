@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { getCookie, setCookie } from '../utils/cookies';
 
 type Theme = 'light' | 'dark';
 
@@ -11,33 +12,30 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
-    const storedTheme = localStorage.getItem('theme');
-    if (storedTheme === 'dark' || storedTheme === 'light') {
-      return storedTheme;
-    }
-
-    if (
+    const prefersDark =
       typeof window.matchMedia === 'function' &&
-      window.matchMedia('(prefers-color-scheme: dark)').matches
-    ) {
-      return 'dark';
+      window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    const systemTheme: Theme = prefersDark ? 'dark' : 'light';
+
+    const storedTheme = getCookie('theme');
+    if (storedTheme === 'dark' || storedTheme === 'light') {
+      return storedTheme as Theme;
     }
 
-    return 'light';
+    return systemTheme;
   });
 
   const [hasUserPreference, setHasUserPreference] = useState(() => {
-    const storedTheme = localStorage.getItem('theme');
+    const storedTheme = getCookie('theme');
     return storedTheme === 'dark' || storedTheme === 'light';
   });
 
   useEffect(() => {
-    if (hasUserPreference) {
-      localStorage.setItem('theme', theme);
-    }
+    setCookie('theme', theme, 5); // refresh cookie on every load/change
     document.body.classList.remove('light', 'dark');
     document.body.classList.add(theme);
-  }, [theme, hasUserPreference]);
+  }, [theme]);
 
   useEffect(() => {
     if (hasUserPreference) return;

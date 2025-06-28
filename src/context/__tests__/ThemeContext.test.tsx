@@ -3,7 +3,7 @@ import { render, fireEvent, act } from '@testing-library/react';
 import { ThemeProvider, useTheme } from '../ThemeContext';
 
 afterEach(() => {
-  localStorage.clear();
+  document.cookie = 'theme=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
   document.body.className = '';
   jest.restoreAllMocks();
 });
@@ -15,7 +15,7 @@ function TestComponent() {
 
 describe('ThemeProvider', () => {
   it('applies stored dark theme to the body', () => {
-    localStorage.setItem('theme', 'dark');
+    document.cookie = 'theme=dark';
     render(
       <ThemeProvider>
         <div>content</div>
@@ -25,7 +25,7 @@ describe('ThemeProvider', () => {
   });
 
   it('toggles theme classes when toggleTheme is called', () => {
-    localStorage.setItem('theme', 'light');
+    document.cookie = 'theme=light';
     const { getByRole } = render(
       <ThemeProvider>
         <TestComponent />

@@ -23,14 +23,20 @@
   </head>
   <body>
     <script>
-      const storedTheme = localStorage.getItem('theme');
+      function getCookie(name) {
+        const match = document.cookie.match(new RegExp('(^|;\\s*)' + name + '=([^;]*)'));
+        return match ? decodeURIComponent(match[2]) : null;
+      }
+      function setCookie(name, value, minutes) {
+        const expires = new Date(Date.now() + minutes * 60 * 1000).toUTCString();
+        document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/';
+      }
+
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const theme =
-        storedTheme === 'light' || storedTheme === 'dark'
-          ? storedTheme
-          : prefersDark
-            ? 'dark'
-            : 'light';
+      const systemTheme = prefersDark ? 'dark' : 'light';
+      const storedTheme = getCookie('theme');
+      const theme = storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : systemTheme;
+      setCookie('theme', theme, 5);
       document.body.classList.add(theme);
     </script>
     <div class="app-container"></div>
