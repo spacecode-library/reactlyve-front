@@ -6,9 +6,9 @@ import { DownloadIcon } from 'lucide-react';
 import { reactionsApi, messagesApi } from '@/services/api';
 import Button from '../components/common/Button';
 import VideoPlayer from '../components/dashboard/VideoPlayer';
-import type { MessageWithReactions } from '@/types/message';
+import type { MessageWithReactions, Reply } from '@/types/message';
 import type { Reaction } from '@/types/reaction';
-import { normalizeReaction } from '../utils/normalizeKeys';
+import { normalizeReaction, normalizeMessage } from '../utils/normalizeKeys';
 import { getTransformedCloudinaryUrl } from '../utils/mediaHelpers';
 import toast from 'react-hot-toast'; // For user feedback
 
@@ -79,22 +79,7 @@ const ReactionPage: React.FC = () => {
     fetchReactionAndMessage();
   }, [reactionId]);
 
-  const downloadVideo = async (url: string, filename: string) => {
-    try {
-      const res = await fetch(url);
-      const blob = await res.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(blobUrl);
-    } catch (err) {
-      console.error('Download error:', err);
-    }
-  };
+
 
   if (loading) {
     return (
@@ -177,61 +162,26 @@ const ReactionPage: React.FC = () => {
       reaction?.moderationStatus !== 'rejected' &&
       reaction?.moderationStatus !== 'manual_review' ? (
         <div className="px-4 py-8">
-          <VideoPlayer
-            src={processedVideoUrl || ''}
-            poster={reaction?.thumbnailUrl || undefined}
-            className="w-full aspect-video rounded-lg object-contain"
-            initialDurationSeconds={
-              typeof reaction?.duration === 'number' ? reaction.duration : undefined
-            }
-          />
-          <button
-            onClick={() => {
-              if (processedVideoUrl) {
-                const prefix = 'Reactlyve';
-                let titlePart = 'video';
-                if (parentMessage && parentMessage.content) {
-                  titlePart = parentMessage.content.replace(/\s+/g, '_').substring(0, 5);
-                }
-                const responderNamePart = reaction?.name
-                  ? reaction.name.replace(/\s+/g, '_')
-                  : 'UnknownResponder';
-                let dateTimePart = 'timestamp';
-                if (reaction?.createdAt) {
-                  try {
-                    dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
-                  } catch (e) {
-                    console.error('Error formatting date for filename:', e);
-                  }
-                }
-                let extension = 'mp4'; // Default to mp4
-                if (processedVideoUrl) {
-                  // Redundant check, but safe
-                  try {
-                    const urlPath = new URL(processedVideoUrl).pathname;
-                    const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
-                    if (lastSegment.includes('.')) {
-                      const ext = lastSegment.split('.').pop()?.split('?')[0];
-                      if (ext) extension = ext;
-                    }
-                  } catch (e) {
-                    console.error('Could not parse processed video URL for extension:', e);
-                  }
-                }
-                const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
-                const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
-                const finalFilename = `${sanitizedName}.${extension}`;
-                downloadVideo(processedVideoUrl, finalFilename);
-              } else {
-                toast.error('Download URL is not available');
+          <div className="relative">
+            <VideoPlayer
+              src={processedVideoUrl || ''}
+              poster={reaction?.thumbnailUrl || undefined}
+              className="w-full aspect-video rounded-lg object-contain"
+              initialDurationSeconds={
+                typeof reaction?.duration === 'number' ? reaction.duration : undefined
               }
-            }}
-            className="mt-4 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-            disabled={!processedVideoUrl}
-          >
-            <DownloadIcon size={16} />
-            Download Video
-          </button>
+            />
+            {reaction.downloadUrl && (
+              <a
+                href={reaction.downloadUrl}
+                download
+                className="absolute right-2 top-2 rounded-full bg-black/60 p-2 text-white hover:bg-black"
+              >
+                <DownloadIcon size={20} />
+                <span className="sr-only">Download Video</span>
+              </a>
+            )}
+          </div>
         </div>
       ) : (
         reaction?.moderationStatus !== 'rejected' &&
@@ -253,7 +203,7 @@ const ReactionPage: React.FC = () => {
                 className="border-b pb-2 border-neutral-200 dark:border-neutral-600"
               >
                 {reply.mediaUrl && (
-                  <div className="mb-2">
+                  <div className="mb-2 relative">
                     {reply.mediaType === 'video' ? (
                       <VideoPlayer
                         src={getTransformedCloudinaryUrl(reply.mediaUrl, 0)}
@@ -266,6 +216,16 @@ const ReactionPage: React.FC = () => {
                     ) : reply.mediaType === 'audio' ? (
                       <audio controls src={reply.mediaUrl} className="w-full" />
                     ) : null}
+                    {reply.downloadUrl && (
+                      <a
+                        href={reply.downloadUrl}
+                        download
+                        className="absolute right-2 top-2 rounded-full bg-black/60 p-2 text-white hover:bg-black"
+                      >
+                        <DownloadIcon size={20} />
+                        <span className="sr-only">Download</span>
+                      </a>
+                    )}
                   </div>
                 )}
                 {reply.text && <span>“{reply.text}” </span>}
