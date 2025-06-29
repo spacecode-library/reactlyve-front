@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import { useAuth } from '../context/AuthContext'; // Adjust path if necessary
-import { formatDistance, format } from 'date-fns'; // Added format
+import { formatDistance } from 'date-fns';
 import {
   ClipboardIcon,
   DownloadIcon,

@@ -5,7 +5,8 @@ export const generateDownloadUrl = (cloudinaryUrl: string, filename: string): st
     const segments = url.pathname.split('/');
     const uploadIndex = segments.indexOf('upload');
     if (uploadIndex !== -1) {
-      segments.splice(uploadIndex + 1, 0, `fl_attachment:${filename}`);
+      const nameWithoutExt = filename.replace(/\.[^/.]+$/, '');
+      segments.splice(uploadIndex + 1, 0, `fl_attachment:${nameWithoutExt}`);
       url.pathname = segments.join('/');
     }
     return url.toString();
