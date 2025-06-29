@@ -287,29 +287,6 @@ const Message: React.FC = () => {
 
   const normalizedMessage = message ? normalizeMessage(message) : null;
 
-  useEffect(() => {
-    if (normalizedMessage) {
-      console.log('Message URLs:', {
-        imageUrl: normalizedMessage.imageUrl,
-        videoUrl: normalizedMessage.videoUrl,
-        downloadUrl: normalizedMessage.downloadUrl,
-      });
-      if (normalizedMessage.reactions) {
-        normalizedMessage.reactions.forEach((r: Reaction) => {
-          console.log(`Reaction ${r.id} URLs:`, {
-            videoUrl: r.videoUrl,
-            downloadUrl: r.downloadUrl,
-          });
-          r.replies?.forEach((rep: Reply) => {
-            console.log(`Reply ${rep.id} URLs:`, {
-              mediaUrl: rep.mediaUrl,
-              downloadUrl: rep.downloadUrl,
-            });
-          });
-        });
-      }
-    }
-  }, [normalizedMessage]);
 
   const copyToClipboard = (text: string | undefined, type: 'passcode' | 'link') => {
     if (!text) return;
@@ -766,7 +743,6 @@ const Message: React.FC = () => {
                           replies?: { id: string; text: string; createdAt: string }[];
                         }
                       ) => {
-                        // console.log removed as per request
                         return (
                           <div
                             key={reaction.id}

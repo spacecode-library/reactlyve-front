@@ -79,28 +79,6 @@ const ReactionPage: React.FC = () => {
     fetchReactionAndMessage();
   }, [reactionId]);
 
-  useEffect(() => {
-    if (reaction) {
-      console.log('Reaction URLs:', {
-        videoUrl: reaction.videoUrl,
-        downloadUrl: reaction.downloadUrl,
-      });
-      reaction.replies?.forEach((rep: Reply) => {
-        console.log(`Reply ${rep.id} URLs:`, {
-          mediaUrl: rep.mediaUrl,
-          downloadUrl: rep.downloadUrl,
-        });
-      });
-    }
-    if (parentMessage) {
-      const n = normalizeMessage(parentMessage);
-      console.log('Parent message URLs:', {
-        imageUrl: n.imageUrl,
-        videoUrl: n.videoUrl,
-        downloadUrl: n.downloadUrl,
-      });
-    }
-  }, [reaction, parentMessage]);
 
 
   if (loading) {
