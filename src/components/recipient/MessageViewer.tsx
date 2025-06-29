@@ -543,6 +543,16 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         <p className="mb-4 text-neutral-600 dark:text-neutral-300">
           Share your thoughts or say thanks—your reply means a lot!
         </p>
+        {isReactionRecorded && (
+          <div className="mb-4 flex gap-2">
+            <button onClick={() => setShowVideoReply(true)} className="btn btn-secondary">
+              Record Video Reply
+            </button>
+            <button onClick={() => setShowAudioReply(true)} className="btn btn-secondary">
+              Record Audio Reply
+            </button>
+          </div>
+        )}
         <div className="flex items-center space-x-3">
           <textarea
             value={replyText}
@@ -565,16 +575,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
           {replyText.length}/500 characters
         </p>
-        {isReactionRecorded && (
-          <div className="mt-4 flex gap-2">
-            <button onClick={() => setShowVideoReply(true)} className="btn btn-secondary">
-              Record Video Reply
-            </button>
-            <button onClick={() => setShowAudioReply(true)} className="btn btn-secondary">
-              Record Audio Reply
-            </button>
-          </div>
-        )}
         {showVideoReply && (
           <div className="mt-4">
             <WebcamRecorder
