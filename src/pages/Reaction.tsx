@@ -256,7 +256,7 @@ const ReactionPage: React.FC = () => {
                   <div className="mb-2">
                     {reply.mediaType === 'video' ? (
                       <VideoPlayer
-                        src={reply.mediaUrl}
+                        src={getTransformedCloudinaryUrl(reply.mediaUrl, 0)}
                         poster={reply.thumbnailUrl || undefined}
                         className="w-full aspect-video rounded"
                         initialDurationSeconds={

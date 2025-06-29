@@ -125,7 +125,10 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
                 >
                   {reply.mediaUrl && reply.mediaType?.startsWith('video') && (
                     <div className="mb-2 overflow-hidden rounded-md">
-                      <VideoPlayer src={reply.mediaUrl} poster={reply.thumbnailUrl || undefined} />
+                      <VideoPlayer
+                        src={getTransformedCloudinaryUrl(reply.mediaUrl, 0)}
+                        poster={reply.thumbnailUrl || undefined}
+                      />
                     </div>
                   )}
                   {reply.mediaUrl && reply.mediaType?.startsWith('audio') && (
