@@ -161,24 +161,26 @@ const ReactionPage: React.FC = () => {
       reaction?.moderationStatus !== 'rejected' &&
       reaction?.moderationStatus !== 'manual_review' ? (
         <div className="px-4 py-8">
-          <VideoPlayer
-            src={processedVideoUrl || ''}
-            poster={reaction?.thumbnailUrl || undefined}
-            className="w-full aspect-video rounded-lg object-contain"
-            initialDurationSeconds={
-              typeof reaction?.duration === 'number' ? reaction.duration : undefined
-            }
-          />
-              {reaction.downloadUrl && (
-                <a
-                  href={reaction.downloadUrl}
-                  download
-                  className="mt-4 inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                >
-                  <DownloadIcon size={16} />
-                  Download Video
-                </a>
-              )}
+          <div className="relative">
+            <VideoPlayer
+              src={processedVideoUrl || ''}
+              poster={reaction?.thumbnailUrl || undefined}
+              className="w-full aspect-video rounded-lg object-contain"
+              initialDurationSeconds={
+                typeof reaction?.duration === 'number' ? reaction.duration : undefined
+              }
+            />
+            {reaction.downloadUrl && (
+              <a
+                href={reaction.downloadUrl}
+                download
+                className="absolute right-2 top-2 rounded-full bg-black/60 p-2 text-white hover:bg-black"
+              >
+                <DownloadIcon size={20} />
+                <span className="sr-only">Download Video</span>
+              </a>
+            )}
+          </div>
         </div>
       ) : (
         reaction?.moderationStatus !== 'rejected' &&
@@ -200,7 +202,7 @@ const ReactionPage: React.FC = () => {
                 className="border-b pb-2 border-neutral-200 dark:border-neutral-600"
               >
                 {reply.mediaUrl && (
-                  <div className="mb-2">
+                  <div className="mb-2 relative">
                     {reply.mediaType === 'video' ? (
                       <VideoPlayer
                         src={getTransformedCloudinaryUrl(reply.mediaUrl, 0)}
@@ -213,21 +215,22 @@ const ReactionPage: React.FC = () => {
                     ) : reply.mediaType === 'audio' ? (
                       <audio controls src={reply.mediaUrl} className="w-full" />
                     ) : null}
+                    {reply.downloadUrl && (
+                      <a
+                        href={reply.downloadUrl}
+                        download
+                        className="absolute right-2 top-2 rounded-full bg-black/60 p-2 text-white hover:bg-black"
+                      >
+                        <DownloadIcon size={20} />
+                        <span className="sr-only">Download</span>
+                      </a>
+                    )}
                   </div>
                 )}
                 {reply.text && <span>“{reply.text}” </span>}
                 <span className="text-xs text-neutral-500">
                   ({new Date(reply.createdAt).toLocaleString()})
                 </span>
-                {reply.downloadUrl && (
-                  <a
-                    href={reply.downloadUrl}
-                    download
-                    className="ml-2 text-blue-600 hover:underline"
-                  >
-                    Download
-                  </a>
-                )}
               </li>
             ))}
           </ul>

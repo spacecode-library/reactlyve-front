@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { DownloadIcon } from 'lucide-react';
 import { Reaction } from '../../types/reaction';
 import { formatDate, formatDuration, truncateString } from '../../utils/formatters';
 import { getTransformedCloudinaryUrl } from '../../utils/mediaHelpers';
@@ -62,23 +63,9 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
 
         <div className="flex space-x-2">
           {reaction.videoUrl && reaction.moderationStatus !== "rejected" && reaction.moderationStatus !== "manual_review" && (
-            <>
-              <Button size="sm" variant="outline" onClick={handlePlayToggle}>
-                {isPlaying ? 'Pause' : 'Play'}
-              </Button>
-
-              <a
-                href={reaction.downloadUrl}
-                download
-                className={classNames(
-                  "btn btn-outline btn-sm",
-                  !reaction.downloadUrl && "btn-disabled opacity-50 cursor-not-allowed"
-                )}
-                aria-disabled={!reaction.downloadUrl}
-              >
-                Download
-              </a>
-            </>
+            <Button size="sm" variant="outline" onClick={handlePlayToggle}>
+              {isPlaying ? 'Pause' : 'Play'}
+            </Button>
           )}
 
           {onDeleteReaction && (
@@ -104,12 +91,22 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
 
       {/* Video */}
       {reaction.videoUrl && reaction.moderationStatus !== "rejected" && reaction.moderationStatus !== "manual_review" ? (
-        <div className="overflow-hidden rounded-md">
+        <div className="relative overflow-hidden rounded-md">
           <VideoPlayer
             src={transformedVideoUrl || ''}
             poster={reaction.thumbnailUrl}
             autoPlay={isPlaying}
           />
+          {reaction.downloadUrl && (
+            <a
+              href={reaction.downloadUrl}
+              download
+              className="absolute right-2 top-2 rounded-full bg-black/60 p-2 text-white hover:bg-black"
+            >
+              <DownloadIcon size={20} />
+              <span className="sr-only">Download Video</span>
+            </a>
+          )}
         </div>
       ) : (
         reaction.replies && reaction.replies.length > 0 && (

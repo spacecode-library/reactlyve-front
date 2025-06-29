@@ -385,23 +385,23 @@ const Message: React.FC = () => {
     imageElement = (
       <div className="mb-6">
         <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Image</h2>
-        <img
-          src={transformedImgUrl}
-          alt="Message"
-          className="w-full max-w-lg rounded object-cover"
-        />
-        {normalizedMessage.downloadUrl && (
-          <div className="mt-3">
+        <div className="relative inline-block">
+          <img
+            src={transformedImgUrl}
+            alt="Message"
+            className="w-full max-w-lg rounded object-cover"
+          />
+          {normalizedMessage.downloadUrl && (
             <a
               href={normalizedMessage.downloadUrl}
               download
-              className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              className="absolute right-2 top-2 rounded-full bg-black/60 p-2 text-white hover:bg-black"
             >
-              <DownloadIcon size={16} />
-              Download Image
+              <DownloadIcon size={20} />
+              <span className="sr-only">Download Image</span>
             </a>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     );
   }
@@ -424,24 +424,24 @@ const Message: React.FC = () => {
     videoElement = (
       <div className="mb-6">
         <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Video</h2>
-        <VideoPlayer
-          src={transformedVidUrl}
-          poster={normalizedMessage.thumbnailUrl || undefined}
-          className="w-full max-w-lg"
-          autoPlay={false}
-          initialDurationSeconds={
-            typeof message.duration === 'number' ? message.duration : undefined
-          }
-        />
-        <div className="mt-3">
+        <div className="relative w-full max-w-lg">
+          <VideoPlayer
+            src={transformedVidUrl}
+            poster={normalizedMessage.thumbnailUrl || undefined}
+            className="w-full"
+            autoPlay={false}
+            initialDurationSeconds={
+              typeof message.duration === 'number' ? message.duration : undefined
+            }
+          />
           {normalizedMessage.downloadUrl && (
             <a
               href={normalizedMessage.downloadUrl}
               download
-              className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              className="absolute right-2 top-2 rounded-full bg-black/60 p-2 text-white hover:bg-black"
             >
-              <DownloadIcon size={16} />
-              Download Video
+              <DownloadIcon size={20} />
+              <span className="sr-only">Download Video</span>
             </a>
           )}
         </div>
@@ -828,7 +828,7 @@ const Message: React.FC = () => {
                                     );
                                   }
                                   return (
-                                    <>
+                                    <div className="relative">
                                       <VideoPlayer
                                         src={transformedReactionVideoUrl}
                                         poster={reaction.thumbnailUrl || undefined}
@@ -844,13 +844,13 @@ const Message: React.FC = () => {
                                         <a
                                           href={reaction.downloadUrl}
                                           download
-                                          className="mt-3 inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                                          className="absolute right-2 top-2 rounded-full bg-black/60 p-2 text-white hover:bg-black"
                                         >
-                                          <DownloadIcon size={16} />
-                                          Download Reaction
+                                          <DownloadIcon size={20} />
+                                          <span className="sr-only">Download Reaction</span>
                                         </a>
                                       )}
-                                    </>
+                                    </div>
                                   );
                                 })()}
                               </>
@@ -876,7 +876,7 @@ const Message: React.FC = () => {
                                       className="border-b pb-2 border-neutral-200 dark:border-neutral-600"
                                     >
                                       {reply.mediaUrl && (
-                                        <div className="mb-1">
+                                        <div className="relative mb-1">
                                           {reply.mediaType === 'video' ? (
                                             <VideoPlayer
                                               src={getTransformedCloudinaryUrl(reply.mediaUrl, 0)}
@@ -895,21 +895,22 @@ const Message: React.FC = () => {
                                               className="w-full"
                                             />
                                           ) : null}
+                                          {reply.downloadUrl && (
+                                            <a
+                                              href={reply.downloadUrl}
+                                              download
+                                              className="absolute right-2 top-2 rounded-full bg-black/60 p-2 text-white hover:bg-black"
+                                            >
+                                              <DownloadIcon size={20} />
+                                              <span className="sr-only">Download</span>
+                                            </a>
+                                          )}
                                         </div>
                                       )}
                                       {reply.text && <span>"{reply.text}" </span>}
                                       <span className="text-xs text-neutral-500">
                                         ({new Date(reply.createdAt).toLocaleString()})
                                       </span>
-                                      {reply.downloadUrl && (
-                                        <a
-                                          href={reply.downloadUrl}
-                                          download
-                                          className="ml-2 text-blue-600 hover:underline"
-                                        >
-                                          Download
-                                        </a>
-                                      )}
                                     </li>
                                   ))}
                                 </ul>
