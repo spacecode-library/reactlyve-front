@@ -555,7 +555,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
           className || ''
         )}
       >
-        {!(showCountdown || isRecording || recordingCompleted || isCompressing) && (
+        {!(showCountdown || isRecording || recordingCompleted || isCompressing) && !isReplyMode && (
           <h2 className="mb-1 text-lg font-semibold text-neutral-900 dark:text-neutral-100">Record Your Lyve Reaction</h2>
         )}
 
