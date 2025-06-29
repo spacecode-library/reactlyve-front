@@ -8,7 +8,7 @@ import Button from '../components/common/Button';
 import VideoPlayer from '../components/dashboard/VideoPlayer';
 import type { MessageWithReactions } from '@/types/message';
 import type { Reaction } from '@/types/reaction';
-import { normalizeReaction } from '../utils/normalizeKeys';
+import { normalizeReaction, normalizeMessage } from '../utils/normalizeKeys';
 import { getTransformedCloudinaryUrl } from '../utils/mediaHelpers';
 import toast from 'react-hot-toast'; // For user feedback
 
@@ -78,6 +78,29 @@ const ReactionPage: React.FC = () => {
 
     fetchReactionAndMessage();
   }, [reactionId]);
+
+  useEffect(() => {
+    if (reaction) {
+      console.log('Reaction URLs:', {
+        videoUrl: reaction.videoUrl,
+        downloadUrl: reaction.downloadUrl,
+      });
+      reaction.replies?.forEach(rep => {
+        console.log(`Reply ${rep.id} URLs:`, {
+          mediaUrl: rep.mediaUrl,
+          downloadUrl: rep.downloadUrl,
+        });
+      });
+    }
+    if (parentMessage) {
+      const n = normalizeMessage(parentMessage);
+      console.log('Parent message URLs:', {
+        imageUrl: n.imageUrl,
+        videoUrl: n.videoUrl,
+        downloadUrl: n.downloadUrl,
+      });
+    }
+  }, [reaction, parentMessage]);
 
 
   if (loading) {

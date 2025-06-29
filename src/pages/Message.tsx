@@ -286,6 +286,30 @@ const Message: React.FC = () => {
 
   const normalizedMessage = message ? normalizeMessage(message) : null;
 
+  useEffect(() => {
+    if (normalizedMessage) {
+      console.log('Message URLs:', {
+        imageUrl: normalizedMessage.imageUrl,
+        videoUrl: normalizedMessage.videoUrl,
+        downloadUrl: normalizedMessage.downloadUrl,
+      });
+      if (normalizedMessage.reactions) {
+        normalizedMessage.reactions.forEach(r => {
+          console.log(`Reaction ${r.id} URLs:`, {
+            videoUrl: r.videoUrl,
+            downloadUrl: r.downloadUrl,
+          });
+          r.replies?.forEach(rep => {
+            console.log(`Reply ${rep.id} URLs:`, {
+              mediaUrl: rep.mediaUrl,
+              downloadUrl: rep.downloadUrl,
+            });
+          });
+        });
+      }
+    }
+  }, [normalizedMessage]);
+
   const copyToClipboard = (text: string | undefined, type: 'passcode' | 'link') => {
     if (!text) return;
     navigator.clipboard.writeText(text);
