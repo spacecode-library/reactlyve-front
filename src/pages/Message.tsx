@@ -20,6 +20,7 @@ import Button from '@/components/common/Button';
 import Input from '@/components/common/Input'; // Added Input
 import toast from 'react-hot-toast';
 import type { Reaction } from '../types/reaction';
+import type { Reply } from '../types/message';
 import { normalizeMessage } from '../utils/normalizeKeys';
 import { getTransformedCloudinaryUrl } from '../utils/mediaHelpers';
 import { QRCodeSVG } from 'qrcode.react';
@@ -294,12 +295,12 @@ const Message: React.FC = () => {
         downloadUrl: normalizedMessage.downloadUrl,
       });
       if (normalizedMessage.reactions) {
-        normalizedMessage.reactions.forEach(r => {
+        normalizedMessage.reactions.forEach((r: Reaction) => {
           console.log(`Reaction ${r.id} URLs:`, {
             videoUrl: r.videoUrl,
             downloadUrl: r.downloadUrl,
           });
-          r.replies?.forEach(rep => {
+          r.replies?.forEach((rep: Reply) => {
             console.log(`Reply ${rep.id} URLs:`, {
               mediaUrl: rep.mediaUrl,
               downloadUrl: rep.downloadUrl,

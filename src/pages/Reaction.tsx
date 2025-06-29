@@ -6,7 +6,7 @@ import { DownloadIcon } from 'lucide-react';
 import { reactionsApi, messagesApi } from '@/services/api';
 import Button from '../components/common/Button';
 import VideoPlayer from '../components/dashboard/VideoPlayer';
-import type { MessageWithReactions } from '@/types/message';
+import type { MessageWithReactions, Reply } from '@/types/message';
 import type { Reaction } from '@/types/reaction';
 import { normalizeReaction, normalizeMessage } from '../utils/normalizeKeys';
 import { getTransformedCloudinaryUrl } from '../utils/mediaHelpers';
@@ -85,7 +85,7 @@ const ReactionPage: React.FC = () => {
         videoUrl: reaction.videoUrl,
         downloadUrl: reaction.downloadUrl,
       });
-      reaction.replies?.forEach(rep => {
+      reaction.replies?.forEach((rep: Reply) => {
         console.log(`Reply ${rep.id} URLs:`, {
           mediaUrl: rep.mediaUrl,
           downloadUrl: rep.downloadUrl,
