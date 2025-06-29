@@ -42,7 +42,6 @@ const AdminIcon = () => (
   </svg>
 );
 
-// MenuOpenIcon and XMarkIcon removed as they are no longer used
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user } = useAuth();

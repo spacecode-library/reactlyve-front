@@ -24,6 +24,7 @@ export interface Message {
   videoUrl?: string | null;
   mediaType?: 'image' | 'video';
   duration?: number;
+  downloadUrl?: string;
   reaction_length?: number;
   max_reactions_allowed?: number | null; // Add this line
   reactions_used?: number;
@@ -43,6 +44,11 @@ export interface Message {
 export interface Reply {
   id: string;
   text: string;
+  mediaUrl?: string | null;
+  mediaType?: string | null;
+  thumbnailUrl?: string | null;
+  duration?: number;
+  downloadUrl?: string;
   createdAt: string;
 }
 
@@ -65,4 +71,3 @@ export interface MessageLink {
   createdAt: string;
   updatedAt: string;
 }
-

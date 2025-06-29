@@ -40,6 +40,7 @@ export const normalizeMessage = (message: any) => {
     imageUrl: finalImageUrl,
     videoUrl: finalVideoUrl,
     thumbnailUrl: message.thumbnailUrl || message.thumbnailurl,
+    downloadUrl: message.downloadUrl || message.download_url || message.downloadurl,
     createdAt: message.createdAt || message.createdat,
     updatedAt: message.updatedAt || message.updatedat,
     passcode: message.passcode,
@@ -64,9 +65,29 @@ export const normalizeMessage = (message: any) => {
   };
 };
 
+export const normalizeReply = (reply: any) => {
+  if (!reply) return reply;
+  return {
+    ...reply,
+    id: reply.id,
+    text: reply.text,
+    mediaUrl: reply.mediaUrl || reply.mediaurl,
+    mediaType: reply.mediaType || reply.mediatype,
+    thumbnailUrl: reply.thumbnailUrl || reply.thumbnailurl,
+    duration:
+      reply.duration ||
+      reply.mediaDuration ||
+      reply.media_duration ||
+      reply.durationSecs ||
+      reply.duration_secs ||
+      undefined,
+    downloadUrl: reply.downloadUrl || reply.download_url || reply.downloadurl,
+    createdAt: reply.createdAt || reply.createdat,
+  };
+};
+
 export const normalizeReaction = (reaction: any) => {
   if (!reaction) return reaction;
-  // console.log removed as per request
 
   return {
     ...reaction,
@@ -76,8 +97,9 @@ export const normalizeReaction = (reaction: any) => {
     updatedAt: reaction.updatedAt || reaction.updatedat,
     videoUrl: reaction.videoUrl || reaction.videourl,
     thumbnailUrl: reaction.thumbnailUrl || reaction.thumbnailurl,
+    downloadUrl: reaction.downloadUrl || reaction.download_url || reaction.downloadurl,
     duration: reaction.duration || reaction.videoDuration || reaction.video_duration || reaction.durationInSecs || undefined,
-    replies: reaction.replies || [],
+    replies: (reaction.replies || []).map(normalizeReply),
     moderationStatus:
       reaction.moderation_status || reaction.moderationStatus || null,
     moderationDetails:

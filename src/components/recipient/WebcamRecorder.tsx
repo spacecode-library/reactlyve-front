@@ -1,7 +1,7 @@
 import { FFmpeg, FileData } from '@ffmpeg/ffmpeg'; // Added
 import { fetchFile, toBlobURL } from '@ffmpeg/util'; // Added
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
+import { ChevronDownIcon, ChevronUpIcon, StopIcon } from '@heroicons/react/24/solid';
 import useWebcam from '../../hooks/useWebcam';
 import useMediaRecorder from '../../hooks/useMediaRecorder';
 import Button from '../common/Button';
@@ -328,9 +328,6 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
       if (processingError) {
         // If there was a processing error, onRecordingComplete still needs to be called
         // so the application flow can continue (e.g. upload original, show error message)
-        // console.log('[WebcamRecorder] Processing error occurred, calling onRecordingComplete with original blob.'); // Removed
-      } else {
-        // console.log('[WebcamRecorder] Processing complete, calling onRecordingComplete.'); // Removed
       }
       onRecordingComplete(blobToUpload);
     };
@@ -364,11 +361,8 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
     stopWebcamRef.current = stopWebcam;
   }, [stopWebcam]);
 
-  // Modify the cleanup useEffect:
   useEffect(() => {
-    // console.log('[WebcamRecorder] Component did mount, registering unmount cleanup effect.'); // Removed
     return () => {
-      // console.log('[WebcamRecorder] Component will unmount, calling stopWebcam via ref from cleanup effect.'); // Removed
       if (stopWebcamRef.current) {
         stopWebcamRef.current();
       }
@@ -561,7 +555,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
           className || ''
         )}
       >
-        {!(showCountdown || isRecording || recordingCompleted || isCompressing) && (
+        {!(showCountdown || isRecording || recordingCompleted || isCompressing) && !isReplyMode && (
           <h2 className="mb-1 text-lg font-semibold text-neutral-900 dark:text-neutral-100">Record Your Lyve Reaction</h2>
         )}
 
@@ -603,7 +597,7 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
           <p className="mt-2 text-green-600">Recording complete!</p>
         )}
 
-        {isRecording && (
+        {isRecording && !isReplyMode && (
           <Button
             variant="outline"
             leftIcon={
@@ -620,6 +614,17 @@ const WebcamRecorder: React.FC<WebcamRecorderProps> = ({
             className="mt-1"
           >
             {showPreview ? 'Hide Preview' : 'Show Preview'}
+          </Button>
+        )}
+
+        {isRecording && isReplyMode && (
+          <Button
+            variant="danger"
+            leftIcon={<StopIcon className="h-5 w-5" />}
+            onClick={() => stopRecording()}
+            className="mt-2"
+          >
+            Stop Recording
           </Button>
         )}
 

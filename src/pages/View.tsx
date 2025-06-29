@@ -65,7 +65,6 @@ const View: React.FC = () => {
         setError(MESSAGE_ERRORS.NOT_FOUND);
       } finally {
         setLoading(false);
-        // window.scrollTo(0, 0); // Removed as per new strategy
       }
     };
 

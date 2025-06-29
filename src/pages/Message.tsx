@@ -2,8 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import { useAuth } from '../context/AuthContext'; // Adjust path if necessary
-import { formatDistance, format } from 'date-fns'; // Added format
-import { ClipboardIcon, DownloadIcon, CopyIcon, LinkIcon, Trash2Icon, Edit3Icon, Share2Icon } from 'lucide-react';
+import { formatDistance } from 'date-fns';
+import {
+  ClipboardIcon,
+  DownloadIcon,
+  CopyIcon,
+  LinkIcon,
+  Trash2Icon,
+  Edit3Icon,
+  Share2Icon,
+} from 'lucide-react';
 import api, { messagesApi, reactionsApi, messageLinksApi } from '@/services/api';
 import { MESSAGE_ROUTES } from '@/components/constants/apiRoutes';
 import type { MessageWithReactions } from '../types/message';
@@ -12,6 +20,7 @@ import Button from '@/components/common/Button';
 import Input from '@/components/common/Input'; // Added Input
 import toast from 'react-hot-toast';
 import type { Reaction } from '../types/reaction';
+import type { Reply } from '../types/message';
 import { normalizeMessage } from '../utils/normalizeKeys';
 import { getTransformedCloudinaryUrl } from '../utils/mediaHelpers';
 import { QRCodeSVG } from 'qrcode.react';
@@ -140,7 +149,8 @@ const Message: React.FC = () => {
       const updatedFields = normalizeMessage(response.data);
       setMessage(prevMessage => {
         if (!prevMessage) return null;
-        const newReactions = updatedFields.reactions !== undefined ? updatedFields.reactions : prevMessage.reactions;
+        const newReactions =
+          updatedFields.reactions !== undefined ? updatedFields.reactions : prevMessage.reactions;
         return {
           ...prevMessage,
           ...updatedFields,
@@ -190,7 +200,8 @@ const Message: React.FC = () => {
       const updatedFields = normalizeMessage(response.data);
       setMessage(prevMessage => {
         if (!prevMessage) return null;
-        const newReactions = updatedFields.reactions !== undefined ? updatedFields.reactions : prevMessage.reactions;
+        const newReactions =
+          updatedFields.reactions !== undefined ? updatedFields.reactions : prevMessage.reactions;
         return {
           ...prevMessage,
           ...updatedFields,
@@ -273,9 +284,10 @@ const Message: React.FC = () => {
       setShowDeleteAllReactionsModal(false);
     }
   };
-  
+
   const normalizedMessage = message ? normalizeMessage(message) : null;
-  
+
+
   const copyToClipboard = (text: string | undefined, type: 'passcode' | 'link') => {
     if (!text) return;
     navigator.clipboard.writeText(text);
@@ -311,23 +323,6 @@ const Message: React.FC = () => {
     }
   };
 
-  const downloadVideo = async (url: string, filename: string) => {
-    try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`Download failed: ${res.status}`);
-      const blob = await res.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(blobUrl);
-    } catch (err) {
-      console.error('Download error:', err);
-    }
-  };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -369,8 +364,9 @@ const Message: React.FC = () => {
   // Message is guaranteed to be non-null here due to the check above,
   // so normalizedMessage will also be non-null.
   const { formattedDate, timeAgo } = formatDate(normalizedMessage!.createdAt);
-  
-  const hasReactions = normalizedMessage && normalizedMessage.reactions && normalizedMessage.reactions.length > 0;
+
+  const hasReactions =
+    normalizedMessage && normalizedMessage.reactions && normalizedMessage.reactions.length > 0;
 
   let imageElement = null;
   // normalizedMessage could be null if message was null, but the `if (error || !message)` block handles that.
@@ -382,13 +378,34 @@ const Message: React.FC = () => {
     normalizedMessage.mediaType === 'image' &&
     normalizedMessage.imageUrl
   ) {
-      const transformedImgUrl = normalizedMessage.imageUrl ? getTransformedCloudinaryUrl(normalizedMessage.imageUrl, normalizedMessage.fileSizeInBytes || 0) : '';
-      imageElement = (
-          <div className="mb-6">
-              <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Image</h2>
-              <img src={transformedImgUrl} alt="Message" className="w-full max-w-lg rounded object-cover" />
-          </div>
-      );
+    const transformedImgUrl = normalizedMessage.imageUrl
+      ? getTransformedCloudinaryUrl(
+          normalizedMessage.imageUrl,
+          normalizedMessage.fileSizeInBytes || 0
+        )
+      : '';
+    imageElement = (
+      <div className="mb-6">
+        <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Image</h2>
+        <div className="relative inline-block">
+          <img
+            src={transformedImgUrl}
+            alt="Message"
+            className="w-full max-w-lg rounded object-cover"
+          />
+          {normalizedMessage.downloadUrl && (
+            <a
+              href={normalizedMessage.downloadUrl}
+              download
+              className="absolute right-2 top-2 rounded-full bg-black/60 p-2 text-white hover:bg-black"
+            >
+              <DownloadIcon size={20} />
+              <span className="sr-only">Download Image</span>
+            </a>
+          )}
+        </div>
+      </div>
+    );
   }
 
   let videoElement = null;
@@ -400,45 +417,38 @@ const Message: React.FC = () => {
     normalizedMessage.mediaType === 'video' &&
     normalizedMessage.videoUrl
   ) {
-      const transformedVidUrl = normalizedMessage.videoUrl ? getTransformedCloudinaryUrl(normalizedMessage.videoUrl, normalizedMessage.fileSizeInBytes || 0) : '';
-      videoElement = (
-          <div className="mb-6">
-              <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Video</h2>
-              <VideoPlayer
-                  src={transformedVidUrl}
-                  poster={normalizedMessage.thumbnailUrl || undefined}
-                  className="w-full max-w-lg"
-                  autoPlay={false}
-                   initialDurationSeconds={typeof message.duration === 'number' ? message.duration : undefined}
-              />
-              <div className="mt-3">
-                <button
-                  onClick={() => {
-                    if (transformedVidUrl) {
-                      const extension = transformedVidUrl?.split('.').pop()?.split('?')[0] || 'mp4';
-                      const filename = `message-video.${extension}`;
-                      downloadVideo(transformedVidUrl, filename);
-                    } else {
-                      // Optionally, provide feedback to the user or log this case
-                      console.warn('Download button clicked, but transformedVidUrl is not available.');
-                      toast.error('Video URL is not available for download');
-                    }
-                  }}
-                  className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                  disabled={!transformedVidUrl} // Disable button if URL is not available
-                >
-                  <DownloadIcon size={16} />
-                  Download Video
-                </button>
-                {message.duration && ( // message is confirmed non-null here
-                  <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-                    Duration: {Math.floor(message.duration / 60)}:{(message.duration % 60).toString().padStart(2, '0')}
-                  </p>
-                )}
-
-              </div>
-          </div>
-      );
+    const transformedVidUrl = normalizedMessage.videoUrl
+      ? getTransformedCloudinaryUrl(
+          normalizedMessage.videoUrl,
+          normalizedMessage.fileSizeInBytes || 0
+        )
+      : '';
+    videoElement = (
+      <div className="mb-6">
+        <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Video</h2>
+        <div className="relative w-full max-w-lg">
+          <VideoPlayer
+            src={transformedVidUrl}
+            poster={normalizedMessage.thumbnailUrl || undefined}
+            className="w-full"
+            autoPlay={false}
+            initialDurationSeconds={
+              typeof message.duration === 'number' ? message.duration : undefined
+            }
+          />
+          {normalizedMessage.downloadUrl && (
+            <a
+              href={normalizedMessage.downloadUrl}
+              download
+              className="absolute right-2 top-2 rounded-full bg-black/60 p-2 text-white hover:bg-black"
+            >
+              <DownloadIcon size={20} />
+              <span className="sr-only">Download Video</span>
+            </a>
+          )}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -449,7 +459,9 @@ const Message: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-6 border-b border-neutral-200 pb-4 dark:border-neutral-700">
               <div>
-                <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Message Details</h1>
+                <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
+                  Message Details
+                </h1>
                 <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
                   {formattedDate} ({timeAgo})
                 </p>
@@ -473,7 +485,9 @@ const Message: React.FC = () => {
 
             {/* Message content */}
             <div className="mb-6">
-              <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Message Content</h2>
+              <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
+                Message Content
+              </h2>
               <div className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
                 <p className="text-neutral-700 dark:text-neutral-200">{message.content}</p>
               </div>
@@ -483,7 +497,9 @@ const Message: React.FC = () => {
               normalizedMessage.moderationStatus === 'manual_review') && (
               <div className="mb-6 rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
                 <p className="mb-1 break-words text-base font-medium text-neutral-500 dark:text-neutral-400">
-                  {normalizedMessage.moderationDetails ? `This image was rejected: ${normalizedMessage.moderationDetails}` : 'This media failed moderation.'}
+                  {normalizedMessage.moderationDetails
+                    ? `This image was rejected: ${normalizedMessage.moderationDetails}`
+                    : 'This media failed moderation.'}
                 </p>
                 <Button
                   size="sm"
@@ -502,7 +518,9 @@ const Message: React.FC = () => {
                   }}
                   isLoading={isSubmittingManualReview}
                 >
-                  {normalizedMessage.moderationStatus === 'manual_review' ? 'Manual Review Pending' : 'Request Manual Review'}
+                  {normalizedMessage.moderationStatus === 'manual_review'
+                    ? 'Manual Review Pending'
+                    : 'Request Manual Review'}
                 </Button>
               </div>
             )}
@@ -512,12 +530,16 @@ const Message: React.FC = () => {
             {videoElement}
 
             {/* Shareable link, passcode, reaction length, and reaction stats */}
-            <div className="mb-6 flex flex-col gap-4"> {/* Outer container for rows */}
+            <div className="mb-6 flex flex-col gap-4">
+              {' '}
+              {/* Outer container for rows */}
               {/* Desktop Row 1: Shareable Link and Passcode */}
               <div className="lg:grid lg:grid-cols-2 lg:gap-4 flex flex-col gap-4">
                 {normalizedMessage.shareableLink && (
                   <div>
-                    <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Reusable Link</h2>
+                    <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
+                      Reusable Link
+                    </h2>
                     <div className="rounded-md bg-neutral-100 dark:bg-neutral-700">
                       <div className="flex items-center gap-2 p-3">
                         <p className="flex-1 truncate text-sm text-neutral-700 dark:text-neutral-300">
@@ -560,18 +582,22 @@ const Message: React.FC = () => {
                         </button>
                       </div>
                       {copied.link && (
-                        <p className="mt-1 text-xs text-green-600 dark:text-green-400">Link copied to clipboard</p>
+                        <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+                          Link copied to clipboard
+                        </p>
                       )}
                       {showQrCode && normalizedMessage.shareableLink && (
                         <div className="mt-4 text-center">
-                          <h3 className="mb-2 text-md font-semibold text-neutral-900 dark:text-white">Scan QR Code</h3>
+                          <h3 className="mb-2 text-md font-semibold text-neutral-900 dark:text-white">
+                            Scan QR Code
+                          </h3>
                           <div className="inline-block rounded-lg bg-white p-4 shadow">
                             <QRCodeSVG
                               value={normalizedMessage.shareableLink}
                               size={200}
-                              bgColor={"#ffffff"}
-                              fgColor={"#000000"}
-                              level={"L"}
+                              bgColor={'#ffffff'}
+                              fgColor={'#000000'}
+                              level={'L'}
                             />
                           </div>
                           <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
@@ -585,7 +611,9 @@ const Message: React.FC = () => {
 
                 {id && (
                   <div>
-                    <h2 className="mb-2 mt-3 text-lg font-semibold text-neutral-900 dark:text-white">One Time Links</h2>
+                    <h2 className="mb-2 mt-3 text-lg font-semibold text-neutral-900 dark:text-white">
+                      One Time Links
+                    </h2>
                     <div className="flex items-center justify-between rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
                       <p className="text-sm text-neutral-700 dark:text-neutral-300">
                         Live: {linkStats.liveOneTime} / Viewed: {linkStats.expiredOneTime}
@@ -603,7 +631,9 @@ const Message: React.FC = () => {
                 {/* Passcode Display - Always show section, indicate if not set */}
                 {message && (
                   <div>
-                    <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Passcode</h2>
+                    <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
+                      Passcode
+                    </h2>
                     <div className="flex items-center gap-2 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
                       <p className="flex-1 text-sm font-mono text-neutral-700 dark:text-neutral-300">
                         {message.passcode ? (
@@ -633,13 +663,14 @@ const Message: React.FC = () => {
                   </div>
                 )}
               </div>
-
               {/* Desktop Row 2: Reaction Length and Reaction Stats */}
               <div className="lg:grid lg:grid-cols-2 lg:gap-4 flex flex-col gap-4">
                 {/* Reaction Length Display */}
                 {normalizedMessage && typeof normalizedMessage.reaction_length === 'number' && (
                   <div>
-                    <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Reaction Length</h2>
+                    <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
+                      Reaction Length
+                    </h2>
                     <div className="flex items-center justify-between gap-2 rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
                       <p className="text-sm text-neutral-700 dark:text-neutral-300">
                         {normalizedMessage.reaction_length} seconds
@@ -655,19 +686,25 @@ const Message: React.FC = () => {
                   </div>
                 )}
                 {/* Reaction Stats Display */}
-                {normalizedMessage && (normalizedMessage.reactions_used !== undefined || normalizedMessage.reactions_remaining !== undefined || normalizedMessage.max_reactions_allowed !== undefined) && (
-                  <div>
-                    <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">Reaction Stats</h2>
-                    <div className="rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
-                      <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                        Used: {normalizedMessage.reactions_used ?? 'N/A'} / {normalizedMessage.max_reactions_allowed ?? 'Unlimited'}
-                      </p>
-                      <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                        Remaining: {normalizedMessage.reactions_remaining ?? 'N/A'}
-                      </p>
+                {normalizedMessage &&
+                  (normalizedMessage.reactions_used !== undefined ||
+                    normalizedMessage.reactions_remaining !== undefined ||
+                    normalizedMessage.max_reactions_allowed !== undefined) && (
+                    <div>
+                      <h2 className="mb-2 text-lg font-semibold text-neutral-900 dark:text-white">
+                        Reaction Stats
+                      </h2>
+                      <div className="rounded-md bg-neutral-100 p-3 dark:bg-neutral-700">
+                        <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                          Used: {normalizedMessage.reactions_used ?? 'N/A'} /{' '}
+                          {normalizedMessage.max_reactions_allowed ?? 'Unlimited'}
+                        </p>
+                        <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                          Remaining: {normalizedMessage.reactions_remaining ?? 'N/A'}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
             </div>
 
@@ -675,225 +712,215 @@ const Message: React.FC = () => {
             {hasReactions ? (
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
-                  <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Reactions</h2>
+                  <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
+                    Reactions
+                  </h2>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setShowDeleteAllReactionsModal(true)}
-                    disabled={isGuestUser || isDeletingAllReactions || !normalizedMessage?.reactions?.length}
+                    disabled={
+                      isGuestUser || isDeletingAllReactions || !normalizedMessage?.reactions?.length
+                    }
                     isLoading={isDeletingAllReactions}
                     className="text-red-600 border-red-600 hover:bg-red-50 dark:text-red-400 dark:border-red-400 dark:hover:bg-red-900/30"
-                    title={isGuestUser ? "Guests cannot clear all reactions." : undefined}
+                    title={isGuestUser ? 'Guests cannot clear all reactions.' : undefined}
                   >
                     <Trash2Icon size={16} className="mr-1" />
                     Clear All Reactions
                   </Button>
                 </div>
                 <div className="grid gap-6 sm:grid-cols-2">
-                  {hasReactions && normalizedMessage && normalizedMessage.reactions.map((reaction: Reaction & { name?: string; videoUrl?: string; thumbnailUrl?: string; duration?: number; replies?: { id: string; text: string; createdAt: string }[] }) => {
-                    // console.log removed as per request
-                    return (
-                    <div key={reaction.id} className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          {reaction.name && (
-                           <p className="text-md font-semibold text-neutral-800 dark:text-neutral-100">
-                            From:{' '}
-                           <Link
-                             to={`/reaction/${reaction.id}`}
-                             className="text-blue-600 hover:underline dark:text-blue-400"
-                             title="View Reaction"
-                             >
-                             {reaction.name}
-                            </Link>
-                           </p>
-                          )}
-                          <p className="text-sm text-neutral-700 dark:text-neutral-300">
-                            Received on {new Date(reaction.createdAt).toLocaleString()}
-                          </p>
-                          {(reaction.moderationStatus === 'rejected' ||
-                            reaction.moderationStatus === 'manual_review') && (
-                            <div className="mt-2">
-                              <p className="mb-1 break-words text-sm font-medium text-neutral-500 dark:text-neutral-400">
-                                {reaction.moderationDetails
-                                  ? `Rejected: ${reaction.moderationDetails}`
-                                  : 'This reaction failed moderation.'}
-                              </p>
+                  {hasReactions &&
+                    normalizedMessage &&
+                    normalizedMessage.reactions.map(
+                      (
+                        reaction: Reaction & {
+                          name?: string;
+                          videoUrl?: string;
+                          thumbnailUrl?: string;
+                          duration?: number;
+                          replies?: { id: string; text: string; createdAt: string }[];
+                        }
+                      ) => {
+                        return (
+                          <div
+                            key={reaction.id}
+                            className="rounded-md bg-neutral-100 p-4 dark:bg-neutral-700"
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                {reaction.name && (
+                                  <p className="text-md font-semibold text-neutral-800 dark:text-neutral-100">
+                                    From:{' '}
+                                    <Link
+                                      to={`/reaction/${reaction.id}`}
+                                      className="text-blue-600 hover:underline dark:text-blue-400"
+                                      title="View Reaction"
+                                    >
+                                      {reaction.name}
+                                    </Link>
+                                  </p>
+                                )}
+                                <p className="text-sm text-neutral-700 dark:text-neutral-300">
+                                  Received on {new Date(reaction.createdAt).toLocaleString()}
+                                </p>
+                                {(reaction.moderationStatus === 'rejected' ||
+                                  reaction.moderationStatus === 'manual_review') && (
+                                  <div className="mt-2">
+                                    <p className="mb-1 break-words text-sm font-medium text-neutral-500 dark:text-neutral-400">
+                                      {reaction.moderationDetails
+                                        ? `Rejected: ${reaction.moderationDetails}`
+                                        : 'This reaction failed moderation.'}
+                                    </p>
+                                    <Button
+                                      size="sm"
+                                      disabled={reaction.moderationStatus === 'manual_review'}
+                                      onClick={async () => {
+                                        setManualReviewReactionId(reaction.id);
+                                        try {
+                                          await reactionsApi.submitForManualReview(reaction.id);
+                                          toast.success('Reaction sent for review');
+                                        } catch (err) {
+                                          toast.error('Failed to submit reaction');
+                                        } finally {
+                                          setManualReviewReactionId(null);
+                                        }
+                                      }}
+                                      isLoading={manualReviewReactionId === reaction.id}
+                                    >
+                                      {reaction.moderationStatus === 'manual_review'
+                                        ? 'Manual Review Pending'
+                                        : 'Request Manual Review'}
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
                               <Button
+                                variant="outline"
                                 size="sm"
-                                disabled={reaction.moderationStatus === 'manual_review'}
-                                onClick={async () => {
-                                  setManualReviewReactionId(reaction.id);
-                                  try {
-                                    await reactionsApi.submitForManualReview(reaction.id);
-                                    toast.success('Reaction sent for review');
-                                  } catch (err) {
-                                    toast.error('Failed to submit reaction');
-                                  } finally {
-                                    setManualReviewReactionId(null);
-                                  }
-                                }}
-                                isLoading={manualReviewReactionId === reaction.id}
+                                onClick={() => openDeleteReactionModal(reaction.id)}
+                                className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 dark:text-neutral-400 dark:hover:text-red-500 dark:hover:bg-red-900/30"
+                                disabled={
+                                  isGuestUser ||
+                                  (isDeletingReaction && reactionToDeleteId === reaction.id)
+                                }
+                                isLoading={isDeletingReaction && reactionToDeleteId === reaction.id}
+                                title={
+                                  isGuestUser
+                                    ? 'Guests cannot delete reactions.'
+                                    : 'Delete Reaction'
+                                }
                               >
-                                {reaction.moderationStatus === 'manual_review' ? 'Manual Review Pending' : 'Request Manual Review'}
+                                <Trash2Icon size={16} />
                               </Button>
                             </div>
-                          )}
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openDeleteReactionModal(reaction.id)}
-                          className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 dark:text-neutral-400 dark:hover:text-red-500 dark:hover:bg-red-900/30"
-                          disabled={isGuestUser || (isDeletingReaction && reactionToDeleteId === reaction.id)}
-                          isLoading={isDeletingReaction && reactionToDeleteId === reaction.id}
-                          title={isGuestUser ? "Guests cannot delete reactions." : "Delete Reaction"}
-                        >
-                          <Trash2Icon size={16} />
-                        </Button>
-                      </div>
 
-                      {reaction.videoUrl &&
-                        reaction.moderationStatus !== 'rejected' &&
-                        reaction.moderationStatus !== 'manual_review' ? (
-                        <>
-                          {(() => {
-                            let transformedReactionVideoUrl = reaction.videoUrl;
-                            if (reaction.videoUrl) {
-                              transformedReactionVideoUrl = getTransformedCloudinaryUrl(reaction.videoUrl, 0);
-                            }
-                            return (
+                            {reaction.videoUrl &&
+                            reaction.moderationStatus !== 'rejected' &&
+                            reaction.moderationStatus !== 'manual_review' ? (
                               <>
-                                <VideoPlayer
-                                  src={transformedReactionVideoUrl}
-                                  poster={reaction.thumbnailUrl || undefined}
-                                  className="w-full rounded"
-                                  autoPlay={false}
-                                  initialDurationSeconds={typeof reaction.duration === 'number' ? reaction.duration : undefined}
-                                />
-                                <button
-                                  onClick={() => {
-                                    if (!transformedReactionVideoUrl) {
-                                      console.error("Download clicked but no transformedReactionVideoUrl present for reaction:", reaction.id);
-                                      toast.error('Video URL is not available for download');
-                                      return;
-                                    }
-                                    // Construct filename (existing logic)
-                                    const prefix = "Reactlyve";
-                                    let titlePart = "video";
-                                    if (message && message.content) {
-                                      titlePart = message.content.replace(/\s+/g, '_').substring(0, 5);
-                                    }
-                                    const responderNamePart = reaction.name ? reaction.name.replace(/\s+/g, '_') : "UnknownResponder";
-                                    let dateTimePart = "timestamp";
-                                    if (reaction.createdAt) {
-                                      try {
-                                        dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
-                                      } catch (e) {
-                                        console.error("Error formatting date for filename:", e);
-                                      }
-                                    }
-                                    let extension = "video"; // Default fallback
-                                    try {
-                                      const urlPath = new URL(transformedReactionVideoUrl).pathname;
-                                      const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
-                                      if (lastSegment.includes('.')) {
-                                        const ext = lastSegment.split('.').pop()?.split('?')[0];
-                                        if (ext) extension = ext;
-                                      }
-                                    } catch (e) {
-                                      console.error("Could not parse transformed reaction video URL for extension:", e);
-                                    }
-                                    const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
-                                    const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
-                                    const finalFilename = `${sanitizedName}.${extension}`;
-                                    downloadVideo(transformedReactionVideoUrl, finalFilename);
-                                  }}
-                                  className="mt-3 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                                  disabled={!transformedReactionVideoUrl}
-                                >
-                                  <DownloadIcon size={16} />
-                                  Download Reaction
-                                </button>
+                                {(() => {
+                                  let transformedReactionVideoUrl = reaction.videoUrl;
+                                  if (reaction.videoUrl) {
+                                    transformedReactionVideoUrl = getTransformedCloudinaryUrl(
+                                      reaction.videoUrl,
+                                      0
+                                    );
+                                  }
+                                  return (
+                                    <div className="relative">
+                                      <VideoPlayer
+                                        src={transformedReactionVideoUrl}
+                                        poster={reaction.thumbnailUrl || undefined}
+                                        className="w-full rounded"
+                                        autoPlay={false}
+                                        initialDurationSeconds={
+                                          typeof reaction.duration === 'number'
+                                            ? reaction.duration
+                                            : undefined
+                                        }
+                                      />
+                                      {reaction.downloadUrl && (
+                                        <a
+                                          href={reaction.downloadUrl}
+                                          download
+                                          className="absolute right-2 top-2 rounded-full bg-black/60 p-2 text-white hover:bg-black"
+                                        >
+                                          <DownloadIcon size={20} />
+                                          <span className="sr-only">Download Reaction</span>
+                                        </a>
+                                      )}
+                                    </div>
+                                  );
+                                })()}
                               </>
-                            );
-                          })()}
-                          {/* This button is now part of the self-invoking function above to access transformedReactionVideoUrl */}
-                          {/* <button
-                            onClick={() => {
-                              // For downloading, always use the original, untransformed URL
-                              if (!reaction.videoUrl) {
-                                console.error("Download clicked but no videoUrl present for reaction:", reaction.id);
-                                return;
-                              }
-                              const prefix = "Reactlyve";
-                              let titlePart = "video";
-                              if (message && message.content) {
-                                titlePart = message.content.replace(/\s+/g, '_').substring(0, 5);
-                              }
-                              const responderNamePart = reaction.name ? reaction.name.replace(/\s+/g, '_') : "UnknownResponder";
-                              let dateTimePart = "timestamp";
-                              if (reaction.createdAt) {
-                                try {
-                                  dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
-                                } catch (e) {
-                                  console.error("Error formatting date for filename:", e);
-                                }
-                              }
-                              let extension = "video";
-                              try {
-                                const urlPath = new URL(reaction.videoUrl).pathname;
-                                const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
-                                if (lastSegment.includes('.')) {
-                                  const ext = lastSegment.split('.').pop();
-                                  if (ext) extension = ext;
-                                }
-                              } catch (e) {
-                                console.error("Could not parse video URL for extension:", e);
-                              }
-                              const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
-                              const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
-                              const finalFilename = `${sanitizedName}.${extension}`;
-                              downloadVideo(reaction.videoUrl, finalFilename);
-                            }}
-                            className="mt-3 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                          >
-                            <DownloadIcon size={16} />
-                            Download Reaction
-                          </button> */}
-                          {reaction.duration && (
-                            <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                              Duration: {Math.floor(reaction.duration / 60)}:{(reaction.duration % 60).toString().padStart(2, '0')}
-                            </p>
-                          )}
-                        </>
-                      ) : (
-                        (!reaction.replies || reaction.replies.length === 0) &&
-                        reaction.moderationStatus !== 'rejected' &&
-                        reaction.moderationStatus !== 'manual_review' && (
-                          <p className="my-4 text-sm text-neutral-600 dark:text-neutral-400">
-                            No reaction video recorded or replies.
-                          </p>
-                        )
-                      )}
+                            ) : (
+                              (!reaction.replies || reaction.replies.length === 0) &&
+                              reaction.moderationStatus !== 'rejected' &&
+                              reaction.moderationStatus !== 'manual_review' && (
+                                <p className="my-4 text-sm text-neutral-600 dark:text-neutral-400">
+                                  No reaction video recorded or replies.
+                                </p>
+                              )
+                            )}
 
-                      {reaction.replies && reaction.replies.length > 0 && (
-                        <div className="mt-4 border-t pt-3 border-neutral-300 dark:border-neutral-600">
-                          <h4 className="mb-1 text-sm font-semibold text-neutral-900 dark:text-white">Replies:</h4>
-                          <ul className="space-y-1 text-sm text-neutral-700 dark:text-neutral-300">
-                            {reaction.replies.map(reply => (
-                              <li key={reply.id} className="border-b pb-1 border-neutral-200 dark:border-neutral-600">
-                                "{reply.text}"
-                                {' '}
-                                <span className="text-xs text-neutral-500">({new Date(reply.createdAt).toLocaleString()})</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  );
-                  })}
+                            {reaction.replies && reaction.replies.length > 0 && (
+                              <div className="mt-4 border-t pt-3 border-neutral-300 dark:border-neutral-600">
+                                <h4 className="mb-1 text-sm font-semibold text-neutral-900 dark:text-white">
+                                  Replies:
+                                </h4>
+                                <ul className="space-y-1 text-sm text-neutral-700 dark:text-neutral-300">
+                                  {reaction.replies.map(reply => (
+                                    <li
+                                      key={reply.id}
+                                      className="border-b pb-2 border-neutral-200 dark:border-neutral-600"
+                                    >
+                                      {reply.mediaUrl && (
+                                        <div className="relative mb-1">
+                                          {reply.mediaType === 'video' ? (
+                                            <VideoPlayer
+                                              src={getTransformedCloudinaryUrl(reply.mediaUrl, 0)}
+                                              poster={reply.thumbnailUrl || undefined}
+                                              className="w-full aspect-video rounded"
+                                              initialDurationSeconds={
+                                                typeof reply.duration === 'number'
+                                                  ? reply.duration
+                                                  : undefined
+                                              }
+                                            />
+                                          ) : reply.mediaType === 'audio' ? (
+                                            <audio
+                                              controls
+                                              src={reply.mediaUrl}
+                                              className="w-full"
+                                            />
+                                          ) : null}
+                                          {reply.downloadUrl && (
+                                            <a
+                                              href={reply.downloadUrl}
+                                              download
+                                              className="absolute right-2 top-2 rounded-full bg-black/60 p-2 text-white hover:bg-black"
+                                            >
+                                              <DownloadIcon size={20} />
+                                              <span className="sr-only">Download</span>
+                                            </a>
+                                          )}
+                                        </div>
+                                      )}
+                                      {reply.text && <span>"{reply.text}" </span>}
+                                      <span className="text-xs text-neutral-500">
+                                        ({new Date(reply.createdAt).toLocaleString()})
+                                      </span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+                    )}
                 </div>
               </div>
             ) : (
@@ -921,43 +948,53 @@ const Message: React.FC = () => {
           size="sm"
           footer={
             <>
-              <Button variant="outline" onClick={() => setShowDeleteConfirmModal(false)} disabled={isDeleting}>
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteConfirmModal(false)}
+                disabled={isDeleting}
+              >
                 Cancel
               </Button>
-              <Button variant="danger" onClick={handleDeleteMessage} disabled={isDeleting} isLoading={isDeleting}>
+              <Button
+                variant="danger"
+                onClick={handleDeleteMessage}
+                disabled={isDeleting}
+                isLoading={isDeleting}
+              >
                 {isDeleting ? 'Deleting...' : 'Delete Message'}
               </Button>
             </>
           }
         >
           <p className="text-neutral-600 dark:text-neutral-300">
-            Are you sure you want to delete this message? This action will also delete all associated reactions and cannot be undone.
+            Are you sure you want to delete this message? This action will also delete all
+            associated reactions and cannot be undone.
           </p>
         </Modal>
         <Modal
           isOpen={showDeleteReactionModal}
           onClose={() => {
             setShowDeleteReactionModal(false);
-            setReactionToDeleteId(null); 
+            setReactionToDeleteId(null);
           }}
           title="Delete Reaction"
           size="sm"
           footer={
             <>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setShowDeleteReactionModal(false);
                   setReactionToDeleteId(null);
-                }} 
+                }}
                 disabled={isDeletingReaction}
               >
                 Cancel
               </Button>
-              <Button 
-                variant="danger" 
-                onClick={handleDeleteSingleReaction} 
-                disabled={isDeletingReaction} 
+              <Button
+                variant="danger"
+                onClick={handleDeleteSingleReaction}
+                disabled={isDeletingReaction}
                 isLoading={isDeletingReaction}
               >
                 {isDeletingReaction ? 'Deleting...' : 'Delete Reaction'}
@@ -976,17 +1013,17 @@ const Message: React.FC = () => {
           size="sm"
           footer={
             <>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowDeleteAllReactionsModal(false)} 
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteAllReactionsModal(false)}
                 disabled={isDeletingAllReactions}
               >
                 Cancel
               </Button>
-              <Button 
-                variant="danger" 
-                onClick={handleDeleteAllReactions} 
-                disabled={isDeletingAllReactions} 
+              <Button
+                variant="danger"
+                onClick={handleDeleteAllReactions}
+                disabled={isDeletingAllReactions}
                 isLoading={isDeletingAllReactions}
               >
                 {isDeletingAllReactions ? 'Clearing...' : 'Clear All'}
@@ -995,7 +1032,8 @@ const Message: React.FC = () => {
           }
         >
           <p className="text-neutral-600 dark:text-neutral-300">
-            Are you sure you want to delete ALL reactions for this message? This action cannot be undone.
+            Are you sure you want to delete ALL reactions for this message? This action cannot be
+            undone.
           </p>
         </Modal>
 
@@ -1007,24 +1045,35 @@ const Message: React.FC = () => {
           size="sm"
           footer={
             <>
-              <Button variant="outline" onClick={handleClosePasscodeModal} disabled={isUpdatingPasscode}>
+              <Button
+                variant="outline"
+                onClick={handleClosePasscodeModal}
+                disabled={isUpdatingPasscode}
+              >
                 Cancel
               </Button>
-              <Button onClick={handleSavePasscode} disabled={isUpdatingPasscode} isLoading={isUpdatingPasscode}>
+              <Button
+                onClick={handleSavePasscode}
+                disabled={isUpdatingPasscode}
+                isLoading={isUpdatingPasscode}
+              >
                 {isUpdatingPasscode ? 'Saving...' : 'Save Passcode'}
               </Button>
             </>
           }
         >
           <div>
-            <label htmlFor="passcodeEdit" className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+            <label
+              htmlFor="passcodeEdit"
+              className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+            >
               Passcode
             </label>
             <Input
               type="text"
               id="passcodeEdit"
               value={currentPasscodeValue}
-              onChange={(e) => setCurrentPasscodeValue(e.target.value)}
+              onChange={e => setCurrentPasscodeValue(e.target.value)}
               placeholder="Leave empty to remove passcode"
               className="w-full dark:bg-neutral-700 dark:text-white"
             />
@@ -1042,10 +1091,18 @@ const Message: React.FC = () => {
           size="sm"
           footer={
             <>
-              <Button variant="outline" onClick={handleCloseReactionLengthModal} disabled={isUpdatingReactionLength}>
+              <Button
+                variant="outline"
+                onClick={handleCloseReactionLengthModal}
+                disabled={isUpdatingReactionLength}
+              >
                 Cancel
               </Button>
-              <Button onClick={handleSaveReactionLength} disabled={isUpdatingReactionLength} isLoading={isUpdatingReactionLength}>
+              <Button
+                onClick={handleSaveReactionLength}
+                disabled={isUpdatingReactionLength}
+                isLoading={isUpdatingReactionLength}
+              >
                 {isUpdatingReactionLength ? 'Saving...' : 'Save Length'}
               </Button>
             </>
@@ -1067,10 +1124,12 @@ const Message: React.FC = () => {
                 max="30"
                 value={currentReactionLengthValue}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-primary-600"
-                onChange={(e) => setCurrentReactionLengthValue(parseInt(e.target.value, 10))}
+                onChange={e => setCurrentReactionLengthValue(parseInt(e.target.value, 10))}
               />
             </div>
-            <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400"> {/* Adjusted margin for helper text */}
+            <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
+              {' '}
+              {/* Adjusted margin for helper text */}
               Adjust the maximum duration for video reactions (10-30 seconds).
             </p>
           </div>

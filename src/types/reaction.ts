@@ -14,6 +14,7 @@ export interface Reaction {
   /** Normalized camelCase fields */
   moderationStatus?: string | null;
   moderationDetails?: string | null;
+  downloadUrl?: string;
   replies?: Reply[];
 }
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { DownloadIcon } from 'lucide-react';
 import { Reaction } from '../../types/reaction';
 import { formatDate, formatDuration, truncateString } from '../../utils/formatters';
 import { getTransformedCloudinaryUrl } from '../../utils/mediaHelpers';
@@ -62,23 +63,9 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
 
         <div className="flex space-x-2">
           {reaction.videoUrl && reaction.moderationStatus !== "rejected" && reaction.moderationStatus !== "manual_review" && (
-            <>
-              <Button size="sm" variant="outline" onClick={handlePlayToggle}>
-                {isPlaying ? 'Pause' : 'Play'}
-              </Button>
-
-              <a
-                href={transformedVideoUrl || '#'}
-                download={`reaction-${reaction.id}.${transformedVideoUrl?.split('.').pop()?.split('?')[0] || 'webm'}`}
-                className={classNames(
-                  "btn btn-outline btn-sm",
-                  !transformedVideoUrl && "btn-disabled opacity-50 cursor-not-allowed"
-                )}
-                aria-disabled={!transformedVideoUrl}
-              >
-                Download
-              </a>
-            </>
+            <Button size="sm" variant="outline" onClick={handlePlayToggle}>
+              {isPlaying ? 'Pause' : 'Play'}
+            </Button>
           )}
 
           {onDeleteReaction && (
@@ -104,12 +91,22 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
 
       {/* Video */}
       {reaction.videoUrl && reaction.moderationStatus !== "rejected" && reaction.moderationStatus !== "manual_review" ? (
-        <div className="overflow-hidden rounded-md">
+        <div className="relative overflow-hidden rounded-md">
           <VideoPlayer
             src={transformedVideoUrl || ''}
             poster={reaction.thumbnailUrl}
             autoPlay={isPlaying}
           />
+          {reaction.downloadUrl && (
+            <a
+              href={reaction.downloadUrl}
+              download
+              className="absolute right-2 top-2 rounded-full bg-black/60 p-2 text-white hover:bg-black"
+            >
+              <DownloadIcon size={20} />
+              <span className="sr-only">Download Video</span>
+            </a>
+          )}
         </div>
       ) : (
         reaction.replies && reaction.replies.length > 0 && (
@@ -118,9 +115,29 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
               Replies:
             </h3>
             <div className="space-y-2">
-              {reaction.replies.map((reply) => (
-                <div key={reply.id} className="rounded-md border border-neutral-200 bg-white p-3 dark:border-neutral-600 dark:bg-neutral-700">
-                  <p className="text-sm text-neutral-800 dark:text-neutral-200">{reply.text}</p>
+              {reaction.replies.map(reply => (
+                <div
+                  key={reply.id}
+                  className="rounded-md border border-neutral-200 bg-white p-3 dark:border-neutral-600 dark:bg-neutral-700"
+                >
+                  {reply.mediaUrl && reply.mediaType?.startsWith('video') && (
+                    <div className="mb-2 overflow-hidden rounded-md">
+                      <VideoPlayer
+                        src={getTransformedCloudinaryUrl(reply.mediaUrl, 0)}
+                        poster={reply.thumbnailUrl || undefined}
+                      />
+                    </div>
+                  )}
+                  {reply.mediaUrl && reply.mediaType?.startsWith('audio') && (
+                    <div className="mb-2">
+                      <audio controls src={reply.mediaUrl} className="w-full" />
+                    </div>
+                  )}
+                  {reply.text && (
+                    <p className="text-sm text-neutral-800 dark:text-neutral-200 break-words">
+                      {reply.text}
+                    </p>
+                  )}
                   <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                     Received: {formatDate(reply.createdAt)}
                   </p>

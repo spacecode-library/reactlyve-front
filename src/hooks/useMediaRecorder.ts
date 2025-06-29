@@ -32,7 +32,18 @@ const useMediaRecorder = ({
 
   const getSupportedMimeType = useCallback(() => {
     if (MediaRecorder.isTypeSupported(mimeType)) return mimeType;
-    const fallbacks = ['video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
+    const audioFallbacks = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/ogg',
+      'audio/wav',
+    ];
+    const videoFallbacks = [
+      'video/webm;codecs=vp8,opus',
+      'video/webm',
+      'video/mp4',
+    ];
+    const fallbacks = mimeType.startsWith('audio') ? audioFallbacks : videoFallbacks;
     return fallbacks.find(type => MediaRecorder.isTypeSupported(type)) || '';
   }, [mimeType]);
 

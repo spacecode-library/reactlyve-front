@@ -5,6 +5,7 @@ interface UseWebcamOptions {
   width?: number;
   height?: number;
   audio?: boolean;
+  video?: boolean;
 }
 
 interface UseWebcamReturn {
@@ -18,12 +19,7 @@ interface UseWebcamReturn {
 }
 
 const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
-  const {
-    facingMode = 'user',
-    width = 1280,
-    height = 720,
-    audio = true,
-  } = options;
+  const { facingMode = 'user', width = 1280, height = 720, audio = true, video = true } = options;
 
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -38,8 +34,12 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
   const checkPermission = useCallback(async () => {
     try {
       if (navigator.permissions?.query) {
-        const camPermission = await navigator.permissions.query({ name: 'camera' as PermissionName });
-        const micPermission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        const camPermission = await navigator.permissions.query({
+          name: 'camera' as PermissionName,
+        });
+        const micPermission = await navigator.permissions.query({
+          name: 'microphone' as PermissionName,
+        });
 
         // Define listener functions
         const updateCombinedPermissionState = () => {
@@ -57,10 +57,16 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
 
         // Remove old listeners before adding new ones
         if (permissionListenersRef.current?.cam) {
-          permissionListenersRef.current.cam.obj.removeEventListener('change', permissionListenersRef.current.cam.lis);
+          permissionListenersRef.current.cam.obj.removeEventListener(
+            'change',
+            permissionListenersRef.current.cam.lis
+          );
         }
         if (permissionListenersRef.current?.mic) {
-          permissionListenersRef.current.mic.obj.removeEventListener('change', permissionListenersRef.current.mic.lis);
+          permissionListenersRef.current.mic.obj.removeEventListener(
+            'change',
+            permissionListenersRef.current.mic.lis
+          );
         }
 
         // Add new listeners
@@ -90,17 +96,23 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
       stopWebcam();
       // Remove listeners on cleanup
       if (permissionListenersRef.current?.cam) {
-        permissionListenersRef.current.cam.obj.removeEventListener('change', permissionListenersRef.current.cam.lis);
+        permissionListenersRef.current.cam.obj.removeEventListener(
+          'change',
+          permissionListenersRef.current.cam.lis
+        );
       }
       if (permissionListenersRef.current?.mic) {
-        permissionListenersRef.current.mic.obj.removeEventListener('change', permissionListenersRef.current.mic.lis);
+        permissionListenersRef.current.mic.obj.removeEventListener(
+          'change',
+          permissionListenersRef.current.mic.lis
+        );
       }
       permissionListenersRef.current = null;
     };
-  }, [checkPermission]); // Removed stopWebcam from here as it's defined below and doesn't change
+  }, [checkPermission]);
 
   const withTimeout = async <T>(promise: Promise<T>, ms: number): Promise<T> => {
-    let timeout: ReturnType<typeof setTimeout> | undefined; // ✅ FIXED: safely defined
+    let timeout: ReturnType<typeof setTimeout> | undefined;
     const timer = new Promise<never>((_, reject) => {
       timeout = setTimeout(() => reject(new Error('Operation timed out')), ms);
     });
@@ -113,14 +125,12 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
     setIsLoading(true);
     setError(null);
 
-    const constraints = {
-      video: {
-        facingMode,
-        width,
-        height,
-      },
-      audio,
-    };
+    const constraints: MediaStreamConstraints = { audio };
+    if (video) {
+      constraints.video = { facingMode, width, height };
+    } else {
+      constraints.video = false;
+    }
 
     try {
       const mediaStream = await withTimeout(
@@ -130,10 +140,10 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
       setStream(mediaStream);
       await checkPermission();
 
-      if (videoRef.current) {
+      if (video && videoRef.current) {
         videoRef.current.srcObject = mediaStream;
 
-        await new Promise<void>((resolve) => {
+        await new Promise<void>(resolve => {
           const ref = videoRef.current;
           if (!ref) return resolve();
 
@@ -145,7 +155,7 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
         });
 
         try {
-          await videoRef.current.play().catch((err) => {
+          await videoRef.current.play().catch(err => {
             console.warn('Autoplay blocked or playback failed:', err);
           });
         } catch (err) {
@@ -162,20 +172,20 @@ const useWebcam = (options: UseWebcamOptions = {}): UseWebcamReturn => {
 
   const stopWebcam = useCallback(() => {
     if (stream) {
-        const tracks = stream.getTracks();
-        tracks.forEach((track) => {
-            track.stop();
-        });
-        setStream(null);
+      const tracks = stream.getTracks();
+      tracks.forEach(track => {
+        track.stop();
+      });
+      setStream(null);
     }
 
-    if (videoRef.current) {
-        videoRef.current.srcObject = null;
-        try {
-            videoRef.current.pause();
-        } catch (e) {
-            console.warn('[useWebcam] Error pausing videoRef:', e);
-        }
+    if (video && videoRef.current) {
+      videoRef.current.srcObject = null;
+      try {
+        videoRef.current.pause();
+      } catch (e) {
+        console.warn('[useWebcam] Error pausing videoRef:', e);
+      }
     }
   }, [stream, videoRef]);
 
