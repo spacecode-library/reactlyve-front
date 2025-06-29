@@ -118,9 +118,26 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
               Replies:
             </h3>
             <div className="space-y-2">
-              {reaction.replies.map((reply) => (
-                <div key={reply.id} className="rounded-md border border-neutral-200 bg-white p-3 dark:border-neutral-600 dark:bg-neutral-700">
-                  <p className="text-sm text-neutral-800 dark:text-neutral-200">{reply.text}</p>
+              {reaction.replies.map(reply => (
+                <div
+                  key={reply.id}
+                  className="rounded-md border border-neutral-200 bg-white p-3 dark:border-neutral-600 dark:bg-neutral-700"
+                >
+                  {reply.mediaUrl && reply.mediaType?.startsWith('video') && (
+                    <div className="mb-2 overflow-hidden rounded-md">
+                      <VideoPlayer src={reply.mediaUrl} poster={reply.thumbnailUrl || undefined} />
+                    </div>
+                  )}
+                  {reply.mediaUrl && reply.mediaType?.startsWith('audio') && (
+                    <div className="mb-2">
+                      <audio controls src={reply.mediaUrl} className="w-full" />
+                    </div>
+                  )}
+                  {reply.text && (
+                    <p className="text-sm text-neutral-800 dark:text-neutral-200 break-words">
+                      {reply.text}
+                    </p>
+                  )}
                   <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                     Received: {formatDate(reply.createdAt)}
                   </p>
