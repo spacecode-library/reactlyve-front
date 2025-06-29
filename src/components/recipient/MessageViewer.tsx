@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'; // Import Link
 import { AxiosError } from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import WebcamRecorder from './WebcamRecorder';
-import AudioRecorder from './AudioRecorder';
 import PermissionRequest from './PermissionRequest';
 import PasscodeEntry from './PasscodeEntry';
 import RecordingBorder from '../common/RecordingBorder'; // Import RecordingBorder
@@ -67,7 +66,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
   const [replyError, setReplyError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showVideoReply, setShowVideoReply] = useState(false);
-  const [showAudioReply, setShowAudioReply] = useState(false);
   const [isUploadingReply, setIsUploadingReply] = useState(false);
   const [isWebcamRecording, setIsWebcamRecording] = useState(false);
   const [isPreloadingMedia, setIsPreloadingMedia] = useState(false);
@@ -248,20 +246,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
     }
   };
 
-  const handleAudioReplyComplete = async (blob: Blob) => {
-    if (!reactionId) return;
-    setIsUploadingReply(true);
-    try {
-      await repliesApi.sendMedia(reactionId, blob);
-      toast.success('Reply uploaded');
-      setShowAudioReply(false);
-    } catch (error) {
-      console.error('Audio reply error:', error);
-      toast.error('Failed to upload reply');
-    } finally {
-      setIsUploadingReply(false);
-    }
-  };
 
   const handlePasscodeSubmit = async (passcode: string) => {
     const valid = await onSubmitPasscode(passcode);
@@ -543,6 +527,24 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         <p className="mb-4 text-neutral-600 dark:text-neutral-300">
           Share your thoughts or say thanks—your reply means a lot!
         </p>
+          {isReactionRecorded && (
+            <div className="mb-4 flex gap-2">
+              <button onClick={() => setShowVideoReply(true)} className="btn btn-secondary">
+                Record Video Reply
+              </button>
+            </div>
+          )}
+        {showVideoReply && (
+          <div className="mb-4">
+            <WebcamRecorder
+              isReplyMode
+              onRecordingComplete={handleVideoReplyComplete}
+              maxDuration={30000}
+              autoStart
+              hidePreviewAfterCountdown={false}
+            />
+          </div>
+        )}
         <div className="flex items-center space-x-3">
           <textarea
             value={replyText}
@@ -565,36 +567,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
           {replyText.length}/500 characters
         </p>
-        {isReactionRecorded && (
-          <div className="mt-4 flex gap-2">
-            <button onClick={() => setShowVideoReply(true)} className="btn btn-secondary">
-              Record Video Reply
-            </button>
-            <button onClick={() => setShowAudioReply(true)} className="btn btn-secondary">
-              Record Audio Reply
-            </button>
-          </div>
-        )}
-        {showVideoReply && (
-          <div className="mt-4">
-            <WebcamRecorder
-              isReplyMode
-              onRecordingComplete={handleVideoReplyComplete}
-              maxDuration={30000}
-              autoStart
-              hidePreviewAfterCountdown={false}
-            />
-          </div>
-        )}
-        {showAudioReply && (
-          <div className="mt-4">
-            <AudioRecorder
-              onRecordingComplete={handleAudioReplyComplete}
-              maxDuration={30000}
-              autoStart
-            />
-          </div>
-        )}
         {isUploadingReply && <p className="mt-2 text-sm text-neutral-500">Uploading reply...</p>}
       </div>
       {isReactionRecorded && (
