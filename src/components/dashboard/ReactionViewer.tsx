@@ -68,13 +68,13 @@ const ReactionViewer: React.FC<ReactionViewerProps> = ({
               </Button>
 
               <a
-                href={transformedVideoUrl || '#'}
-                download={`reaction-${reaction.id}.${transformedVideoUrl?.split('.').pop()?.split('?')[0] || 'webm'}`}
+                href={reaction.downloadUrl}
+                download
                 className={classNames(
                   "btn btn-outline btn-sm",
-                  !transformedVideoUrl && "btn-disabled opacity-50 cursor-not-allowed"
+                  !reaction.downloadUrl && "btn-disabled opacity-50 cursor-not-allowed"
                 )}
-                aria-disabled={!transformedVideoUrl}
+                aria-disabled={!reaction.downloadUrl}
               >
                 Download
               </a>

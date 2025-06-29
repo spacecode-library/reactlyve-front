@@ -40,6 +40,7 @@ export const normalizeMessage = (message: any) => {
     imageUrl: finalImageUrl,
     videoUrl: finalVideoUrl,
     thumbnailUrl: message.thumbnailUrl || message.thumbnailurl,
+    downloadUrl: message.downloadUrl || message.download_url || message.downloadurl,
     createdAt: message.createdAt || message.createdat,
     updatedAt: message.updatedAt || message.updatedat,
     passcode: message.passcode,
@@ -80,6 +81,7 @@ export const normalizeReply = (reply: any) => {
       reply.durationSecs ||
       reply.duration_secs ||
       undefined,
+    downloadUrl: reply.downloadUrl || reply.download_url || reply.downloadurl,
     createdAt: reply.createdAt || reply.createdat,
   };
 };
@@ -95,6 +97,7 @@ export const normalizeReaction = (reaction: any) => {
     updatedAt: reaction.updatedAt || reaction.updatedat,
     videoUrl: reaction.videoUrl || reaction.videourl,
     thumbnailUrl: reaction.thumbnailUrl || reaction.thumbnailurl,
+    downloadUrl: reaction.downloadUrl || reaction.download_url || reaction.downloadurl,
     duration: reaction.duration || reaction.videoDuration || reaction.video_duration || reaction.durationInSecs || undefined,
     replies: (reaction.replies || []).map(normalizeReply),
     moderationStatus:

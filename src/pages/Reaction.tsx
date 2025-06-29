@@ -79,22 +79,6 @@ const ReactionPage: React.FC = () => {
     fetchReactionAndMessage();
   }, [reactionId]);
 
-  const downloadVideo = async (url: string, filename: string) => {
-    try {
-      const res = await fetch(url);
-      const blob = await res.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(blobUrl);
-    } catch (err) {
-      console.error('Download error:', err);
-    }
-  };
 
   if (loading) {
     return (
@@ -185,53 +169,16 @@ const ReactionPage: React.FC = () => {
               typeof reaction?.duration === 'number' ? reaction.duration : undefined
             }
           />
-          <button
-            onClick={() => {
-              if (processedVideoUrl) {
-                const prefix = 'Reactlyve';
-                let titlePart = 'video';
-                if (parentMessage && parentMessage.content) {
-                  titlePart = parentMessage.content.replace(/\s+/g, '_').substring(0, 5);
-                }
-                const responderNamePart = reaction?.name
-                  ? reaction.name.replace(/\s+/g, '_')
-                  : 'UnknownResponder';
-                let dateTimePart = 'timestamp';
-                if (reaction?.createdAt) {
-                  try {
-                    dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
-                  } catch (e) {
-                    console.error('Error formatting date for filename:', e);
-                  }
-                }
-                let extension = 'mp4'; // Default to mp4
-                if (processedVideoUrl) {
-                  // Redundant check, but safe
-                  try {
-                    const urlPath = new URL(processedVideoUrl).pathname;
-                    const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
-                    if (lastSegment.includes('.')) {
-                      const ext = lastSegment.split('.').pop()?.split('?')[0];
-                      if (ext) extension = ext;
-                    }
-                  } catch (e) {
-                    console.error('Could not parse processed video URL for extension:', e);
-                  }
-                }
-                const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
-                const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
-                const finalFilename = `${sanitizedName}.${extension}`;
-                downloadVideo(processedVideoUrl, finalFilename);
-              } else {
-                toast.error('Download URL is not available');
-              }
-            }}
-            className="mt-4 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-            disabled={!processedVideoUrl}
-          >
-            <DownloadIcon size={16} />
-            Download Video
-          </button>
+              {reaction.downloadUrl && (
+                <a
+                  href={reaction.downloadUrl}
+                  download
+                  className="mt-4 inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                >
+                  <DownloadIcon size={16} />
+                  Download Video
+                </a>
+              )}
         </div>
       ) : (
         reaction?.moderationStatus !== 'rejected' &&
@@ -272,6 +219,15 @@ const ReactionPage: React.FC = () => {
                 <span className="text-xs text-neutral-500">
                   ({new Date(reply.createdAt).toLocaleString()})
                 </span>
+                {reply.downloadUrl && (
+                  <a
+                    href={reply.downloadUrl}
+                    download
+                    className="ml-2 text-blue-600 hover:underline"
+                  >
+                    Download
+                  </a>
+                )}
               </li>
             ))}
           </ul>

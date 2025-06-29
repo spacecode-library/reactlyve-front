@@ -321,23 +321,6 @@ const Message: React.FC = () => {
     }
   };
 
-  const downloadVideo = async (url: string, filename: string) => {
-    try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`Download failed: ${res.status}`);
-      const blob = await res.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(blobUrl);
-    } catch (err) {
-      console.error('Download error:', err);
-    }
-  };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -407,6 +390,18 @@ const Message: React.FC = () => {
           alt="Message"
           className="w-full max-w-lg rounded object-cover"
         />
+        {normalizedMessage.downloadUrl && (
+          <div className="mt-3">
+            <a
+              href={normalizedMessage.downloadUrl}
+              download
+              className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            >
+              <DownloadIcon size={16} />
+              Download Image
+            </a>
+          </div>
+        )}
       </div>
     );
   }
@@ -439,24 +434,16 @@ const Message: React.FC = () => {
           }
         />
         <div className="mt-3">
-          <button
-            onClick={() => {
-              if (transformedVidUrl) {
-                const extension = transformedVidUrl?.split('.').pop()?.split('?')[0] || 'mp4';
-                const filename = `message-video.${extension}`;
-                downloadVideo(transformedVidUrl, filename);
-              } else {
-                // Optionally, provide feedback to the user or log this case
-                console.warn('Download button clicked, but transformedVidUrl is not available.');
-                toast.error('Video URL is not available for download');
-              }
-            }}
-            className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-            disabled={!transformedVidUrl} // Disable button if URL is not available
-          >
-            <DownloadIcon size={16} />
-            Download Video
-          </button>
+          {normalizedMessage.downloadUrl && (
+            <a
+              href={normalizedMessage.downloadUrl}
+              download
+              className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            >
+              <DownloadIcon size={16} />
+              Download Video
+            </a>
+          )}
         </div>
       </div>
     );
@@ -853,121 +840,19 @@ const Message: React.FC = () => {
                                             : undefined
                                         }
                                       />
-                                      <button
-                                        onClick={() => {
-                                          if (!transformedReactionVideoUrl) {
-                                            console.error(
-                                              'Download clicked but no transformedReactionVideoUrl present for reaction:',
-                                              reaction.id
-                                            );
-                                            toast.error('Video URL is not available for download');
-                                            return;
-                                          }
-                                          // Construct filename (existing logic)
-                                          const prefix = 'Reactlyve';
-                                          let titlePart = 'video';
-                                          if (message && message.content) {
-                                            titlePart = message.content
-                                              .replace(/\s+/g, '_')
-                                              .substring(0, 5);
-                                          }
-                                          const responderNamePart = reaction.name
-                                            ? reaction.name.replace(/\s+/g, '_')
-                                            : 'UnknownResponder';
-                                          let dateTimePart = 'timestamp';
-                                          if (reaction.createdAt) {
-                                            try {
-                                              dateTimePart = format(
-                                                new Date(reaction.createdAt),
-                                                'ddMMyyyy-HHmm'
-                                              );
-                                            } catch (e) {
-                                              console.error(
-                                                'Error formatting date for filename:',
-                                                e
-                                              );
-                                            }
-                                          }
-                                          let extension = 'video'; // Default fallback
-                                          try {
-                                            const urlPath = new URL(transformedReactionVideoUrl)
-                                              .pathname;
-                                            const lastSegment = urlPath.substring(
-                                              urlPath.lastIndexOf('/') + 1
-                                            );
-                                            if (lastSegment.includes('.')) {
-                                              const ext = lastSegment
-                                                .split('.')
-                                                .pop()
-                                                ?.split('?')[0];
-                                              if (ext) extension = ext;
-                                            }
-                                          } catch (e) {
-                                            console.error(
-                                              'Could not parse transformed reaction video URL for extension:',
-                                              e
-                                            );
-                                          }
-                                          const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
-                                          const sanitizedName = nameWithoutExtension.replace(
-                                            /[^a-zA-Z0-9_\-\.]/g,
-                                            '_'
-                                          );
-                                          const finalFilename = `${sanitizedName}.${extension}`;
-                                          downloadVideo(transformedReactionVideoUrl, finalFilename);
-                                        }}
-                                        className="mt-3 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                                        disabled={!transformedReactionVideoUrl}
-                                      >
-                                        <DownloadIcon size={16} />
-                                        Download Reaction
-                                      </button>
+                                      {reaction.downloadUrl && (
+                                        <a
+                                          href={reaction.downloadUrl}
+                                          download
+                                          className="mt-3 inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                                        >
+                                          <DownloadIcon size={16} />
+                                          Download Reaction
+                                        </a>
+                                      )}
                                     </>
                                   );
                                 })()}
-                                {/* This button is now part of the self-invoking function above to access transformedReactionVideoUrl */}
-                                {/* <button
-                            onClick={() => {
-                              // For downloading, always use the original, untransformed URL
-                              if (!reaction.videoUrl) {
-                                console.error("Download clicked but no videoUrl present for reaction:", reaction.id);
-                                return;
-                              }
-                              const prefix = "Reactlyve";
-                              let titlePart = "video";
-                              if (message && message.content) {
-                                titlePart = message.content.replace(/\s+/g, '_').substring(0, 5);
-                              }
-                              const responderNamePart = reaction.name ? reaction.name.replace(/\s+/g, '_') : "UnknownResponder";
-                              let dateTimePart = "timestamp";
-                              if (reaction.createdAt) {
-                                try {
-                                  dateTimePart = format(new Date(reaction.createdAt), 'ddMMyyyy-HHmm');
-                                } catch (e) {
-                                  console.error("Error formatting date for filename:", e);
-                                }
-                              }
-                              let extension = "video";
-                              try {
-                                const urlPath = new URL(reaction.videoUrl).pathname;
-                                const lastSegment = urlPath.substring(urlPath.lastIndexOf('/') + 1);
-                                if (lastSegment.includes('.')) {
-                                  const ext = lastSegment.split('.').pop();
-                                  if (ext) extension = ext;
-                                }
-                              } catch (e) {
-                                console.error("Could not parse video URL for extension:", e);
-                              }
-                              const nameWithoutExtension = `${prefix}-${titlePart}-${responderNamePart}-${dateTimePart}`;
-                              const sanitizedName = nameWithoutExtension.replace(/[^a-zA-Z0-9_\-\.]/g, '_');
-                              const finalFilename = `${sanitizedName}.${extension}`;
-                              downloadVideo(reaction.videoUrl, finalFilename);
-                            }}
-                            className="mt-3 flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                          >
-                            <DownloadIcon size={16} />
-                            Download Reaction
-                          </button> */}
                               </>
                             ) : (
                               (!reaction.replies || reaction.replies.length === 0) &&
@@ -1016,6 +901,15 @@ const Message: React.FC = () => {
                                       <span className="text-xs text-neutral-500">
                                         ({new Date(reply.createdAt).toLocaleString()})
                                       </span>
+                                      {reply.downloadUrl && (
+                                        <a
+                                          href={reply.downloadUrl}
+                                          download
+                                          className="ml-2 text-blue-600 hover:underline"
+                                        >
+                                          Download
+                                        </a>
+                                      )}
                                     </li>
                                   ))}
                                 </ul>
