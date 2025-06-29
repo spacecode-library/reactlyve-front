@@ -158,7 +158,7 @@ export const repliesApi = {
   },
   sendMedia: (reactionId: string, media: Blob, text?: string) => {
     const formData = new FormData();
-    formData.append('media', media, 'reply');
+    formData.append('media', media, 'reply.webm');
     if (text) formData.append('text', text);
     return api.post(REPLY_ROUTES.UPLOAD_MEDIA(reactionId), formData, {
       headers: { 'Content-Type': 'multipart/form-data' },

@@ -553,6 +553,22 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
             </button>
           </div>
         )}
+        {showVideoReply && (
+          <div className="mb-4">
+            <WebcamRecorder
+              isReplyMode
+              onRecordingComplete={handleVideoReplyComplete}
+              maxDuration={30000}
+              autoStart
+              hidePreviewAfterCountdown={false}
+            />
+          </div>
+        )}
+        {showAudioReply && (
+          <div className="mb-4">
+            <AudioRecorder onRecordingComplete={handleAudioReplyComplete} maxDuration={30000} autoStart />
+          </div>
+        )}
         <div className="flex items-center space-x-3">
           <textarea
             value={replyText}
@@ -575,26 +591,6 @@ const MessageViewer: React.FC<MessageViewerProps> = ({
         <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
           {replyText.length}/500 characters
         </p>
-        {showVideoReply && (
-          <div className="mt-4">
-            <WebcamRecorder
-              isReplyMode
-              onRecordingComplete={handleVideoReplyComplete}
-              maxDuration={30000}
-              autoStart
-              hidePreviewAfterCountdown={false}
-            />
-          </div>
-        )}
-        {showAudioReply && (
-          <div className="mt-4">
-            <AudioRecorder
-              onRecordingComplete={handleAudioReplyComplete}
-              maxDuration={30000}
-              autoStart
-            />
-          </div>
-        )}
         {isUploadingReply && <p className="mt-2 text-sm text-neutral-500">Uploading reply...</p>}
       </div>
       {isReactionRecorded && (
